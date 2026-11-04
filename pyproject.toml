@@ -66,7 +66,7 @@ extend-exclude = ["atlas", "data", ".cache", "notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
-ignore = ["E501", "RUF001", "RUF002", "RUF003", "B008", "E731"]
+ignore = ["E501", "RUF001", "RUF002", "RUF003", "B008", "E731", "B905", "SIM108", "RUF005"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B", "SIM"]

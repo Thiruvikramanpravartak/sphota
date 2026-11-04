@@ -36,8 +36,9 @@ with a wide accuracy radius, a short code is a correct-but-coarse answer.
 ## 3. Alternates and multi-code
 
 * **Alternates.** For the first level whose top probability is below 0.98, the other
-  candidates with `p ≥ 0.02` are returned as alternate codes (same depth as the returned
-  code) with their probabilities. `is_boundary` is true when any returned level has
+  candidates with `p ≥ 0.02` (at most 5) are returned as alternate codes with their
+  probabilities. Each alternate has the same depth as the returned code; its deeper levels are
+  obtained by re-quantizing the input under the alternative prefix (exact, not approximate). `is_boundary` is true when any returned level has
   `level_confidence < 0.6`.
 * **Top-k codes.** A beam search over levels multiplies per-level probabilities and returns
   the `k` most probable full codes (for ambiguous text, or to index an item under several
@@ -48,10 +49,19 @@ with a wide accuracy radius, a short code is a correct-but-coarse answer.
 
 A code (or prefix) `c` denotes the point `v(c) = Σ_{l ≤ depth(c)} C_l[i_l]`.
 
+Let `v_l(c)` be the reconstruction of `c` truncated to level `l`, `n = min(depth(a), depth(b))`
+and `w = (0.55, 0.25, 0.12, 0.08)[:n]` renormalized to sum to 1.
+
 ```
-distance(a, b)   = ‖v(a) − v(b)‖₂                         (translation-noise units)
-similarity(a, b) = clip( v(a)·v(b) / (‖v(a)‖ ‖v(b)‖), 0, 1 )
+distance(a, b)   = sqrt( Σ_{l≤n} w_l · ‖v_l(a) − v_l(b)‖² )          (translation-noise units)
+similarity(a, b) = Σ_{l≤n} w_l · s_l,  s_l = 1 if a, b share the first l levels,
+                                       else max(0, cos(v_l(a), v_l(b)))
 ```
+
+*Why weighted.* In the noise-whitened space the deeper residual centroids are as large as the
+L1 centroids (they mostly encode within-topic variation), so a plain cosine of full
+reconstructions would let L4 dominate. The weights make similarity respect the hierarchy:
+codes that differ only at L4 score > 0.9, neighbouring L1 regions ≈ 0.3, unrelated ≈ 0.
 
 * Both need only the codebooks (numpy, no model).
 * `neighbors(c, k)`: for an L1 code, the `k` nearest L1 centroids (precomputed table

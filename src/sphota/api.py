@@ -23,6 +23,7 @@ from sphota.release import Release, load_release
 from sphota.space import Quantized, complete_path, project, quantize, topk_codes
 
 DEFAULT_LANG = "en"
+MAX_ALTERNATES = 5
 
 
 # ------------------------------------------------------------------ labels
@@ -168,8 +169,10 @@ class Sphota(str):
                 else:
                     levels = [*prefix, int(c)]
                 cs = Sphota(from_indices(levels))
-                if cs.code != self.code:
+                if cs.code != self.code and all(cs.code != o.code for o, _ in out):
                     out.append((cs, float(p)))
+                if len(out) == MAX_ALTERNATES:
+                    break
             break
         return out
 
@@ -373,7 +376,7 @@ def explain(code: str, lang: str = DEFAULT_LANG) -> dict[str, Any]:
         item: dict[str, Any] = {"prefix": str(p), "level": d}
         if d <= 2:
             parts = label_parts(p, lang)
-            item["label"] = parts[-1] if parts else None
+            item["label"] = parts[d - 1] if len(parts) >= d else None
         if s.confidence:
             item["confidence"] = round(s.confidence[d - 1], 4)
         levels.append(item)
