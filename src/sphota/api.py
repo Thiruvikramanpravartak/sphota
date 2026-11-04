@@ -241,16 +241,40 @@ def _to_codes(
     return out
 
 
+_ENCODERS: dict[str, Any] = {}
+
+
 def _encoder_for(model: str | None):
-    from sphota.encoders import TorchEncoder, default_encoder
+    """(encoder, adapter) for ``model``; adapter is None for the anchor.
+
+    Adapter models run through ONNX Runtime when the registry lists an ONNX export (no torch
+    needed), otherwise through sentence-transformers.
+    """
+    from sphota.encoders import EncoderError, OnnxEncoder, TorchEncoder, default_encoder
 
     rel = load_release()
     if model is None or model in {rel.anchor["model"], "anchor", "default"}:
         return default_encoder(), None
-    from sphota.adapters import get_adapter
+    from sphota.adapters import get_adapter, registry_entry
 
     ad = get_adapter(model)
-    return TorchEncoder(ad.model, prefix=ad.prefix), ad
+    if ad.model not in _ENCODERS:
+        onnx = (registry_entry(model) or {}).get("onnx")
+        enc = None
+        if onnx:
+            try:
+                enc = OnnxEncoder(
+                    repo=onnx["repo"],
+                    onnx_file=onnx.get("file", "onnx/model.onnx"),
+                    prefix=ad.prefix,
+                    max_length=int(onnx.get("max_length", 512)),
+                    pooling=onnx.get("pooling", "mean"),
+                    name=ad.model,
+                )
+            except EncoderError:
+                enc = None
+        _ENCODERS[ad.model] = enc or TorchEncoder(ad.model, prefix=ad.prefix)
+    return _ENCODERS[ad.model], ad
 
 
 def encode_batch(

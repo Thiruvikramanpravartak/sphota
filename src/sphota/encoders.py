@@ -126,6 +126,7 @@ class OnnxEncoder(_CachedEncoder):
         batch_size: int = 32,
         threads: int | None = None,
         name: str | None = None,
+        pooling: str = "mean",
     ):
         super().__init__()
         try:
@@ -138,9 +139,13 @@ class OnnxEncoder(_CachedEncoder):
         self.name = name or repo
         self.prefix = prefix
         self.batch_size = batch_size
+        if pooling not in {"mean", "cls"}:
+            raise EncoderError(f"pooling must be 'mean' or 'cls', got {pooling!r}")
+        self.pooling = pooling
         tok = Tokenizer.from_file(str(hf_file(repo, tokenizer_file)))
         tok.enable_truncation(max_length=max_length)
-        tok.enable_padding(pad_id=tok.token_to_id("<pad>") or 0, pad_token="<pad>")
+        pad = "[PAD]" if tok.token_to_id("[PAD]") is not None else "<pad>"
+        tok.enable_padding(pad_id=tok.token_to_id(pad) or 0, pad_token=pad)
         self.tok = tok
         so = ort.SessionOptions()
         if threads:
@@ -164,8 +169,11 @@ class OnnxEncoder(_CachedEncoder):
             if "token_type_ids" in self.inputs:
                 feed["token_type_ids"] = np.zeros_like(input_ids)
             hidden = self.sess.run(None, feed)[0]  # (b, t, h)
-            m = mask[..., None].astype(np.float32)
-            pooled = (hidden * m).sum(1) / np.maximum(m.sum(1), 1e-9)
+            if self.pooling == "cls":
+                pooled = hidden[:, 0, :].astype(np.float32)
+            else:
+                m = mask[..., None].astype(np.float32)
+                pooled = (hidden * m).sum(1) / np.maximum(m.sum(1), 1e-9)
             pooled /= np.maximum(np.linalg.norm(pooled, axis=1, keepdims=True), 1e-12)
             res[ids] = pooled
         return res

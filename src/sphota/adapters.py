@@ -100,6 +100,17 @@ def list_adapters() -> list[str]:
     return sorted(registry()["adapters"])
 
 
+def registry_entry(model: str) -> dict[str, Any] | None:
+    """Registry entry for an HF id or short name (None if unknown)."""
+    reg = registry()["adapters"]
+    if model in reg:
+        return dict(reg[model])
+    for v in reg.values():
+        if v.get("short") == model:
+            return dict(v)
+    return None
+
+
 @lru_cache(maxsize=32)
 def get_adapter(model: str) -> Adapter:
     """Registry adapter for ``model`` (HF id, short name, or path to an ``.npz``)."""

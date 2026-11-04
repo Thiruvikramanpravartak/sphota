@@ -1,0 +1,74 @@
+{
+  "sentence-transformers/all-MiniLM-L6-v2": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "agreement_same_text_en": [
+      0.166,
+      0.0306,
+      0.0059,
+      0.0
+    ],
+    "agreement_same_text": [
+      0.0516,
+      0.0117,
+      0.0022,
+      0.0002
+    ],
+    "agreement_cross_lingual": [
+      0.1808,
+      0.087,
+      0.052,
+      0.0265
+    ],
+    "anchor_cross_lingual": [
+      0.4614,
+      0.2294,
+      0.1095,
+      0.0487
+    ],
+    "fidelity_en": 0.5482,
+    "fidelity_all": 0.3008,
+    "n_per_lang": 1012,
+    "languages": [
+      "en",
+      "hi",
+      "ta",
+      "es",
+      "fr",
+      "de",
+      "zh",
+      "ar",
+      "ru",
+      "ja",
+      "pt",
+      "bn"
+    ],
+    "checks": {
+      "en_L1": false,
+      "en_L2": false,
+      "fidelity_en": false,
+      "multilingual_all_L1": false,
+      "multilingual_all_L2": false,
+      "multilingual_fidelity_all": false
+    },
+    "pass": false,
+    "multilingual": false,
+    "grade": "not-certified",
+    "train_pairs": 40000,
+    "seconds": 906,
+    "mlp": {
+      "agreement_same_text_en": [
+        0.247,
+        0.0672,
+        0.0198,
+        0.004
+      ],
+      "agreement_same_text": [
+        0.0721,
+        0.0177,
+        0.0036,
+        0.0007
+      ],
+      "fidelity_en": 0.5512
+    }
+  }
+}
