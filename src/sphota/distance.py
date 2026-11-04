@@ -26,23 +26,60 @@ def reconstruct(code: Code | str, rel: Release | None = None) -> np.ndarray:
     return v
 
 
+# Weight of each level in hierarchy-aware distance / similarity (frozen for s1).
+LEVEL_WEIGHTS = (0.55, 0.25, 0.12, 0.08)
+
+
+def _partials(code: Code, rel: Release) -> list[np.ndarray]:
+    v = np.zeros(rel.dim, np.float64)
+    out = []
+    for lvl, i in enumerate(code.levels):
+        v = v + rel.codebooks[lvl][i]
+        out.append(v.copy())
+    return out
+
+
+def _weights(depth: int) -> np.ndarray:
+    w = np.array(LEVEL_WEIGHTS[:depth], np.float64)
+    return w / w.sum()
+
+
 def distance(a: Code | str, b: Code | str, rel: Release | None = None) -> float:
-    """Euclidean distance between code points, in translation-noise units."""
+    """Hierarchy-aware distance: weighted RMS of the distances between the codes' partial
+    reconstructions at each shared depth (translation-noise units). 0 iff the codes agree on
+    all compared levels."""
     rel = rel or load_release()
-    return float(np.linalg.norm(reconstruct(a, rel) - reconstruct(b, rel)))
+    ca, cb = parse(a), parse(b)
+    pa, pb = _partials(ca, rel), _partials(cb, rel)
+    depth = min(ca.depth, cb.depth)
+    w = _weights(depth)
+    d2 = [float(np.sum((pa[i] - pb[i]) ** 2)) for i in range(depth)]
+    return float(np.sqrt(np.dot(w, d2)))
 
 
 def similarity(a: Code | str, b: Code | str, rel: Release | None = None) -> float:
-    """Similarity in [0, 1]: cosine of the code points (the space is centered), clipped at 0.
+    """Hierarchy-aware similarity in [0, 1].
 
-    Two identical codes give 1.0; a code and its own prefix give a high but lower value.
+    ``sum_l w_l * max(0, cos(v_l(a), v_l(b)))`` over the shared depth, where ``v_l`` is the
+    reconstruction up to level ``l`` and ``w = (0.55, 0.25, 0.12, 0.08)`` renormalized.
+    Identical codes give 1.0; codes differing only at L4 give > 0.9; unrelated L1 regions ~0.
+    Comparing codes of different depth uses the shorter depth (a prefix is "as similar as
+    possible" to its extensions: similarity 1.0).
     """
     rel = rel or load_release()
-    va, vb = reconstruct(a, rel), reconstruct(b, rel)
-    na, nb = np.linalg.norm(va), np.linalg.norm(vb)
-    if na == 0 or nb == 0:
-        return 0.0
-    return float(max(0.0, min(1.0, va @ vb / (na * nb))))
+    ca, cb = parse(a), parse(b)
+    pa, pb = _partials(ca, rel), _partials(cb, rel)
+    depth = min(ca.depth, cb.depth)
+    w = _weights(depth)
+    s = 0.0
+    for i in range(depth):
+        if ca.levels[: i + 1] == cb.levels[: i + 1]:
+            c = 1.0
+        else:
+            na, nb = np.linalg.norm(pa[i]), np.linalg.norm(pb[i])
+            c = float(pa[i] @ pb[i] / (na * nb)) if na and nb else 0.0
+        s += w[i] * max(0.0, c)
+    return float(min(1.0, s))
 
 
 def _l1_table(rel: Release) -> tuple[np.ndarray, np.ndarray]:
@@ -55,14 +92,19 @@ def _l1_table(rel: Release) -> tuple[np.ndarray, np.ndarray]:
     return nb, np.sqrt(np.maximum(np.take_along_axis(d2, nb, 1), 0))
 
 
-def neighbors(code: Code | str, k: int = 10, rel: Release | None = None) -> list[tuple[Code, float]]:
+def neighbors(
+    code: Code | str, k: int = 10, rel: Release | None = None
+) -> list[tuple[Code, float]]:
     """Nearest codes at the same depth as ``code`` (sorted by distance)."""
     rel = rel or load_release()
     c = parse(code)
     depth = c.depth
     if depth == 1:
         nb, dist = _l1_table(rel)
-        return [(from_indices([int(j)]), float(d)) for j, d in zip(nb[c.levels[0]][:k], dist[c.levels[0]][:k])]
+        return [
+            (from_indices([int(j)]), float(d))
+            for j, d in zip(nb[c.levels[0]][:k], dist[c.levels[0]][:k])
+        ]
     # same parent prefix, vary the last level; plus neighbouring L1 cells' best matches
     v = reconstruct(c, rel)
     parent = c.levels[:-1]
@@ -70,11 +112,15 @@ def neighbors(code: Code | str, k: int = 10, rel: Release | None = None) -> list
     C = rel.codebooks[depth - 1]
     cand = base[None, :] + C
     d = np.linalg.norm(cand - v[None, :], axis=1)
-    out = [(from_indices([*parent, int(j)]), float(d[j])) for j in np.argsort(d) if j != c.levels[-1]]
+    out = [
+        (from_indices([*parent, int(j)]), float(d[j])) for j in np.argsort(d) if j != c.levels[-1]
+    ]
     return out[:k]
 
 
-def path(a: Code | str, b: Code | str, rel: Release | None = None, max_hops: int = 12) -> list[Code]:
+def path(
+    a: Code | str, b: Code | str, rel: Release | None = None, max_hops: int = 12
+) -> list[Code]:
     """A semantic route from ``a`` to ``b`` through neighbouring L1 regions (Dijkstra on the
     shipped L1 k-NN graph), ending at ``b`` itself."""
     rel = rel or load_release()

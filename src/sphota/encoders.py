@@ -51,20 +51,22 @@ def hf_file(repo: str, filename: str, revision: str | None = None) -> Path:
         from huggingface_hub import hf_hub_download
     except ImportError as e:  # pragma: no cover - depends on extras
         raise EncoderError(
-            "encoding text needs the encoder extra: pip install 'sphota[encode]'") from e
+            "encoding text needs the encoder extra: pip install 'sphota[encode]'"
+        ) from e
     if offline():
         os.environ.setdefault("HF_HUB_OFFLINE", "1")
     try:
-        return Path(hf_hub_download(repo, filename, revision=revision,
-                                    local_files_only=offline()))
+        return Path(hf_hub_download(repo, filename, revision=revision, local_files_only=offline()))
     except Exception as e:
         if offline():
             raise EncoderError(
                 f"{repo}/{filename} is not cached and SPHOTA_OFFLINE=1. Run `sphota bundle` on a "
-                "connected machine and set SPHOTA_BUNDLE, or unset SPHOTA_OFFLINE.") from e
+                "connected machine and set SPHOTA_BUNDLE, or unset SPHOTA_OFFLINE."
+            ) from e
         raise EncoderError(
             f"could not download {repo}/{filename}: {e}. Check your connection or proxy; "
-            "once downloaded the model is cached and works offline.") from e
+            "once downloaded the model is cached and works offline."
+        ) from e
 
 
 class _LRU:
@@ -131,7 +133,8 @@ class OnnxEncoder(_CachedEncoder):
             from tokenizers import Tokenizer
         except ImportError as e:
             raise EncoderError(
-                "encoding text needs onnxruntime + tokenizers: pip install 'sphota[encode]'") from e
+                "encoding text needs onnxruntime + tokenizers: pip install 'sphota[encode]'"
+            ) from e
         self.name = name or repo
         self.prefix = prefix
         self.batch_size = batch_size
@@ -143,8 +146,9 @@ class OnnxEncoder(_CachedEncoder):
         if threads:
             so.intra_op_num_threads = threads
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self.sess = ort.InferenceSession(str(hf_file(repo, onnx_file)), so,
-                                         providers=["CPUExecutionProvider"])
+        self.sess = ort.InferenceSession(
+            str(hf_file(repo, onnx_file)), so, providers=["CPUExecutionProvider"]
+        )
         self.inputs = {i.name for i in self.sess.get_inputs()}
         self.dim = int(self.sess.get_outputs()[0].shape[-1] or 384)
 
@@ -187,9 +191,13 @@ class TorchEncoder(_CachedEncoder):
         self.dim = int(self.m.get_sentence_embedding_dimension() or 0)
 
     def _encode(self, texts: list[str]) -> np.ndarray:
-        v = self.m.encode([self.prefix + t for t in texts], batch_size=self.batch_size,
-                          normalize_embeddings=True, convert_to_numpy=True,
-                          show_progress_bar=False)
+        v = self.m.encode(
+            [self.prefix + t for t in texts],
+            batch_size=self.batch_size,
+            normalize_embeddings=True,
+            convert_to_numpy=True,
+            show_progress_bar=False,
+        )
         return np.asarray(v, dtype=np.float32)
 
 
@@ -205,7 +213,8 @@ def default_encoder(variant: str | None = None) -> Encoder:
         elif variant == "int8":
             _DEFAULT[variant] = OnnxEncoder(
                 onnx_file="onnx/model_qint8_avx512_vnni.onnx",
-                name="intfloat/multilingual-e5-small@int8")
+                name="intfloat/multilingual-e5-small@int8",
+            )
         elif variant == "torch":
             _DEFAULT[variant] = TorchEncoder("intfloat/multilingual-e5-small", prefix="query: ")
         else:

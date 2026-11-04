@@ -36,7 +36,8 @@ def project(rel: Release, X: np.ndarray) -> np.ndarray:
     if X.shape[1] != rel.W.shape[0]:
         raise ValueError(
             f"vector has {X.shape[1]} dims but the v1 anchor ({rel.anchor['model']}) has "
-            f"{rel.W.shape[0]}. For other models use from_vector(vec, model=...) with an adapter.")
+            f"{rel.W.shape[0]}. For other models use from_vector(vec, model=...) with an adapter."
+        )
     return ((l2n(X) - rel.mu) @ rel.W).astype(np.float32)
 
 
@@ -67,8 +68,11 @@ def _topm(R: np.ndarray, C: np.ndarray, cn: np.ndarray, m: int) -> tuple[np.ndar
     d2 = cn[None, :] - 2.0 * (R.astype(np.float64) @ C.T.astype(np.float64))
     d2 += (R.astype(np.float64) ** 2).sum(1, keepdims=True)
     m = min(m, C.shape[0])
-    part = np.argpartition(d2, m - 1, axis=1)[:, :m] if m < C.shape[0] else np.tile(
-        np.arange(C.shape[0]), (len(R), 1))
+    part = (
+        np.argpartition(d2, m - 1, axis=1)[:, :m]
+        if m < C.shape[0]
+        else np.tile(np.arange(C.shape[0]), (len(R), 1))
+    )
     dd = np.take_along_axis(d2, part, 1)
     order = np.argsort(dd, axis=1, kind="stable")
     return np.take_along_axis(part, order, 1), np.take_along_axis(dd, order, 1)
@@ -137,12 +141,14 @@ def _stable_choice(R: np.ndarray, C: np.ndarray, cand: np.ndarray, sigma: float)
     return votes.argmax(1)
 
 
-def topk_codes(q: Quantized, row: int, k: int, levels: int | None = None) -> list[tuple[tuple[int, ...], float]]:
+def topk_codes(
+    q: Quantized, row: int, k: int, levels: int | None = None
+) -> list[tuple[tuple[int, ...], float]]:
     """Beam search over levels for the k most probable full codes of one row.
 
     Deeper levels' candidates are only exact for the chosen prefix; for alternative prefixes
-    the deeper levels reuse the chosen path's top symbol (an approximation documented in the
-    spec, section 6.3).
+    the deeper levels reuse the chosen path's symbol and confidence (an approximation
+    documented in spec Part 3, section 3).
     """
     L = levels or q.indices.shape[1]
     beams: list[tuple[tuple[int, ...], float]] = [((), 1.0)]
@@ -151,12 +157,32 @@ def topk_codes(q: Quantized, row: int, k: int, levels: int | None = None) -> lis
         for prefix, pr in beams:
             on_path = prefix == tuple(int(v) for v in q.indices[row, :lvl])
             if on_path:
-                opts = [(int(c), float(p)) for c, p in zip(q.cand[lvl][row], q.cand_p[lvl][row])
-                        if p >= ALT_MIN_P]
+                opts = [
+                    (int(c), float(p))
+                    for c, p in zip(q.cand[lvl][row], q.cand_p[lvl][row])
+                    if p >= ALT_MIN_P
+                ]
             else:
-                opts = [(int(q.indices[row, lvl]), 1.0)]
+                # off-path: assume the same uncertainty as the chosen path at this level
+                opts = [(int(q.indices[row, lvl]), float(q.level_conf[row, lvl]))]
             for c, p in opts:
                 new.append(((*prefix, c), pr * p))
         new.sort(key=lambda t: -t[1])
         beams = new[: max(k, 1) * 2]
     return beams[:k]
+
+
+def complete_path(
+    rel: Release, y: np.ndarray, prefix: list[int] | tuple[int, ...], depth: int
+) -> list[int]:
+    """Indices of ``y`` forced through ``prefix`` and greedily quantized down to ``depth``."""
+    r = np.asarray(y, dtype=np.float64).copy()
+    out = [int(i) for i in prefix]
+    for lvl, i in enumerate(out):
+        r -= rel.codebooks[lvl][i]
+    for lvl in range(len(out), depth):
+        C = rel.codebooks[lvl].astype(np.float64)
+        i = int(np.argmin(rel.cnorm(lvl) - 2 * C @ r))
+        out.append(i)
+        r -= C[i]
+    return out

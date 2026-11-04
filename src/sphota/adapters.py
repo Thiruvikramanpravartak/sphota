@@ -51,7 +51,8 @@ class Adapter:
         if X.shape[1] != self.in_dim:
             raise AdapterError(
                 f"adapter for {self.model} expects {self.in_dim}-d vectors, got {X.shape[1]}-d. "
-                "Did you pass vectors from a different model?")
+                "Did you pass vectors from a different model?"
+            )
         X = X / np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-12)
         H = X @ self.A + self.b
         if self.A2 is not None and self.b2 is not None:
@@ -82,8 +83,9 @@ def load_adapter(path: str | Path, sha256: str | None = None) -> Adapter:
         raise AdapterError(f"checksum mismatch for adapter {path}; refusing to load it")
     z = load_npz(path)
     meta = json.loads(str(z["meta"]))
-    return Adapter(model=meta.pop("model"), A=z["A"], b=z["b"], meta=meta,
-                   A2=z.get("A2"), b2=z.get("b2"))
+    return Adapter(
+        model=meta.pop("model"), A=z["A"], b=z["b"], meta=meta, A2=z.get("A2"), b2=z.get("b2")
+    )
 
 
 def registry(release_root: Path | None = None) -> dict[str, Any]:
@@ -111,7 +113,8 @@ def get_adapter(model: str) -> Adapter:
     if key not in reg:
         raise AdapterError(
             f"no certified adapter for {model!r}. Available: {', '.join(sorted(reg)) or 'none'}. "
-            f"Train one with: sphota train-adapter --model {model}")
+            f"Train one with: sphota train-adapter --model {model}"
+        )
     entry = reg[key]
     rel = load_release()
     try:

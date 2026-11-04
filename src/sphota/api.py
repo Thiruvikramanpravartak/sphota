@@ -20,7 +20,7 @@ import numpy as np
 from sphota import distance as _dist
 from sphota.codes import Code, from_indices, parse
 from sphota.release import Release, load_release
-from sphota.space import Quantized, project, quantize, topk_codes
+from sphota.space import Quantized, complete_path, project, quantize, topk_codes
 
 DEFAULT_LANG = "en"
 
@@ -28,8 +28,14 @@ DEFAULT_LANG = "en"
 # ------------------------------------------------------------------ labels
 
 
-def label_parts(code: Code | str, lang: str = DEFAULT_LANG, rel: Release | None = None) -> list[str]:
-    """Human-readable labels for the L1 and L2 prefixes of ``code`` (falls back to English)."""
+def label_parts(
+    code: Code | str, lang: str = DEFAULT_LANG, rel: Release | None = None
+) -> list[str]:
+    """Human-readable labels for the L1 and L2 prefixes of ``code``.
+
+    Falls back to English when ``lang`` has no label; L2 labels exist only for cells that were
+    populated in the training data (otherwise only the L1 label is returned).
+    """
     rel = rel or load_release()
     c = parse(code)
     out = []
@@ -40,7 +46,9 @@ def label_parts(code: Code | str, lang: str = DEFAULT_LANG, rel: Release | None 
         entry = rel.labels.get(k)
         if not entry:
             continue
-        out.append(entry.get(lang) or entry.get(DEFAULT_LANG) or next(iter(entry.values())))
+        text = entry.get(lang) or entry.get(DEFAULT_LANG)
+        if text:
+            out.append(text)
     return out
 
 
@@ -100,8 +108,11 @@ class Sphota(str):
 
     def prefix(self, depth: int) -> Sphota:
         conf = self.confidence[:depth] if self.confidence else None
-        return Sphota(self.code.prefix(depth), confidence=conf,
-                      level_confidence=self.level_confidence[:depth] or None)
+        return Sphota(
+            self.code.prefix(depth),
+            confidence=conf,
+            level_confidence=self.level_confidence[:depth] or None,
+        )
 
     def startswith_code(self, other: str) -> bool:
         return parse(other).is_prefix_of(self.code)
@@ -142,18 +153,20 @@ class Sphota(str):
             return []
         q, r = self._q, self._row
         out: list[tuple[Sphota, float]] = []
-        for lvl in range(q.indices.shape[1]):
+        for lvl in range(self.depth):
             cands, ps = q.cand[lvl][r], q.cand_p[lvl][r]
-            if ps[0] >= 0.98 and lvl < q.indices.shape[1] - 1:
+            if ps[0] >= 0.98 and lvl < self.depth - 1:
                 continue
             prefix = [int(v) for v in q.indices[r, :lvl]]
-            depth = max(self.depth, lvl + 1)
+            depth = self.depth
+            rel = load_release()
             for c, p in zip(cands, ps):
                 if p < 0.02:
                     break
-                levels = [*prefix, int(c)]
-                levels += [int(v) for v in q.indices[r, lvl + 1 : depth]] if int(c) == int(q.indices[r, lvl]) else []
-                levels = levels[:depth] if len(levels) >= depth else levels
+                if self._vector is not None:
+                    levels = complete_path(rel, self._vector, [*prefix, int(c)], depth)
+                else:
+                    levels = [*prefix, int(c)]
                 cs = Sphota(from_indices(levels))
                 if cs.code != self.code:
                     out.append((cs, float(p)))
@@ -169,7 +182,9 @@ class Sphota(str):
         """Top-k full codes with probabilities (multi-code for ambiguous text)."""
         if self._q is None:
             return [(self, 1.0)]
-        return [(Sphota(from_indices(list(c))), float(p)) for c, p in topk_codes(self._q, self._row, k)]
+        return [
+            (Sphota(from_indices(list(c))), float(p)) for c, p in topk_codes(self._q, self._row, k)
+        ]
 
     def explain(self, lang: str = DEFAULT_LANG) -> dict[str, Any]:
         return explain(self, lang=lang)
@@ -208,10 +223,18 @@ def _to_codes(
             below = conf[i, :max_level] < min_confidence
             depth = max(1, int(np.argmax(below)) if below.any() else max_level)
         full = from_indices(q.indices[i])
-        out.append(Sphota(
-            full.prefix(depth), text=texts[i], confidence=conf[i].tolist(),
-            level_confidence=q.level_conf[i].tolist(), full_depth_code=full, q=q, row=i,
-            vector=Y[i]))
+        out.append(
+            Sphota(
+                full.prefix(depth),
+                text=texts[i],
+                confidence=conf[i].tolist(),
+                level_confidence=q.level_conf[i].tolist(),
+                full_depth_code=full,
+                q=q,
+                row=i,
+                vector=Y[i],
+            )
+        )
     return out
 
 
@@ -269,10 +292,12 @@ def encode(
             (e.g. ``"sentence-transformers/all-MiniLM-L6-v2"``). Default: the v1 anchor.
     """
     if not isinstance(text, str):
-        raise TypeError("encode expects a string; for many texts use encode_batch, "
-                        "for vectors use from_vector")
-    return encode_batch([text], min_confidence=min_confidence, max_level=max_level,
-                        stable=stable, model=model)[0]
+        raise TypeError(
+            "encode expects a string; for many texts use encode_batch, for vectors use from_vector"
+        )
+    return encode_batch(
+        [text], min_confidence=min_confidence, max_level=max_level, stable=stable, model=model
+    )[0]
 
 
 def from_vector(
@@ -431,7 +456,9 @@ def compare(doc_a: str | Fingerprint, doc_b: str | Fingerprint, level: int = 2) 
         den = np.linalg.norm(va) * np.linalg.norm(vb)
         return float(va @ vb / den) if den else 0.0
 
-    return 0.5 * cos(fa.at_level(1), fb.at_level(1)) + 0.5 * cos(fa.at_level(level), fb.at_level(level))
+    return 0.5 * cos(fa.at_level(1), fb.at_level(1)) + 0.5 * cos(
+        fa.at_level(level), fb.at_level(level)
+    )
 
 
 @dataclass
@@ -442,12 +469,19 @@ class FingerprintDiff:
     similarity: float
 
     def __repr__(self) -> str:
-        return (f"FingerprintDiff(similarity={self.similarity:.2f}, added={len(self.added)}, "
-                f"removed={len(self.removed)}, shared={len(self.shared)})")
+        return (
+            f"FingerprintDiff(similarity={self.similarity:.2f}, added={len(self.added)}, "
+            f"removed={len(self.removed)}, shared={len(self.shared)})"
+        )
 
 
-def diff(doc_a: str | Fingerprint, doc_b: str | Fingerprint, level: int = 2,
-         threshold: float = 0.05, lang: str = DEFAULT_LANG) -> FingerprintDiff:
+def diff(
+    doc_a: str | Fingerprint,
+    doc_b: str | Fingerprint,
+    level: int = 2,
+    threshold: float = 0.05,
+    lang: str = DEFAULT_LANG,
+) -> FingerprintDiff:
     """Which topics were added in ``doc_b`` / removed from ``doc_a`` (weight change > threshold)."""
     fa, fb = _fp(doc_a, level), _fp(doc_b, level)
     added, removed, shared = [], [], []

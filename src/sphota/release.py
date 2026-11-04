@@ -81,12 +81,15 @@ def _verify(root: Path, manifest: dict[str, Any]) -> None:
     for name, meta in manifest.get("files", {}).items():
         p = root / name
         if not p.exists():
-            raise ReleaseError(f"release file missing: {p}. Reinstall sphota or re-run `sphota bundle`.")
+            raise ReleaseError(
+                f"release file missing: {p}. Reinstall sphota or re-run `sphota bundle`."
+            )
         got = sha256_file(p)
         if got != meta["sha256"]:
             raise ReleaseError(
                 f"checksum mismatch for {p} (expected {meta['sha256'][:12]}…, got {got[:12]}…). "
-                "The file was modified or corrupted; reinstall sphota.")
+                "The file was modified or corrupted; reinstall sphota."
+            )
 
 
 def release_dir() -> Path:
@@ -101,7 +104,8 @@ def load_release(root: str | None = None, verify: bool = True) -> Release:
     if not mpath.exists():
         raise ReleaseError(
             f"no Sphota release found at {r}. If you installed from source, run "
-            "`python -m sphota.build.release --scale small` or set SPHOTA_RELEASE_DIR.")
+            "`python -m sphota.build.release --scale small` or set SPHOTA_RELEASE_DIR."
+        )
     manifest = json.loads(mpath.read_text(encoding="utf-8"))
     if verify:
         _verify(r, manifest)

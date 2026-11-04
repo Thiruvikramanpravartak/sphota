@@ -66,14 +66,16 @@ def symbols_to_index(level: int, sym: str, sizes: tuple[int, ...] = V1_SIZES) ->
     for ch in sym:
         if ch not in _DECODE:
             raise SphotaCodeError(
-                f"invalid character {ch!r}; Sphota codes use Crockford base32 ({ALPHABET})")
+                f"invalid character {ch!r}; Sphota codes use Crockford base32 ({ALPHABET})"
+            )
         s = (s << 5) | _DECODE[ch]
     m = 1 << BITS[level]
     i = ((s - PERM_B[level]) * _inv(PERM_A[level], m)) % m
     if i >= sizes[level]:
         raise SphotaCodeError(
             f"{sym!r} is not a valid level-{level + 1} symbol in Sphota v1 "
-            "(probably a typo: check each character, or copy the code again)")
+            "(probably a typo: check each character, or copy the code again)"
+        )
     return i
 
 
@@ -147,18 +149,22 @@ def parse(text: str | Code) -> Code:
     if isinstance(text, Code):
         return text
     if not isinstance(text, str):
-        raise SphotaCodeError(f"expected a code string like '7F3A-C2-91-0B', got {type(text).__name__}")
+        raise SphotaCodeError(
+            f"expected a code string like '7F3A-C2-91-0B', got {type(text).__name__}"
+        )
     raw = "".join(text.split()).upper()
     m = _RE.match(raw)
     if not m:
         raise SphotaCodeError(
             f"cannot parse {text!r}: expected something like '7F3A-C2-91-0B' "
-            "(optionally 's1:' in front or '.X' check symbol at the end)")
+            "(optionally 's1:' in front or '.X' check symbol at the end)"
+        )
     ver = (m.group("ver") or "S1").lower()
     if ver != "s1":
         raise SphotaCodeError(
             f"code version {ver!r} is not supported by this library (supports s1); "
-            "upgrade sphota or use `sphota migrate`")
+            "upgrade sphota or use `sphota migrate`"
+        )
     body = m.group("body")
     if "-" in body:
         segs = body.split("-")
@@ -180,7 +186,8 @@ def parse(text: str | Code) -> Code:
         if len(seg) != WIDTHS[lvl]:
             raise SphotaCodeError(
                 f"level {lvl + 1} of {text!r} should have {WIDTHS[lvl]} symbols, got {seg!r}; "
-                "the layout is XXXX-XX-XX-XX")
+                "the layout is XXXX-XX-XX-XX"
+            )
         levels.append(symbols_to_index(lvl, seg))
     code = Code(tuple(levels), ver)
     chk = m.group("chk")
