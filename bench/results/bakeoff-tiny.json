@@ -1,0 +1,100 @@
+{
+  "scale": "tiny",
+  "langs": [
+    "en",
+    "hi",
+    "ta",
+    "es",
+    "fr",
+    "de"
+  ],
+  "K": [
+    256,
+    64,
+    64,
+    64
+  ],
+  "D": 128,
+  "anchors": {
+    "intfloat/multilingual-e5-small": {
+      "sent_per_s_cpu": 161.7385294312138,
+      "dim": 384,
+      "raw_retrieval_top1": 0.9988142292490119,
+      "pca_retrieval_top1": 0.9988142292490119,
+      "pca/rkm": {
+        "xl_agree": [
+          0.5547,
+          0.096,
+          0.0407,
+          0.0166
+        ],
+        "l1_used_frac": 0.73046875,
+        "l1_perplexity_frac": 0.344644091923921,
+        "topic_nmi_l1": 0.5033084548491292,
+        "fit_seconds": 2.106818199157715
+      },
+      "pca/rqema": {
+        "xl_agree": [
+          0.5796,
+          0.0506,
+          0.0259,
+          0.0126
+        ],
+        "l1_used_frac": 0.5703125,
+        "l1_perplexity_frac": 0.18172654220996293,
+        "topic_nmi_l1": 0.4366517230069298,
+        "fit_seconds": 0.7525186538696289
+      },
+      "pca/tree": {
+        "xl_agree": [
+          0.5547,
+          0.3662,
+          0.354,
+          0.349
+        ],
+        "l1_used_frac": 0.73046875,
+        "l1_perplexity_frac": 0.344644091923921,
+        "topic_nmi_l1": 0.5033084548491292,
+        "fit_seconds": 1.8705008029937744
+      },
+      "aligned_retrieval_top1": 0.9982213438735178,
+      "aligned/rkm": {
+        "xl_agree": [
+          0.6174,
+          0.3308,
+          0.1771,
+          0.0836
+        ],
+        "l1_used_frac": 0.6875,
+        "l1_perplexity_frac": 0.33042487679198057,
+        "topic_nmi_l1": 0.5025002760481121,
+        "fit_seconds": 1.8249719142913818
+      },
+      "aligned/rqema": {
+        "xl_agree": [
+          0.6648,
+          0.4342,
+          0.2393,
+          0.1265
+        ],
+        "l1_used_frac": 0.60546875,
+        "l1_perplexity_frac": 0.21084229612565739,
+        "topic_nmi_l1": 0.46546142059164947,
+        "fit_seconds": 0.7268576622009277
+      },
+      "aligned/tree": {
+        "xl_agree": [
+          0.6174,
+          0.4451,
+          0.4318,
+          0.4291
+        ],
+        "l1_used_frac": 0.6875,
+        "l1_perplexity_frac": 0.33042487679198057,
+        "topic_nmi_l1": 0.5025002760481121,
+        "fit_seconds": 1.7039422988891602
+      },
+      "total_seconds": 146.92862820625305
+    }
+  }
+}

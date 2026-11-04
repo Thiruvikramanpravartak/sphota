@@ -1,0 +1,77 @@
+# Sphota v1 build plan
+
+Status legend: `[x]` done, `[~]` partial (see PROGRESS.md), `[ ]` todo.
+
+## R: Research and validation sprint
+- [x] Verify model and dataset licenses → `docs/LICENSES-THIRD-PARTY.md`
+- [x] Bake-off at `tiny` scale: 4 anchors × 3 quantizers × {PCA, aligned} → `bench/results/bakeoff-tiny.json`
+- [x] Gap analysis → `docs/research/gap-analysis.md`
+- [x] Choose anchor, quantizer, dims; log in DECISIONS.md
+
+### Refined design (after R)
+- Anchor: `intfloat/multilingual-e5-small` (MIT, 384-d, ONNX available, runs in the browser).
+- Canonical space: L2-normalize → center → PCA → *meaning-LDA* (noise-whitened w.r.t.
+  translation scatter, FLORES dev + Tatoeba) → D = 256.
+- Quantizer: residual k-means, sizes 4096/256/256/256 (balanced by k-means++ init, no collapse).
+- Confidence: softmax over the top-16 centroid distances with a per-level temperature fitted by
+  maximum likelihood on held-out translation pairs (proper scoring rule ⇒ calibrated).
+- Stable mode: majority vote of nearest centroid under fixed Gaussian perturbations.
+- Code: Crockford base32 `XXXX-XX-XX-XX`, per-level affine symbol permutation (sparse code
+  space, typo detection), optional `s1:` tag and `.X` mod-37 check symbol.
+
+## M0: Foundation
+- [ ] Layout, pyproject (hatch), ruff, mypy (core), pytest, pre-commit, CI
+- [ ] CLAUDE.md, PLAN.md, PROGRESS.md, DECISIONS.md
+- [ ] CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GOVERNANCE, CHANGELOG, NOTICE
+
+## M1: Specification v1 (docs/spec/)
+- [ ] Code format, alphabet, levels, semantics
+- [ ] Confidence / precision semantics; distance; labels
+- [ ] Versioning & migration; conformance thresholds & procedure
+- [ ] Adapter file format; registry format; governance/RFC; security & privacy
+
+## M2: Core coordinate space v1
+- [ ] Small-scale data + anchor embeddings
+- [ ] Canonical space + alignment (measure before/after)
+- [ ] Quantizer, calibration, stable mode
+- [ ] Labels (multilingual keyphrases), distance/neighbour table
+- [ ] Freeze: manifest + checksums in `src/sphota/data/v1`
+
+## M3: SDK + CLI
+- [ ] encode / encode_batch / explain / similarity / prefix / neighbors / path / alternates
+- [ ] fingerprint / compare / diff / from_vector
+- [ ] ONNX encoder (default), torch optional, cache, batch
+- [ ] CLI mirrors API; coverage ≥ 85% core; fresh-venv install test
+
+## M4: Adapters + registry
+- [ ] ≥4 adapters (all-MiniLM-L6-v2, bge-small-en-v1.5, gte-small, multilingual MiniLM, LaBSE, bge-m3)
+- [ ] vec2vec-style unsupervised experiment (honest report)
+- [ ] `sphota train-adapter`, `sphota certify`; OpenAI/Cohere recipes (not run)
+
+## M5: Benchmark + leaderboard
+- [ ] Official test set; agreement per level (cross-lingual, cross-model); paraphrase stability
+- [ ] Utilization; retrieval with codes vs raw; truncation + stable mode effects
+- [ ] `bench/results/*.json`, `docs/benchmark.md`, static leaderboard page
+
+## M6: Use-case modules
+- [ ] Reindex-free migration demo; topic analytics HTML report; cross-lingual dedupe/search
+- [ ] Semantic cache; prefix router; document fingerprint comparison
+
+## M7: Integrations
+- [ ] LangChain, LlamaIndex; PostgreSQL SQL helpers + docker-compose; Qdrant/Chroma example
+
+## M8: Meaning Atlas
+- [ ] Vite + TS static app, zoomable map, in-browser encoding, fly-to, share URL, compare, accuracy radius
+- [ ] Deploy docs for GitHub Pages and HF Spaces
+
+## M9: Open data
+- [ ] Tag multilingual Wikipedia sample; dataset card; upload script (not run)
+
+## M10: Docs + launch kit
+- [ ] README, mkdocs site, Colab notebook, examples in CI, HF Space app, paper draft, launch/
+
+## M11: Hardening
+- [ ] Performance, OS notes, security review, license audit, Atlas accessibility, 1.0.0rc1
+
+## M12: Final audit
+- [ ] Clean clone + venv, README walk-through, examples, tests, CI, Atlas screenshot, docs vs numbers
