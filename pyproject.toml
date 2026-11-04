@@ -71,6 +71,7 @@ ignore = ["E501", "RUF001", "RUF002", "RUF003", "B008", "E731", "B905", "SIM108"
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B", "SIM"]
 "src/sphota/build/*" = ["B", "SIM"]
+"examples/*" = ["SIM115"]
 
 [tool.mypy]
 python_version = "3.10"
