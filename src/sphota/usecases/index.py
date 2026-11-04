@@ -93,7 +93,7 @@ class CodeIndex:
     # ---- querying
     def _candidates(self, q: Sphota) -> list[tuple[Any, float]]:
         l1s: list[tuple[int, float]] = [(q.code.levels[0], 1.0)]
-        for alt, p in q.alternates[: self.probes - 1]:
+        for alt, _p in q.alternates[: self.probes - 1]:
             if alt.code.levels[0] not in [x for x, _ in l1s]:
                 l1s.append((alt.code.levels[0], 0.95))
         out = []
