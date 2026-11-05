@@ -45,4 +45,5 @@ nav:
   - Research:
       - Gap analysis: research/gap-analysis.md
       - Paper draft: paper/sphota.md
+  - Compatibility & security: compatibility.md
   - Licenses: LICENSES-THIRD-PARTY.md

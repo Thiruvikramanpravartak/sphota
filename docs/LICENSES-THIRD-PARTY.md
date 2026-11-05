@@ -17,6 +17,10 @@ before any public release (`scripts/license_audit.py` automates the Hub lookup).
 | `BAAI/bge-small-en-v1.5` | MIT | adapter (English-only) | |
 | `thenlper/gte-small` | MIT | adapter (English-only) | |
 | `Qwen/Qwen3-Embedding-0.6B` | Apache-2.0 | optional adapter recipe | not trained in the CPU build |
+| `Qwen/Qwen2.5-1.5B-Instruct`, `Qwen/Qwen2.5-0.5B-Instruct` | Apache-2.0 | offline region naming (labels) | not shipped; only generated label strings |
+| `Helsinki-NLP/opus-mt-en-{hi,dra,inc,es,fr,zh,ar,ru,jap,ROMANCE}` | Apache-2.0 | offline label translation | not shipped |
+| `Helsinki-NLP/opus-mt-en-de` | CC-BY-4.0 | offline label translation (German) | attribution: Helsinki-NLP / OPUS-MT |
+| `Xenova/*` ONNX exports | inherit source model license | ONNX encoders for registry adapters | |
 | `jinaai/jina-embeddings-v3` | **CC-BY-NC-4.0** | **not used** | non-commercial weights; only a user-trained recipe is allowed |
 | OpenAI / Cohere embedding APIs | proprietary ToS | recipe only (user's own key) | Sphota ships no adapter weights trained on API outputs |
 
