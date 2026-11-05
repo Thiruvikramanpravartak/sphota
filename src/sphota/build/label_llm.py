@@ -185,7 +185,8 @@ def merge(scale: str, release_dir: Path, langs: list[str]) -> None:
     )
     labels: dict[str, dict[str, str]] = {}
     for k, en in names.items():
-        if not en:
+        # the small model sometimes answers in the examples' language: keep Latin-script names only
+        if not en or sum(ch.isascii() for ch in en) < 0.9 * len(en):
             continue
         labels[k] = {"en": en}
         for lg in langs:
