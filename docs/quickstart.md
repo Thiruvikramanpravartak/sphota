@@ -10,7 +10,7 @@ pip install "sphota[encode,cli]"
 >>> c
 Sphota('JYZA-7M-X0-A8')
 >>> c.label
-'Corporate Leadership Changes › Executive Resignations'
+'Corporate Executive'
 >>> c.confidence          # cumulative per level: how sure each prefix is
 [0.8, 0.78, 0.42, 0.14]
 ```

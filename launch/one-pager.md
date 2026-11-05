@@ -2,7 +2,7 @@
 
 **What:** an open, frozen, human-readable coordinate system for meaning ("GPS for meaning").
 Any text in any language → a short hierarchical code (e.g. `JYZA-7M-X0-A8`) with a calibrated
-confidence per level and labels in 12 languages.
+confidence per level and labels in 11 languages.
 
 **Why now:** organizations run search, RAG and analytics on embedding vectors that are tied to
 one model. Every model upgrade forces re-embedding entire corpora. Vectors can't be read, shared

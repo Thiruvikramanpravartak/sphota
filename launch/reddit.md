@@ -27,7 +27,7 @@ Paper draft, spec, benchmark JSON and everything reproducible on a CPU are in th
 prefixes, so they're readable and model-portable. Also a prefix router, topic analytics HTML
 reports, and a browser demo. Apache-2.0, ONNX, no torch needed.
 
-## r/LanguageTechnology — Multilingual topic codes with labels in 12 languages (incl. Hindi, Tamil, Bengali)
+## r/LanguageTechnology — Multilingual topic codes with labels in 11 languages (incl. Hindi, Tamil, Bengali)
 
 Looking for native speakers to review machine-generated region labels (LLM names + opus-mt
 translations). Issues labelled `labels:<lang>` are good first contributions.

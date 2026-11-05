@@ -51,7 +51,7 @@ pip install "sphota[encode,cli]"
 >>> c
 Sphota('JYZA-7M-X0-A8')
 >>> c.label
-'Corporate Leadership Changes › Executive Resignations'
+'Corporate Executive'
 >>> c.confidence                       # GPS-style accuracy: how sure each prefix is
 [0.8, 0.78, 0.42, 0.14]
 >>> encode("The CEO resigned", min_confidence=0.6)
@@ -72,7 +72,7 @@ sphota certify --model sentence-transformers/all-MiniLM-L6-v2
 | Use case | One line | Notes |
 |---|---|---|
 | **Never re-index again** | `CodeIndex().add_texts(docs, model="A")` … `.search(q, model="B")` | items store code + canonical vector; switching models changes only queries ([benchmark](docs/benchmark.md#6-never-re-index-cross-model-retrieval)) |
-| Topic analytics | `sphota analyze data.csv` | standalone HTML report: prefix tree, counts, samples, 12 label languages |
+| Topic analytics | `sphota analyze data.csv` | standalone HTML report: prefix tree, counts, samples, labels in 11 languages |
 | Cross-lingual search & dedupe | `cross_lingual_search(q, docs)`, `dedupe(texts)` | Tamil query → Hindi, Spanish, English docs |
 | Semantic cache | `SemanticCache(depth=2).get_or_compute(q, llm)` | hits across paraphrases and languages |
 | Routing | `PrefixRouter().fit(examples, routes).route(text)` | rules written once apply to every language |
@@ -89,7 +89,7 @@ sphota certify --model sentence-transformers/all-MiniLM-L6-v2
 * **Multilingual by construction.** Languages are aligned *before* quantizing
   (meaning-LDA on parallel data): +35% relative L1 agreement over plain PCA.
 * **Human-readable.** Crockford base32, fixed widths, typo detection (85% of single-symbol
-  typos rejected without a checksum), labels for every region in 12 languages.
+  typos rejected without a checksum), labels in 11 languages (machine-generated; Hindi/Tamil/Bengali quality is mixed).
 * **A standard, not a model.** RFC-style [spec](docs/spec/), golden tests that pin every code,
   `sphota certify` conformance certificates, adapter registry, migration tooling for `s2`.
 * **Light.** Parse/compare/distance/labels need only numpy; encoding uses ONNX Runtime (no

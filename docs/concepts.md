@@ -56,11 +56,13 @@ about it:
 
 ## Labels
 
-Every L1 region and populated L2 region has a short human-readable label in English and
-11 more languages (Hindi, Tamil, Bengali, Spanish, French, German, Portuguese, Chinese,
-Japanese, Arabic, Russian). Labels are descriptive aids generated offline (a small open LLM
-names each region from member sentences; MarianMT translates). Native-language keyphrases
-are kept alongside in `keywords.json`.
+Every L1 region (4096) and every populated L2 region (~3.8k) has a short human-readable label
+in English and 10 more languages (Hindi, Tamil, Bengali, Spanish, French, German, Portuguese,
+Chinese, Arabic, Russian; L2 labels in hi/ta/bn/es/fr/zh). Labels are descriptive aids generated
+offline: a small open LLM (Qwen2.5) names each region from member sentences and MarianMT
+translates. Quality is good for European languages and Chinese, mixed for Hindi, Tamil and
+Bengali; Japanese falls back to English (no usable open translation model was available on
+CPU). Native-language keyphrases are kept alongside in `keywords.json`.
 
 ## What Sphota is not
 

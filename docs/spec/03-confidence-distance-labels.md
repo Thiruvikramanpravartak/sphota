@@ -80,11 +80,13 @@ codes that differ only at L4 score > 0.9, neighbouring L1 regions ≈ 0.3, unrel
 * `"<i1>"` → label of the L1 cell,
 * `"<i1>.<i2>"` → label of the L2 cell (present when the cell had ≥ 3 training members).
 
-Labels are **c-TF-IDF keyphrases** (BERTopic-style) computed *per language* from the cell's
-members in that language (Wikipedia + FLORES sentences). A Hindi label is made of Hindi
-words from Hindi members: no machine translation is involved, so labels in different
-languages are independent descriptions of the same region. When a language has no label for
-a cell, implementations fall back to English, then to any available language.
+Display labels are short names produced offline by a small open instruction model
+(Qwen2.5-1.5B-Instruct for L1, Qwen2.5-0.5B-Instruct for L2; greedy decoding) from up to six
+member sentences and the cell's c-TF-IDF keyphrases, then machine-translated (OPUS-MT). In
+addition, `keywords.json` holds **c-TF-IDF keyphrases** (BERTopic-style) computed *per
+language* from the cell's members in that language: independent native-language evidence,
+no translation involved. When a language has no label for a cell, implementations fall back
+to English; if there is no English label either, no label is shown.
 
 A display label is `L1 label › L2 label`. Labels are **descriptive, not normative**: they
 may be improved (typo fixes, better phrasing, more languages) without an RFC, but a label
