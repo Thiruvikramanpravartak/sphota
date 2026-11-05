@@ -1,0 +1,18 @@
+{
+  "labels_in": 71440,
+  "labels_kept": 69642,
+  "cells_held_offensive": 27,
+  "rejected_per_language": {
+    "ar": 183,
+    "bn": 147,
+    "de": 5,
+    "en": 12,
+    "es": 46,
+    "fr": 67,
+    "hi": 392,
+    "pt": 8,
+    "ru": 84,
+    "ta": 440,
+    "zh": 193
+  }
+}

@@ -62,6 +62,17 @@ contradict each other).
 | 0.8 | 46.1% | 1.05 | 71.5% | 1.15 |
 | 0.9 | 46.1% | 1.02 | 71.6% | 1.07 |
 
+### Confidence coverage (how many sentences get a confident code)
+
+Share of held-out FLORES devtest sentences whose L1 confidence is ≥ τ: τ=0.5 → 46.7%,
+τ=0.7 → **26.0%** (English 36.0%, Hindi 35.4%, Tamil 29.9%, Chinese 21.0%, Arabic 21.1%,
+Portuguese 4.5% — an anomaly to investigate), τ=0.9 → 9.5%. L2 ≥ 0.7: 5.9%. STS-B English
+sentences: 38.9% at τ=0.7. On the *training* corpus the same share is 81%, so confidence is
+much higher in-sample than on new text. One-sided: when the English code has L1 confidence
+≥ 0.7, its translation shares the L1 code 66.7% of the time (≥ 0.9: 73.5%, coverage 14.5%).
+**Reading:** confident codes are reliable but rare at `small` scale; most new sentences get a
+low-confidence code.
+
 ### Calibration on unseen data
 
 | level | ECE | bins (confidence → observed agreement) |

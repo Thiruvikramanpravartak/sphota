@@ -104,7 +104,8 @@ languages; STS-B paraphrases). Full tables: [docs/benchmark.md](docs/benchmark.m
 |---|---|---|---|---|
 | Translation gets the same prefix (en ↔ 11 languages) | **46%** | 23% | 11% | 5% |
 | Paraphrase gets the same prefix (English) | **72%** | 54% | 38% | 28% |
-| …only when both codes are confident (≥ 0.7; 16% of pairs at L1, 2% at L2) | **89%** | 86% | | |
+| …when the English code is confident (≥ 0.7; **only 36% of English, 26% of all held-out sentences**) | 67% | | | |
+| …when *both* codes are confident (≥ 0.7; 16% of pairs) | 89% | | | |
 
 | Never re-index (index with model X, query with the anchor) | recall@10 |
 |---|---|

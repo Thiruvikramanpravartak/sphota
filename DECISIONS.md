@@ -131,3 +131,14 @@ machine-translated, with native c-TF-IDF keyphrases kept in `keywords.json`; **j
 (opus-mt-en-jap is Bible-domain and produced nonsense), Japanese falls back to English.
 L2 labels are translated into hi, ta, bn, es, fr, zh only (CPU budget). Labels are informative
 data and can be improved without an RFC (a human review drive is on the roadmap).
+
+## D-015 Owner review: do not launch on the current pitch; label quality gate
+Owner review concluded the build is a strong topic-code/analytics tool but does not yet support
+"GPS for meaning" claims. Measured follow-up: only 26% of held-out sentences get L1 confidence
+≥ 0.7 (81% in-sample), and a confident English code is matched by its translation 67% of the
+time. Plan: (1) no publishing; (2) one decisive GPU experiment (full scale, bge-m3 anchor, more
+parallel data, stronger alignment) with the bar set in advance (L1 translation agreement ≥ 80%
+and cross-model ≥ 60% on the confident portion, plus adequate coverage); (3) if it fails,
+position as multilingual topic analytics + routing/caching + vector-based migration.
+Labels now pass `sphota.build.label_filter` (offensive/sensitive cells held for review,
+wrong-script and degenerate labels removed; 69,642 of 71,440 kept). Native review still required.
