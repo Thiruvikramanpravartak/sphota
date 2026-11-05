@@ -185,6 +185,44 @@ def run(scale: str) -> dict:
     }
     log(f"paraphrase: {res['paraphrase']['agree']} stable {res['paraphrase']['stable_mode']}")
 
+    # ---- reindex-free migration: documents indexed as codes by model A, queried by model B
+    from sphota.adapters import get_adapter, registry
+
+    docs_a = {"anchor": qb.indices}
+    S_ref = code_rank_scores(rel, qa.indices, qb.indices)
+    eyep = np.eye(len(Pa), dtype=bool)
+    tie = np.random.default_rng(1).random(S_ref.shape) * 1e-6
+    mig = {
+        "anchor→anchor (codes)": retrieval_metrics(S_ref, eyep, tie_noise=tie),
+        "anchor→anchor (raw vectors)": retrieval_metrics(l2n(Pa) @ l2n(Pb).T, eyep),
+    }
+    for model in registry()["adapters"]:
+        ad = get_adapter(model)
+        Xb_raw = embed.cached(model, "stsb_b", para["b"].tolist(), scale)
+        Xa_raw = embed.cached(model, "stsb_a", para["a"].tolist(), scale)
+        Bm = ad(Xb_raw)
+        short = registry()["adapters"][model]["short"]
+        di = quantize(rel, Bm).indices
+        S = code_rank_scores(rel, qa.indices, di)
+        alt = qa.cand[0][:, :3]
+        S2 = S.copy()
+        for j in range(1, 3):
+            qi = qa.indices.copy()
+            qi[:, 0] = alt[:, j]
+            S2 = np.maximum(S2, 0.9 * code_rank_scores(rel, qi, di))
+        mig[f"index {short} → query anchor (canonical vectors)"] = retrieval_metrics(
+            l2n(Pa) @ l2n(Bm).T, eyep
+        )
+        mig[f"index {short} → query anchor (codes)"] = retrieval_metrics(S, eyep, tie_noise=tie)
+        mig[f"index {short} → query anchor (codes + alternates)"] = retrieval_metrics(
+            S2, eyep, tie_noise=tie
+        )
+        mig[f"{short} → {short} (raw vectors, re-index baseline)"] = retrieval_metrics(
+            l2n(Xa_raw) @ l2n(Xb_raw).T, eyep
+        )
+    res["migration_paraphrase_retrieval"] = {"n_docs": len(Pb), **mig}
+    log(f"migration: {mig}")
+
     # ---- utilization (held-out: FLORES devtest all languages + STS sentences; and training corpus)
     held = np.concatenate([Q[lg].indices for lg in langs] + [qa.indices, qb.indices])
     corpus = quantize(rel, project(rel, E["wiki"])).indices

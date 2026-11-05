@@ -44,6 +44,20 @@ def test_code_index_search_and_dedupe(fake_encoder):
     assert cross_lingual_search("The CEO resigned", GOLD, k=2)[0].item == "The CEO resigned"
 
 
+def test_code_index_codes_only_and_within(fake_encoder):
+    idx = CodeIndex(store_vectors=False)
+    codes = idx.add_texts(GOLD)
+    hits = idx.search("The CEO resigned", k=3)
+    assert hits[0].item == "The CEO resigned"
+    region = str(codes[0].prefix(1))
+    vidx = CodeIndex()
+    vidx.add_texts(GOLD)
+    inside = vidx.search("Quantum computers use qubits.", k=5, within=region)
+    assert inside and all(h.code.startswith(region) for h in inside)
+    assert idx.search("The CEO resigned", k=5, within=region)[0].code.startswith(region)
+    assert vidx.search("x", within=str(codes[5].prefix(4))) is not None
+
+
 def test_code_index_vectors(fake_encoder):
     X = fake_encoder.encode(GOLD)
     idx = CodeIndex()

@@ -286,11 +286,11 @@ else:
 
         reg = registry()["adapters"]
         t = Table(title="Certified adapters (space s1)")
-        for col in ["model", "short", "multilingual", "L1 agree", "L2 agree", "status"]:
+        for col in ["model", "short", "multilingual", "L1 exact", "L1 nbhd", "status"]:
             t.add_column(col)
         for k, v in sorted(reg.items()):
             c = v.get("certificate", {})
-            ag = c.get("agreement_same_text", [None, None])
+            ag = [c.get("agreement_same_text_en", [None])[0], c.get("l1_neighborhood_en")]
             t.add_row(
                 k,
                 v.get("short", ""),

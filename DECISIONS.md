@@ -95,3 +95,30 @@ for a 4× smaller download.
 ## D-011 Adapter format
 `.npz` with `A`, `b`, JSON `meta` (no pickles), checksummed in the registry. Linear ridge
 maps by default (paired texts), optional single residual layer.
+
+## D-012 Cross-model noise in the canonical space: tried, not adopted (negative result)
+**Problem:** a linear adapter for all-MiniLM-L6-v2 agreed with the anchor at L1 on only 16.6% of
+English test sentences (cosine fidelity 0.55; a 1-hidden-layer MLP reached 24.7%).
+**Hypothesis:** the space is noise-whitened against e5's *own* translation scatter, so it
+amplifies directions in which e5 is self-consistent but which other models do not encode.
+**Experiment:** add the scatter of cross-fitted residuals of linear maps (reference model →
+anchor) to `S_within` with weight λ (`fit_space(model_residuals=…)`), holding out bge-small.
+At K1=1024 (scratch sweep): λ=1 raised the reference model's L1 agreement 0.196→0.274 and the
+held-out model's 0.182→0.214 with unchanged cross-lingual agreement; λ≥3 traded cross-lingual
+agreement away (0.533→0.317 at λ=10).
+**At the real size (K1=4096, 3 reference models, λ=1):** no gain (MiniLM 0.167 vs 0.166,
+bge-small 0.136) and cross-lingual L1 fell 0.462→0.450.
+**Decision:** keep λ=0 (the original s1). The rebuild with λ=0 reproduced every golden code
+bit-for-bit (reproducibility check). The machinery stays in `build/fit.py` for full-scale
+work. Consequence: exact-code agreement across models is modest in s1; certification and the
+migration use case are therefore defined on recall-oriented measures (top-3 L1 candidates,
+L1 neighbourhood) plus exact agreement, and each adapter carries its own calibrated
+confidence temperature so `min_confidence` remains honest (D-013).
+
+## D-013 Realistic conformance thresholds and per-adapter calibration
+Thresholds were first set by analogy (L1 ≥ 0.60), which no small open model reaches. They are
+re-set from measurements of four models (see spec Part 8): certification requires the anchor's
+L1 cell to be among the model's top-3 L1 candidates for a minimum share of English test
+sentences and a minimum fidelity; exact agreement is reported, not gated. Each adapter stores a
+`temperature_scale` fitted by maximum likelihood on held-out pairs, so confidence for adapted
+models is wider (more truncation) instead of over-confident.

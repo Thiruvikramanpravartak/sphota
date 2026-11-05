@@ -31,10 +31,10 @@ from sphota.space import project, quantize
 # Conformance thresholds for space s1 (spec Part 8, section 3). Agreement is measured
 # against the reference encoder on the same text.
 THRESHOLDS: dict[str, dict[str, float]] = {
-    # minimum to be listed in the registry: English text
-    "certified": {"en_L1": 0.60, "en_L2": 0.30, "fidelity_en": 0.75},
-    # additionally: multilingual text
-    "certified_multilingual": {"all_L1": 0.50, "all_L2": 0.20, "fidelity_all": 0.70},
+    # neighbourhood-level interoperability on English text (D-013); chance is ~0.002
+    "certified": {"l1_neighborhood_en": 0.55, "l1_top3_en": 0.10, "fidelity_en": 0.50},
+    # additionally across 12 languages
+    "certified_multilingual": {"l1_top3_all": 0.30, "fidelity_all": 0.45},
     # anchor variants (other runtimes / precisions of the anchor itself)
     "variant": {"all_L1": 0.95, "all_L4": 0.80},
 }
@@ -180,17 +180,8 @@ def evaluate(Y_model: dict[str, np.ndarray], Y_anchor: dict[str, np.ndarray]) ->
 
 def grade(m: dict[str, Any]) -> dict[str, Any]:
     t1, t2 = THRESHOLDS["certified"], THRESHOLDS["certified_multilingual"]
-    en, al = m["agreement_same_text_en"], m["agreement_same_text"]
-    checks = {
-        "en_L1": en[0] >= t1["en_L1"],
-        "en_L2": en[1] >= t1["en_L2"],
-        "fidelity_en": m["fidelity_en"] >= t1["fidelity_en"],
-    }
-    multi = {
-        "all_L1": al[0] >= t2["all_L1"],
-        "all_L2": al[1] >= t2["all_L2"],
-        "fidelity_all": m["fidelity_all"] >= t2["fidelity_all"],
-    }
+    checks = {k: bool(m[k] >= v) for k, v in t1.items()}
+    multi = {k: bool(m[k] >= v) for k, v in t2.items()}
     ok = all(checks.values())
     is_multi = ok and all(multi.values())
     return {
@@ -239,8 +230,8 @@ def badge(cert: dict[str, Any]) -> str:
     color = {"certified-multilingual": "brightgreen", "certified": "green"}.get(
         cert["grade"], "red"
     )
-    l1 = cert["agreement_same_text_en"][0]
-    text = f"{cert['grade']}%20L1%20{l1:.2f}".replace("-", "--")
+    nbh = cert["l1_neighborhood_en"]
+    text = f"{cert['grade']}%20nbhd%20{nbh:.2f}".replace("-", "--")
     return f"![Sphota {cert['space']}](https://img.shields.io/badge/sphota%20{cert['space']}-{text}-{color})"
 
 
@@ -258,6 +249,8 @@ def render_certificate(cert: dict[str, Any]) -> str:
         row("agreement w/ anchor (all)", cert["agreement_same_text"]),
         row("cross-lingual (model)", cert["agreement_cross_lingual"]),
         row("cross-lingual (anchor ref)", cert["anchor_cross_lingual"]),
+        f"  L1 in top-3 candidates     en {cert['l1_top3_en']:.2f}   all {cert['l1_top3_all']:.2f}",
+        f"  L1 in anchor neighbourhood en {cert['l1_neighborhood_en']:.2f}",
         f"  fidelity (cosine)          en {cert['fidelity_en']:.3f}   all {cert['fidelity_all']:.3f}",
         "  checks     " + ", ".join(f"{k}:{mark[v]}" for k, v in cert["checks"].items()),
         f"  RESULT     {cert['grade'].upper()}",

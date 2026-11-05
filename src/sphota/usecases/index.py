@@ -4,11 +4,18 @@
 
 This is the "never re-index again" use case. Items indexed with model A (through its
 adapter) can be queried with model B (through its adapter), or with the anchor, because
-both land in the same frozen space. No vectors need to be stored (they may be, for an
-optional exact re-rank).
+both land in the same frozen space.
 
-Candidate generation is by shared prefix (multi-probing the query's top L1 alternates);
-ranking uses hierarchy-aware code similarity.
+Two storage modes:
+
+* ``store_vectors=True`` (default): keep each item's 256-d **canonical vector** (the
+  model-independent point in the s1 space) next to its code. Queries from any certified
+  model are ranked by cosine in the canonical space; this is what makes cross-model search
+  precise (benchmark: 97-99% recall@10 for paraphrase retrieval across models). Codes are
+  used for region filters (``within=``) and are what you show, group and share.
+* ``store_vectors=False``: codes only (13 characters per item). Candidates come from the
+  query's L1 cell, its top alternates and neighbouring cells; ranking uses hierarchy-aware
+  code similarity. Good for topic-level grouping, routing and dedupe; coarse for ranking.
 """
 
 from __future__ import annotations
@@ -41,7 +48,9 @@ class CodeIndex:
     """In-memory prefix index. Keys are codes (strings); values are your item ids/payloads."""
 
     probes: int = 3
+    store_vectors: bool = True
     _codes: dict[Any, Code] = field(default_factory=dict)
+    _vecs: dict[Any, np.ndarray] = field(default_factory=dict)
     _items: dict[Any, Any] = field(default_factory=dict)
     _by_l1: dict[int, list[Any]] = field(default_factory=lambda: defaultdict(list))
 
@@ -58,6 +67,8 @@ class CodeIndex:
             code = c.code if isinstance(c, Sphota) else parse(c)
             self._codes[i] = code
             self._by_l1[code.levels[0]].append(i)
+            if self.store_vectors and isinstance(c, Sphota) and c._vector is not None:
+                self._vecs[i] = np.asarray(c._vector, dtype=np.float32)
             if items is not None:
                 self._items[i] = items[j]
 
@@ -89,6 +100,7 @@ class CodeIndex:
         code = self._codes.pop(id_)
         self._by_l1[code.levels[0]].remove(id_)
         self._items.pop(id_, None)
+        self._vecs.pop(id_, None)
 
     # ---- querying
     def _candidates(self, q: Sphota) -> list[tuple[Any, float]]:
@@ -102,8 +114,34 @@ class CodeIndex:
                 out.append((i, w))
         return out
 
-    def search_code(self, q: Sphota, k: int = 10, expand: bool = True) -> list[Hit]:
+    def search_code(
+        self, q: Sphota, k: int = 10, expand: bool = True, within: str | None = None
+    ) -> list[Hit]:
+        """Rank items for query ``q``. ``within``: only items under this code prefix."""
+        if within is not None:
+            from sphota.codes import parse
+
+            region = parse(within)
+            allowed = [i for i, c in self._codes.items() if region.is_prefix_of(c)]
+        else:
+            allowed = None
+        if self._vecs and q._vector is not None and len(self._vecs) == len(self._codes):
+            ids = list(self._vecs) if allowed is None else allowed
+            if not ids:
+                return []
+            M = np.stack([self._vecs[i] for i in ids])
+            qv = np.asarray(q._vector, dtype=np.float32)
+            sims = (M @ qv) / (np.linalg.norm(M, axis=1) * np.linalg.norm(qv) + 1e-12)
+            order = np.argsort(-sims)[:k]
+            return [
+                Hit(ids[j], str(self._codes[ids[j]]), float(sims[j]), self._items.get(ids[j]))
+                for j in order
+            ]
         cands = self._candidates(q)
+        if allowed is not None:
+            keep = set(allowed)
+            cands = [(i, w) for i, w in cands if i in keep]
+            expand = False
         seen: dict[Any, float] = {}
         for i, w in cands:
             s = w * similarity(q.code, self._codes[i])
@@ -118,10 +156,12 @@ class CodeIndex:
         ranked = sorted(seen.items(), key=lambda kv: -kv[1])[:k]
         return [Hit(i, str(self._codes[i]), s, self._items.get(i)) for i, s in ranked]
 
-    def search(self, text: str, k: int = 10, model: str | None = None) -> list[Hit]:
+    def search(
+        self, text: str, k: int = 10, model: str | None = None, within: str | None = None
+    ) -> list[Hit]:
         """Search with a text (any language), optionally encoded by another model."""
         q = encode_batch([text], model=model)[0]
-        return self.search_code(q, k)
+        return self.search_code(q, k, within=within)
 
     def search_vector(self, vec: np.ndarray, k: int = 10, model: str | None = None) -> list[Hit]:
         q = from_vector(np.asarray(vec), model=model)

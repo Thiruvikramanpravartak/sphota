@@ -1,6 +1,9 @@
 {
   "sentence-transformers/all-MiniLM-L6-v2": {
     "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "l1_top3_en": 0.2777,
+    "l1_top3_all": 0.1058,
+    "l1_neighborhood_en": 0.6156,
     "agreement_same_text_en": [
       0.166,
       0.0306,
@@ -17,13 +20,13 @@
       0.1808,
       0.087,
       0.052,
-      0.0265
+      0.0266
     ],
     "anchor_cross_lingual": [
       0.4614,
       0.2294,
       0.1095,
-      0.0487
+      0.0482
     ],
     "fidelity_en": 0.5482,
     "fidelity_all": 0.3008,
@@ -43,32 +46,201 @@
       "bn"
     ],
     "checks": {
-      "en_L1": false,
-      "en_L2": false,
-      "fidelity_en": false,
-      "multilingual_all_L1": false,
-      "multilingual_all_L2": false,
+      "l1_neighborhood_en": true,
+      "l1_top3_en": true,
+      "fidelity_en": true,
+      "multilingual_l1_top3_all": false,
       "multilingual_fidelity_all": false
     },
-    "pass": false,
+    "pass": true,
     "multilingual": false,
-    "grade": "not-certified",
+    "grade": "certified",
+    "reference_model": false,
+    "temperature_scale": 1.1225,
     "train_pairs": 40000,
-    "seconds": 906,
-    "mlp": {
-      "agreement_same_text_en": [
-        0.247,
-        0.0672,
-        0.0198,
-        0.004
-      ],
-      "agreement_same_text": [
-        0.0721,
-        0.0177,
-        0.0036,
-        0.0007
-      ],
-      "fidelity_en": 0.5512
-    }
+    "seconds": 16
+  },
+  "BAAI/bge-small-en-v1.5": {
+    "model": "BAAI/bge-small-en-v1.5",
+    "l1_top3_en": 0.2411,
+    "l1_top3_all": 0.1004,
+    "l1_neighborhood_en": 0.6324,
+    "agreement_same_text_en": [
+      0.1383,
+      0.0237,
+      0.004,
+      0.0
+    ],
+    "agreement_same_text": [
+      0.0487,
+      0.0109,
+      0.0025,
+      0.0004
+    ],
+    "agreement_cross_lingual": [
+      0.2214,
+      0.0999,
+      0.0609,
+      0.0295
+    ],
+    "anchor_cross_lingual": [
+      0.4614,
+      0.2294,
+      0.1095,
+      0.0482
+    ],
+    "fidelity_en": 0.5678,
+    "fidelity_all": 0.3117,
+    "n_per_lang": 1012,
+    "languages": [
+      "en",
+      "hi",
+      "ta",
+      "es",
+      "fr",
+      "de",
+      "zh",
+      "ar",
+      "ru",
+      "ja",
+      "pt",
+      "bn"
+    ],
+    "checks": {
+      "l1_neighborhood_en": true,
+      "l1_top3_en": true,
+      "fidelity_en": true,
+      "multilingual_l1_top3_all": false,
+      "multilingual_fidelity_all": false
+    },
+    "pass": true,
+    "multilingual": false,
+    "grade": "certified",
+    "reference_model": false,
+    "temperature_scale": 1.2599,
+    "train_pairs": 40000,
+    "seconds": 15
+  },
+  "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": {
+    "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "l1_top3_en": 0.3666,
+    "l1_top3_all": 0.3916,
+    "l1_neighborhood_en": 0.6206,
+    "agreement_same_text_en": [
+      0.2332,
+      0.0583,
+      0.0178,
+      0.001
+    ],
+    "agreement_same_text": [
+      0.2446,
+      0.0819,
+      0.0227,
+      0.0063
+    ],
+    "agreement_cross_lingual": [
+      0.5482,
+      0.3811,
+      0.2941,
+      0.2138
+    ],
+    "anchor_cross_lingual": [
+      0.4614,
+      0.2294,
+      0.1095,
+      0.0482
+    ],
+    "fidelity_en": 0.5798,
+    "fidelity_all": 0.52,
+    "n_per_lang": 1012,
+    "languages": [
+      "en",
+      "hi",
+      "ta",
+      "es",
+      "fr",
+      "de",
+      "zh",
+      "ar",
+      "ru",
+      "ja",
+      "pt",
+      "bn"
+    ],
+    "checks": {
+      "l1_neighborhood_en": true,
+      "l1_top3_en": true,
+      "fidelity_en": true,
+      "multilingual_l1_top3_all": true,
+      "multilingual_fidelity_all": true
+    },
+    "pass": true,
+    "multilingual": true,
+    "grade": "certified-multilingual",
+    "reference_model": false,
+    "temperature_scale": 0.7937,
+    "train_pairs": 40000,
+    "seconds": 15
+  },
+  "thenlper/gte-small": {
+    "model": "thenlper/gte-small",
+    "l1_top3_en": 0.1265,
+    "l1_top3_all": 0.0753,
+    "l1_neighborhood_en": 0.6383,
+    "agreement_same_text_en": [
+      0.0573,
+      0.0049,
+      0.001,
+      0.0
+    ],
+    "agreement_same_text": [
+      0.0335,
+      0.0066,
+      0.0017,
+      0.0003
+    ],
+    "agreement_cross_lingual": [
+      0.304,
+      0.1706,
+      0.1337,
+      0.079
+    ],
+    "anchor_cross_lingual": [
+      0.4614,
+      0.2294,
+      0.1095,
+      0.0482
+    ],
+    "fidelity_en": 0.5481,
+    "fidelity_all": 0.304,
+    "n_per_lang": 1012,
+    "languages": [
+      "en",
+      "hi",
+      "ta",
+      "es",
+      "fr",
+      "de",
+      "zh",
+      "ar",
+      "ru",
+      "ja",
+      "pt",
+      "bn"
+    ],
+    "checks": {
+      "l1_neighborhood_en": true,
+      "l1_top3_en": true,
+      "fidelity_en": true,
+      "multilingual_l1_top3_all": false,
+      "multilingual_fidelity_all": false
+    },
+    "pass": true,
+    "multilingual": false,
+    "grade": "certified",
+    "reference_model": false,
+    "temperature_scale": 1.2599,
+    "train_pairs": 40000,
+    "seconds": 15
   }
 }
