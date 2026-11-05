@@ -1,0 +1,50 @@
+{
+ "en": {
+  "share_in_top5_cells": 0.069,
+  "share_in_own_language_cells": 0.0
+ },
+ "hi": {
+  "share_in_top5_cells": 0.076,
+  "share_in_own_language_cells": 0.0
+ },
+ "ta": {
+  "share_in_top5_cells": 0.081,
+  "share_in_own_language_cells": 0.0
+ },
+ "es": {
+  "share_in_top5_cells": 0.105,
+  "share_in_own_language_cells": 0.0
+ },
+ "fr": {
+  "share_in_top5_cells": 0.124,
+  "share_in_own_language_cells": 0.0
+ },
+ "de": {
+  "share_in_top5_cells": 0.076,
+  "share_in_own_language_cells": 0.0
+ },
+ "zh": {
+  "share_in_top5_cells": 0.104,
+  "share_in_own_language_cells": 0.001
+ },
+ "ar": {
+  "share_in_top5_cells": 0.148,
+  "share_in_own_language_cells": 0.001
+ },
+ "ru": {
+  "share_in_top5_cells": 0.089,
+  "share_in_own_language_cells": 0.001
+ },
+ "ja": {
+  "share_in_top5_cells": 0.097,
+  "share_in_own_language_cells": 0.002
+ },
+ "pt": {
+  "share_in_top5_cells": 0.527,
+  "share_in_own_language_cells": 0.528
+ },
+ "bn": {
+  "share_in_top5_cells": 0.086,
+  "share_in_own_language_cells": 0.0
+ }
+}

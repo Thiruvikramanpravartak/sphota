@@ -42,8 +42,20 @@
 - Labels are machine-generated; hi/ta/bn translation quality mixed; no Japanese labels.
 - bge-m3 adapter not certified at the CPU budget; bge-m3 anchor bake-off not completed.
 
+## Owner review follow-ups (end of session)
+- **Not for launch** on the current pitch (D-015). Launch kit marked on hold.
+- **Confidence coverage:** 26.0% of held-out sentences get L1 confidence ≥ 0.7 (27.9% excluding
+  Portuguese; 81% on training data). A confident English code is matched by its translation 66.7%
+  of the time; when both codes are confident (16% of pairs), 88.7%.
+- **Portuguese anomaly (D-016):** not a data/encoding bug; 52.8% of pt test sentences land in
+  Portuguese-only cells created by a homogeneous pt Wikipedia sample. Needs a rebuild → GPU run.
+- **Labels:** automatic filter added (`sphota.build.label_filter`); 69,642 / 71,440 kept, 27 sensitive
+  cells held. Review queue saved in `reports/labels_review.json.gz`. Native review still needed.
+- **CI:** last failures were formatting only; fixed.
+
 ## Exact next steps
-1. **GPU `full` scale (space s2 candidate):** `python -m sphota.build.data --scale full`,
+1. **GPU `full` scale (space s2 candidate)** — pass/fail bar in D-015, plus the language-collapse
+   gate in D-016 (diverse per-language Wikipedia sampling): `python -m sphota.build.data --scale full`,
    re-run the bake-off including bge-m3 as anchor, `python -m sphota.build.release --scale full
    --out <dir>`, adapters, bench; produce `s1→s2` table with `sphota migrate --build`; open RFC.
 2. **Labels:** human review drive (Hindi, Tamil, Bengali); better Japanese MT; regenerate with

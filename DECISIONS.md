@@ -142,3 +142,17 @@ and cross-model ≥ 60% on the confident portion, plus adequate coverage); (3) i
 position as multilingual topic analytics + routing/caching + vector-based migration.
 Labels now pass `sphota.build.label_filter` (offensive/sensitive cells held for review,
 wrong-script and degenerate labels removed; 69,642 of 71,440 kept). Native review still required.
+
+## D-016 Portuguese coverage anomaly: language-identity cells (not a data bug)
+Investigated the 4.5% (pt) vs 21–36% (others) share of held-out sentences with L1 confidence
+≥ 0.7. Data, language tags (`por_Latn`), alignment (en→pt nearest neighbour 99.2%) and encoding
+are correct. Cause: **52.8% of Portuguese test sentences fall into Portuguese-dominated L1 cells**
+(80–96% Portuguese Wikipedia members; 5 cells hold 53% of pt test sentences) regardless of topic;
+for every other language this share is ≤ 0.2% (`bench/results/language-collapse-small.json`).
+The pt Wikipedia sample is unusually homogeneous (mean pairwise cosine 0.84 vs ~0.78; dominated
+by "Campeonato"/list stubs), so k-means formed language cells and pt points sit between two of
+them (median top-2 gap 11.9 vs 23–31). **Not fixed in s1**: fixing it means rebuilding the frozen
+space and its labels; it goes into the full-scale run, which must (a) sample Wikipedia with
+topic/length diversity per language, (b) report the language-collapse metric, and (c) treat any
+language with > 5% of test sentences in own-language cells as a gate failure. Coverage excluding
+Portuguese: 27.9% at τ = 0.7 (26.0% including it).
