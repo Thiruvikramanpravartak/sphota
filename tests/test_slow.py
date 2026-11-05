@@ -52,7 +52,8 @@ def test_onnx_adapter_matches_registry_model():
     st = pytest.importorskip("sentence_transformers")
     texts = ["The CEO resigned", "Heavy rain flooded the streets."]
     ref = st.SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2").encode(
-        texts, normalize_embeddings=True)
+        texts, normalize_embeddings=True
+    )
     got = enc.encode(texts)
     assert float(np.min(np.sum(ref * got, 1))) > 0.999
 

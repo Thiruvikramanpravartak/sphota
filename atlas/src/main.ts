@@ -164,7 +164,7 @@ function drawLabels(z: number) {
   }
   // L1 labels: bigger cells first, more appear as you zoom
   if (z > 1.3) {
-    const minN = z > 6 ? 0 : z > 3.5 ? 3 : z > 2 ? 10 : 20;
+    const minN = z > 8 ? 0 : z > 5 ? 6 : z > 3 ? 15 : 30;
     ctx.font = `${z > 4 ? 13 : 12}px Inter, system-ui, sans-serif`;
     const order = [...data.cells].sort((a, b) => b.n - a.n);
     for (const c of order) {
@@ -370,6 +370,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 function nearestCell(sx: number, sy: number, maxPx: number): Cell | null {
+  if (!data) return null;
   let best: Cell | null = null;
   let bd = maxPx * maxPx;
   for (const c of data.cells) {
@@ -504,6 +505,7 @@ function sharedLevels(a: number[], b: number[]) {
 }
 
 function fromHash() {
+  if (!data || !space) return;
   const h = decodeURIComponent(location.hash.slice(1));
   if (!h) return;
   if (h.startsWith("q=")) {

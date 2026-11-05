@@ -109,6 +109,9 @@ def build(out: Path, n_continents: int = 24) -> None:
                 "top": [t for t in top if t][:8],
             }
         )
+    (cache / "continent_members.json").write_text(
+        json.dumps({c["k"]: c["top"] for c in conts}, ensure_ascii=False), encoding="utf-8"
+    )
     # L2: place populated, labelled L2 cells around their parent
     l2 = []
     spread = 0.012

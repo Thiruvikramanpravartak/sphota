@@ -1,0 +1,54 @@
+{
+ "space": "s1",
+ "anchor": {
+  "model": "intfloat/multilingual-e5-small",
+  "prefix": "query: ",
+  "pooling": "mean",
+  "normalize": true,
+  "reference_onnx": "intfloat/multilingual-e5-small:onnx/model.onnx"
+ },
+ "browser_model": "Xenova/multilingual-e5-small",
+ "dim_in": 384,
+ "dim": 256,
+ "sizes": [
+  4096,
+  256,
+  256,
+  256
+ ],
+ "offsets": {
+  "mu": 0,
+  "W": 1536,
+  "codebooks": [
+   394752,
+   4589056,
+   4851200,
+   5113344
+  ]
+ },
+ "temperatures": [
+  27.205489600305246,
+  12.811614057389644,
+  10.380990428795798,
+  9.589367703695796
+ ],
+ "top_m": 16,
+ "widths": [
+  4,
+  2,
+  2,
+  2
+ ],
+ "perm_a": [
+  376095,
+  677,
+  435,
+  967
+ ],
+ "perm_b": [
+  239337,
+  349,
+  201,
+  737
+ ]
+}

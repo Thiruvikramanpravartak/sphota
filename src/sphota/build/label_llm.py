@@ -103,6 +103,43 @@ def name_cells(
     return done
 
 
+def name_continents(cache: Path) -> dict:
+    """Name the Atlas 'continents' (agglomerative groups of L1 cells) from member names."""
+    members = json.loads((cache / "continent_members.json").read_text(encoding="utf-8"))
+    cells = {k: {"examples": v, "kw": ""} for k, v in members.items()}
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    tok = AutoTokenizer.from_pretrained(LLM, cache_dir=str(HF_CACHE), padding_side="left")
+    model = AutoModelForCausalLM.from_pretrained(
+        LLM, cache_dir=str(HF_CACHE), torch_dtype=torch.bfloat16
+    )
+    out = {}
+    for k, c in cells.items():
+        msg = (
+            "These are names of related topic areas on a map of meaning:\n"
+            + "\n".join("- " + e for e in c["examples"])
+            + "\n\nGive one short umbrella name (1-3 words, Title Case) for this whole continent. "
+            "Reply with the name only."
+        )
+        enc = tok(
+            [
+                tok.apply_chat_template(
+                    [{"role": "user", "content": msg}], tokenize=False, add_generation_prompt=True
+                )
+            ],
+            return_tensors="pt",
+        )
+        with torch.no_grad():
+            o = model.generate(**enc, max_new_tokens=8, do_sample=False)
+        out[k] = _clean(tok.decode(o[0, enc.input_ids.shape[1] :], skip_special_tokens=True))
+        log(f"continent {k}: {out[k]}")
+    (cache / "continent_names.json").write_text(
+        json.dumps(out, ensure_ascii=False), encoding="utf-8"
+    )
+    return out
+
+
 def translate(names: dict, cache: Path, langs: list[str], batch: int = 64) -> dict:
     from transformers import MarianMTModel, MarianTokenizer
 
@@ -171,7 +208,9 @@ def main() -> None:
         nargs="*",
         default=["hi", "ta", "bn", "es", "fr", "de", "pt", "zh", "ar", "ru", "ja"],
     )
-    ap.add_argument("--step", choices=["all", "name", "translate", "merge"], default="all")
+    ap.add_argument(
+        "--step", choices=["all", "name", "translate", "merge", "continents"], default="all"
+    )
     a = ap.parse_args()
     cache = DATA_DIR / a.scale / "build"
     if a.step in ("all", "name"):
@@ -179,6 +218,9 @@ def main() -> None:
         n1 = name_cells(l1, cache / "names_l1.json")
         l2 = json.loads((cache / "cells_l2.json").read_text(encoding="utf-8"))
         name_cells(l2, cache / "names_l2.json", parent=n1, llm=LLM_SMALL)
+    if a.step == "continents":
+        name_continents(cache)
+        return
     if a.step in ("all", "translate"):
         names = {
             **json.loads((cache / "names_l1.json").read_text(encoding="utf-8")),
