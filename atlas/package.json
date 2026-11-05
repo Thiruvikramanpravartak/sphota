@@ -1,0 +1,22 @@
+{
+  "name": "sphota-atlas",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Meaning Atlas: a zoomable map of the Sphota s1 coordinate space with in-browser encoding.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "deploy:pages": "npm run build && npx gh-pages -d dist",
+    "deploy:hf": "npm run build && bash ../scripts/deploy_atlas_hf.sh"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "3.7.6"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vite": "6.4.5"
+  }
+}

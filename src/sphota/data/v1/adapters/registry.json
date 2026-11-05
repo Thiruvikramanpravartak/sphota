@@ -1,0 +1,200 @@
+{
+  "space": "s1",
+  "adapters": {
+    "sentence-transformers/all-MiniLM-L6-v2": {
+      "short": "minilm-l6",
+      "file": "minilm-l6.npz",
+      "sha256": "c10259b0a0344271689a951e8b70b097cf3ad89c674ab2a92ee6899b89ccc123",
+      "model_license": "apache-2.0",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "pooling": "mean",
+        "max_length": 256
+      },
+      "certificate": {
+        "agreement_same_text_en": [
+          0.166,
+          0.0306,
+          0.0059,
+          0.0
+        ],
+        "agreement_same_text": [
+          0.0516,
+          0.0117,
+          0.0022,
+          0.0002
+        ],
+        "l1_top3_en": 0.2777,
+        "l1_neighborhood_en": 0.6156,
+        "l1_top3_all": 0.1058,
+        "agreement_cross_lingual": [
+          0.1808,
+          0.087,
+          0.052,
+          0.0266
+        ],
+        "fidelity_en": 0.5482,
+        "fidelity_all": 0.3008,
+        "grade": "certified",
+        "n_per_lang": 1012
+      }
+    },
+    "BAAI/bge-small-en-v1.5": {
+      "short": "bge-small-en",
+      "file": "bge-small-en.npz",
+      "sha256": "dc71a2685b0fcca3b6e9a4cf30a163838bf8fb686513404581fc9e65c2cc26bd",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/bge-small-en-v1.5",
+        "pooling": "cls",
+        "max_length": 512
+      },
+      "certificate": {
+        "agreement_same_text_en": [
+          0.1383,
+          0.0237,
+          0.004,
+          0.0
+        ],
+        "agreement_same_text": [
+          0.0487,
+          0.0109,
+          0.0025,
+          0.0004
+        ],
+        "l1_top3_en": 0.2411,
+        "l1_neighborhood_en": 0.6324,
+        "l1_top3_all": 0.1004,
+        "agreement_cross_lingual": [
+          0.2214,
+          0.0999,
+          0.0609,
+          0.0295
+        ],
+        "fidelity_en": 0.5678,
+        "fidelity_all": 0.3117,
+        "grade": "certified",
+        "n_per_lang": 1012
+      }
+    },
+    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": {
+      "short": "pm-minilm-l12",
+      "file": "pm-minilm-l12.npz",
+      "sha256": "43b527fc16ac9e5a9335b396986c8721a38f115ea04e1dc405f3455329129fd8",
+      "model_license": "apache-2.0",
+      "multilingual": true,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+        "pooling": "mean",
+        "max_length": 128
+      },
+      "certificate": {
+        "agreement_same_text_en": [
+          0.2332,
+          0.0583,
+          0.0178,
+          0.001
+        ],
+        "agreement_same_text": [
+          0.2446,
+          0.0819,
+          0.0227,
+          0.0063
+        ],
+        "l1_top3_en": 0.3666,
+        "l1_neighborhood_en": 0.6206,
+        "l1_top3_all": 0.3916,
+        "agreement_cross_lingual": [
+          0.5482,
+          0.3811,
+          0.2941,
+          0.2138
+        ],
+        "fidelity_en": 0.5798,
+        "fidelity_all": 0.52,
+        "grade": "certified-multilingual",
+        "n_per_lang": 1012
+      }
+    },
+    "thenlper/gte-small": {
+      "short": "gte-small",
+      "file": "gte-small.npz",
+      "sha256": "3db87c04ead60cb9e509c1ff6a9fc6e0b5dc9320ce579466219f7d2e5ecaced4",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/gte-small",
+        "pooling": "mean",
+        "max_length": 512
+      },
+      "certificate": {
+        "agreement_same_text_en": [
+          0.0573,
+          0.0049,
+          0.001,
+          0.0
+        ],
+        "agreement_same_text": [
+          0.0335,
+          0.0066,
+          0.0017,
+          0.0003
+        ],
+        "l1_top3_en": 0.1265,
+        "l1_neighborhood_en": 0.6383,
+        "l1_top3_all": 0.0753,
+        "agreement_cross_lingual": [
+          0.304,
+          0.1706,
+          0.1337,
+          0.079
+        ],
+        "fidelity_en": 0.5481,
+        "fidelity_all": 0.304,
+        "grade": "certified",
+        "n_per_lang": 1012
+      }
+    },
+    "sentence-transformers/LaBSE": {
+      "short": "labse",
+      "file": "labse.npz",
+      "sha256": "0fb905d6dc7917fa20e0d7cb46a671bfdb1f086c12d6f423fc3fbf12447bd689",
+      "model_license": "apache-2.0",
+      "multilingual": true,
+      "prefix": "",
+      "certificate": {
+        "agreement_same_text_en": [
+          0.1917,
+          0.0603,
+          0.0188,
+          0.002
+        ],
+        "agreement_same_text": [
+          0.1938,
+          0.0632,
+          0.0185,
+          0.0042
+        ],
+        "l1_top3_en": 0.3211,
+        "l1_neighborhood_en": 0.5692,
+        "l1_top3_all": 0.3333,
+        "agreement_cross_lingual": [
+          0.5632,
+          0.3784,
+          0.2621,
+          0.1824
+        ],
+        "fidelity_en": 0.6024,
+        "fidelity_all": 0.5949,
+        "grade": "certified-multilingual",
+        "n_per_lang": 1012
+      }
+    }
+  }
+}

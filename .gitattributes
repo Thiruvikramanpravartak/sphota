@@ -1,0 +1,6 @@
+# Release artifacts are checksummed byte-for-byte: never convert line endings.
+src/sphota/data/** -text
+tests/vectors/** -text
+atlas/public/data/** -text
+*.npz binary
+*.bin binary

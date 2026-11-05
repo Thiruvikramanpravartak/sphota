@@ -1,0 +1,9 @@
+Sphota
+Copyright 2026 The Sphota Authors
+
+This product includes software developed by The Sphota Authors (Apache-2.0).
+
+The frozen v1 release artifacts (src/sphota/data/v1) are derived from:
+ - intfloat/multilingual-e5-small (MIT License)
+ - FLORES-200 (CC-BY-SA-4.0), Tatoeba (CC-BY-2.0), Wikipedia (CC-BY-SA-3.0)
+See docs/LICENSES-THIRD-PARTY.md for details and attribution.

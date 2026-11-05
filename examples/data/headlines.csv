@@ -1,0 +1,49 @@
+id,lang,topic,text
+1,en,business,The chief executive resigned after the board lost confidence in her strategy.
+2,hi,business,बोर्ड का भरोसा खोने के बाद मुख्य कार्यकारी अधिकारी ने इस्तीफा दे दिया।
+3,es,business,La directora ejecutiva dimitió después de que el consejo perdiera la confianza en su estrategia.
+4,de,business,Die Vorstandschefin trat zurück, nachdem der Aufsichtsrat das Vertrauen in ihre Strategie verloren hatte.
+5,en,business,Shares of the company fell sharply after the quarterly earnings report.
+6,fr,business,Les actions de l'entreprise ont fortement chuté après la publication des résultats trimestriels.
+7,en,weather,Heavy rain flooded several streets in the city center on Tuesday.
+8,hi,weather,मंगलवार को भारी बारिश से शहर के केंद्र की कई सड़कों पर पानी भर गया।
+9,ta,weather,செவ்வாய்க்கிழமை பெய்த கனமழையால் நகரின் மையப்பகுதியில் பல தெருக்கள் வெள்ளத்தில் மூழ்கின.
+10,es,weather,Las fuertes lluvias inundaron varias calles del centro de la ciudad el martes.
+11,en,weather,Forecasters expect a heat wave to hit the region next week.
+12,de,weather,Meteorologen erwarten, dass nächste Woche eine Hitzewelle die Region erreicht.
+13,en,sports,The striker scored twice in the final minutes to win the championship.
+14,es,sports,El delantero marcó dos goles en los últimos minutos para ganar el campeonato.
+15,ta,sports,கடைசி நிமிடங்களில் இரண்டு கோல்கள் அடித்து முன்கள வீரர் சாம்பியன் பட்டத்தை வென்றார்.
+16,fr,sports,L'attaquant a marqué deux buts dans les dernières minutes pour remporter le championnat.
+17,en,sports,The tennis player withdrew from the tournament with a wrist injury.
+18,hi,sports,टेनिस खिलाड़ी ने कलाई की चोट के कारण टूर्नामेंट से नाम वापस ले लिया।
+19,en,health,A new vaccine reduced hospital admissions by half in the clinical trial.
+20,fr,health,Un nouveau vaccin a réduit de moitié les hospitalisations lors de l'essai clinique.
+21,hi,health,क्लिनिकल परीक्षण में एक नए टीके ने अस्पताल में भर्ती होने वालों की संख्या आधी कर दी।
+22,en,health,Doctors recommend at least seven hours of sleep every night.
+23,es,health,Los médicos recomiendan dormir al menos siete horas cada noche.
+24,de,health,Ärzte empfehlen, jede Nacht mindestens sieben Stunden zu schlafen.
+25,en,technology,The new smartphone has a faster processor and a longer battery life.
+26,de,technology,Das neue Smartphone hat einen schnelleren Prozessor und eine längere Akkulaufzeit.
+27,ta,technology,புதிய ஸ்மார்ட்போனில் வேகமான செயலியும் நீண்ட பேட்டரி ஆயுளும் உள்ளன.
+28,en,technology,Researchers built a quantum computer with more than a thousand qubits.
+29,fr,technology,Des chercheurs ont construit un ordinateur quantique de plus de mille qubits.
+30,es,technology,Investigadores construyeron una computadora cuántica con más de mil cúbits.
+31,en,food,Add two cups of flour and stir until the batter is smooth.
+32,hi,food,दो कप आटा डालें और घोल चिकना होने तक हिलाएँ।
+33,fr,food,Ajoutez deux tasses de farine et mélangez jusqu'à obtenir une pâte lisse.
+34,en,food,This restaurant serves the best vegetarian curry in town.
+35,ta,food,இந்த உணவகம் ஊரிலேயே சிறந்த சைவ கறியைப் பரிமாறுகிறது.
+36,de,food,Dieses Restaurant serviert das beste vegetarische Curry der Stadt.
+37,en,politics,Parliament passed the new budget after a long debate.
+38,es,politics,El parlamento aprobó el nuevo presupuesto tras un largo debate.
+39,hi,politics,लंबी बहस के बाद संसद ने नया बजट पारित कर दिया।
+40,en,politics,The president met foreign ministers to discuss the trade agreement.
+41,fr,politics,Le président a rencontré les ministres des affaires étrangères pour discuter de l'accord commercial.
+42,ta,politics,வர்த்தக ஒப்பந்தம் குறித்து விவாதிக்க ஜனாதிபதி வெளியுறவு அமைச்சர்களைச் சந்தித்தார்.
+43,en,science,Astronomers discovered a planet that may have liquid water.
+44,de,science,Astronomen haben einen Planeten entdeckt, der flüssiges Wasser haben könnte.
+45,hi,science,खगोलविदों ने एक ऐसे ग्रह की खोज की है जिस पर तरल पानी हो सकता है।
+46,en,science,A new species of frog was found in the Amazon rainforest.
+47,es,science,Se descubrió una nueva especie de rana en la selva amazónica.
+48,ta,science,அமேசான் மழைக்காடுகளில் ஒரு புதிய வகை தவளை கண்டுபிடிக்கப்பட்டது.

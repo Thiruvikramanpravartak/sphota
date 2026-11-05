@@ -1,0 +1,14 @@
+# docker compose -f integrations/postgres/docker-compose.yml up
+# Postgres 16 with the Sphota SQL helpers and a demo table preloaded.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: sphota
+      POSTGRES_DB: sphota
+    ports: ["5432:5432"]
+    volumes:
+      - ./sphota.sql:/docker-entrypoint-initdb.d/01-sphota.sql:ro
+      - ./demo.sql:/docker-entrypoint-initdb.d/02-demo.sql:ro
+      - ./neighbors.csv:/docker-entrypoint-initdb.d/neighbors.csv:ro
+      - ./load_neighbors.sh:/docker-entrypoint-initdb.d/03-load-neighbors.sh:ro

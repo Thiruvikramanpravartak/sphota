@@ -1,0 +1,109 @@
+{
+  "name": "sphota",
+  "version": "s1",
+  "status": "frozen (small scale build)",
+  "created": "2026-11-05",
+  "anchor": {
+    "model": "intfloat/multilingual-e5-small",
+    "prefix": "query: ",
+    "pooling": "mean",
+    "normalize": true,
+    "reference_onnx": "intfloat/multilingual-e5-small:onnx/model.onnx"
+  },
+  "space": {
+    "dim": 256,
+    "alignment": "meaning-LDA (languages + models)",
+    "reg": 0.05,
+    "reference_models": [
+      "sentence-transformers/all-MiniLM-L6-v2",
+      "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "BAAI/bge-small-en-v1.5"
+    ],
+    "model_weight": 0.0,
+    "transform": "y = (normalize(x) - mu) @ W"
+  },
+  "quantizer": {
+    "type": "residual-kmeans",
+    "sizes": [
+      4096,
+      256,
+      256,
+      256
+    ],
+    "assignment": "nearest centroid (squared L2), ties -> lowest index"
+  },
+  "code_format": {
+    "alphabet": "crockford-base32",
+    "widths": [
+      4,
+      2,
+      2,
+      2
+    ],
+    "perm_a": [
+      376095,
+      677,
+      435,
+      967
+    ],
+    "perm_b": [
+      239337,
+      349,
+      201,
+      737
+    ]
+  },
+  "training_data": {
+    "languages": [
+      "en",
+      "hi",
+      "ta",
+      "es",
+      "fr",
+      "de",
+      "zh",
+      "ar",
+      "ru",
+      "ja",
+      "pt",
+      "bn"
+    ],
+    "corpus_size": 77600,
+    "sources": [
+      "wikipedia-20231101",
+      "flores200-dev",
+      "tatoeba"
+    ]
+  },
+  "files": {
+    "calibration.json": {
+      "sha256": "e61acf14f08c4732efb35337c242cbe42a640bddbba81073cc117167b326b36c",
+      "bytes": 7002
+    },
+    "codebooks.npz": {
+      "sha256": "3d0ce54dd4fdb921f3a7e9af878d8e9f77df994ace39eff9c1ae8f2b223b7465",
+      "bytes": 4981734
+    },
+    "examples.json": {
+      "sha256": "3d4f3d1bd1df127fa404fe01221c83eb7e57d1ba878d369b115ec5b5eb4b49f5",
+      "bytes": 788298
+    },
+    "keywords.json": {
+      "sha256": "27e2d94a73fd3a5163b2d8c1c8e69ad2c9860cb3bc41522c49261343a3a0e26e",
+      "bytes": 627462
+    },
+    "labels.json": {
+      "sha256": "4414fbc795e52ab730eaf70fdba4050dfa2318ae889b4250f2b6ae7b3d08d63a",
+      "bytes": 3974856
+    },
+    "neighbors.npz": {
+      "sha256": "e20112f9b73f4df4f68e849880f460af0f5eca37acf9a78c04501ee9d48ed9e8",
+      "bytes": 1065752
+    },
+    "space.npz": {
+      "sha256": "50f07c60c220b736f4f5ed9a8f06a43dfddc4135c8edd534545c9cdfe395d847",
+      "bytes": 396514
+    }
+  },
+  "license": "Apache-2.0 (artifacts derived from CC-BY-SA data; see NOTICE)"
+}

@@ -1,0 +1,49 @@
+site_name: Sphota
+site_description: "GPS for meaning: open, frozen, human-readable coordinates for text in any language."
+repo_url: https://github.com/thiruvikramanpravartak/sphota
+edit_uri: edit/main/docs/
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: indigo
+      accent: pink
+      toggle: { icon: material/brightness-4, name: Light mode }
+    - scheme: default
+      primary: indigo
+      accent: pink
+      toggle: { icon: material/brightness-7, name: Dark mode }
+  features: [navigation.sections, navigation.top, content.code.copy, search.highlight]
+markdown_extensions:
+  - admonition
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+nav:
+  - Home: index.md
+  - Quick start: quickstart.md
+  - Concepts: concepts.md
+  - API reference: api.md
+  - CLI: cli.md
+  - Use cases: usecases.md
+  - Adapters: adapters.md
+  - Benchmarks: benchmark.md
+  - Privacy: privacy.md
+  - FAQ: faq.md
+  - Specification:
+      - Overview: spec/README.md
+      - 1. Code format: spec/01-code-format.md
+      - 2. Space & semantics: spec/02-space-and-semantics.md
+      - 3. Confidence, distance, labels: spec/03-confidence-distance-labels.md
+      - 6. Versioning & migration: spec/06-versioning-migration.md
+      - 7. Adapters & registry: spec/07-adapters-registry.md
+      - 8. Conformance: spec/08-conformance.md
+      - 9. Security & privacy: spec/09-security-privacy.md
+      - 10. Governance: spec/10-governance.md
+  - Research:
+      - Gap analysis: research/gap-analysis.md
+      - Paper draft: paper/sphota.md
+  - Compatibility & security: compatibility.md
+  - Licenses: LICENSES-THIRD-PARTY.md

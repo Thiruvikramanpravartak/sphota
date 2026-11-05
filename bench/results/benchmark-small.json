@@ -1,0 +1,735 @@
+{
+  "scale": "small",
+  "space": "s1",
+  "languages": [
+    "en",
+    "hi",
+    "ta",
+    "es",
+    "fr",
+    "de",
+    "zh",
+    "ar",
+    "ru",
+    "ja",
+    "pt",
+    "bn"
+  ],
+  "n_meanings": 1012,
+  "cross_lingual": {
+    "mean": [
+      0.4614,
+      0.2294,
+      0.1095,
+      0.0482
+    ],
+    "per_language": {
+      "hi": [
+        0.5267,
+        0.2757,
+        0.1364,
+        0.0642
+      ],
+      "ta": [
+        0.4496,
+        0.2125,
+        0.0889,
+        0.0346
+      ],
+      "es": [
+        0.5563,
+        0.3113,
+        0.1591,
+        0.0791
+      ],
+      "fr": [
+        0.5,
+        0.2708,
+        0.1294,
+        0.0603
+      ],
+      "de": [
+        0.5623,
+        0.3113,
+        0.1759,
+        0.08
+      ],
+      "zh": [
+        0.4545,
+        0.2174,
+        0.082,
+        0.0316
+      ],
+      "ar": [
+        0.3844,
+        0.1709,
+        0.0751,
+        0.0267
+      ],
+      "ru": [
+        0.5138,
+        0.2757,
+        0.1423,
+        0.0721
+      ],
+      "ja": [
+        0.4634,
+        0.1887,
+        0.0791,
+        0.0237
+      ],
+      "pt": [
+        0.1907,
+        0.0741,
+        0.0306,
+        0.0099
+      ],
+      "bn": [
+        0.4733,
+        0.2154,
+        0.1057,
+        0.0484
+      ]
+    },
+    "stable_mode_mean": [
+      0.4672,
+      0.2342,
+      0.1122,
+      0.0505
+    ],
+    "all_pairs_mean": [
+      0.421,
+      0.1909,
+      0.0817,
+      0.0336
+    ]
+  },
+  "truncation_cross_lingual": [
+    {
+      "min_confidence": 0.0,
+      "consistent": 0.0482,
+      "mean_depth": 4.0
+    },
+    {
+      "min_confidence": 0.3,
+      "consistent": 0.3917,
+      "mean_depth": 1.742
+    },
+    {
+      "min_confidence": 0.5,
+      "consistent": 0.4468,
+      "mean_depth": 1.278
+    },
+    {
+      "min_confidence": 0.6,
+      "consistent": 0.4562,
+      "mean_depth": 1.166
+    },
+    {
+      "min_confidence": 0.7,
+      "consistent": 0.4594,
+      "mean_depth": 1.095
+    },
+    {
+      "min_confidence": 0.8,
+      "consistent": 0.4607,
+      "mean_depth": 1.054
+    },
+    {
+      "min_confidence": 0.9,
+      "consistent": 0.4613,
+      "mean_depth": 1.016
+    }
+  ],
+  "calibration_unseen": [
+    {
+      "level": 1,
+      "ece": 0.0928,
+      "bins": [
+        {
+          "bin": "0.0-0.2",
+          "n": 1175,
+          "conf": 0.171,
+          "agree": 0.125
+        },
+        {
+          "bin": "0.2-0.4",
+          "n": 5941,
+          "conf": 0.304,
+          "agree": 0.277
+        },
+        {
+          "bin": "0.4-0.6",
+          "n": 6063,
+          "conf": 0.494,
+          "agree": 0.411
+        },
+        {
+          "bin": "0.6-0.8",
+          "n": 4360,
+          "conf": 0.699,
+          "agree": 0.564
+        },
+        {
+          "bin": "0.8-1.0",
+          "n": 4725,
+          "conf": 0.909,
+          "agree": 0.746
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "ece": 0.0989,
+      "bins": [
+        {
+          "bin": "0.0-0.2",
+          "n": 7640,
+          "conf": 0.125,
+          "agree": 0.105
+        },
+        {
+          "bin": "0.2-0.4",
+          "n": 7731,
+          "conf": 0.29,
+          "agree": 0.213
+        },
+        {
+          "bin": "0.4-0.6",
+          "n": 4036,
+          "conf": 0.483,
+          "agree": 0.319
+        },
+        {
+          "bin": "0.6-0.8",
+          "n": 1807,
+          "conf": 0.684,
+          "agree": 0.429
+        },
+        {
+          "bin": "0.8-1.0",
+          "n": 1050,
+          "conf": 0.88,
+          "agree": 0.567
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "ece": 0.0845,
+      "bins": [
+        {
+          "bin": "0.0-0.2",
+          "n": 14069,
+          "conf": 0.095,
+          "agree": 0.067
+        },
+        {
+          "bin": "0.2-0.4",
+          "n": 5512,
+          "conf": 0.279,
+          "agree": 0.147
+        },
+        {
+          "bin": "0.4-0.6",
+          "n": 2015,
+          "conf": 0.478,
+          "agree": 0.22
+        },
+        {
+          "bin": "0.6-0.8",
+          "n": 534,
+          "conf": 0.682,
+          "agree": 0.358
+        },
+        {
+          "bin": "0.8-1.0",
+          "n": 134,
+          "conf": 0.86,
+          "agree": 0.381
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "ece": 0.0596,
+      "bins": [
+        {
+          "bin": "0.0-0.2",
+          "n": 18925,
+          "conf": 0.067,
+          "agree": 0.035
+        },
+        {
+          "bin": "0.2-0.4",
+          "n": 2471,
+          "conf": 0.275,
+          "agree": 0.096
+        },
+        {
+          "bin": "0.4-0.6",
+          "n": 708,
+          "conf": 0.475,
+          "agree": 0.165
+        },
+        {
+          "bin": "0.6-0.8",
+          "n": 138,
+          "conf": 0.689,
+          "agree": 0.348
+        },
+        {
+          "bin": "0.8-1.0",
+          "n": 22,
+          "conf": 0.856,
+          "agree": 0.182
+        }
+      ]
+    }
+  ],
+  "selective_cross_lingual": [
+    {
+      "level": 1,
+      "min_confidence": 0.0,
+      "coverage": 1.0,
+      "agreement": 0.4614
+    },
+    {
+      "level": 1,
+      "min_confidence": 0.5,
+      "coverage": 0.3441,
+      "agreement": 0.7317
+    },
+    {
+      "level": 1,
+      "min_confidence": 0.7,
+      "coverage": 0.1607,
+      "agreement": 0.8869
+    },
+    {
+      "level": 1,
+      "min_confidence": 0.8,
+      "coverage": 0.0997,
+      "agreement": 0.9384
+    },
+    {
+      "level": 1,
+      "min_confidence": 0.9,
+      "coverage": 0.0486,
+      "agreement": 0.9645
+    },
+    {
+      "level": 2,
+      "min_confidence": 0.0,
+      "coverage": 1.0,
+      "agreement": 0.2294
+    },
+    {
+      "level": 2,
+      "min_confidence": 0.5,
+      "coverage": 0.0773,
+      "agreement": 0.6564
+    },
+    {
+      "level": 2,
+      "min_confidence": 0.7,
+      "coverage": 0.023,
+      "agreement": 0.8561
+    },
+    {
+      "level": 2,
+      "min_confidence": 0.8,
+      "coverage": 0.0114,
+      "agreement": 0.8764
+    },
+    {
+      "level": 2,
+      "min_confidence": 0.9,
+      "coverage": 0.0033,
+      "agreement": 0.9667
+    }
+  ],
+  "paraphrase": {
+    "n_pairs": 918,
+    "agree": [
+      0.7157,
+      0.5381,
+      0.3834,
+      0.2778
+    ],
+    "stable_mode": [
+      0.7168,
+      0.5436,
+      0.3824,
+      0.2821
+    ],
+    "truncation": [
+      {
+        "min_confidence": 0.0,
+        "consistent": 0.2778,
+        "mean_depth": 4.0
+      },
+      {
+        "min_confidence": 0.3,
+        "consistent": 0.6264,
+        "mean_depth": 2.064
+      },
+      {
+        "min_confidence": 0.5,
+        "consistent": 0.6993,
+        "mean_depth": 1.509
+      },
+      {
+        "min_confidence": 0.6,
+        "consistent": 0.7102,
+        "mean_depth": 1.335
+      },
+      {
+        "min_confidence": 0.7,
+        "consistent": 0.7135,
+        "mean_depth": 1.225
+      },
+      {
+        "min_confidence": 0.8,
+        "consistent": 0.7146,
+        "mean_depth": 1.147
+      },
+      {
+        "min_confidence": 0.9,
+        "consistent": 0.7157,
+        "mean_depth": 1.073
+      }
+    ]
+  },
+  "migration_paraphrase_retrieval": {
+    "n_docs": 918,
+    "anchor→anchor (codes)": {
+      "top1": 0.5163,
+      "recall@10": 0.7211,
+      "p@10": 0.0721
+    },
+    "anchor→anchor (raw vectors)": {
+      "top1": 0.8987,
+      "recall@10": 0.9989,
+      "p@10": 0.0999
+    },
+    "index minilm-l6 → query anchor (canonical vectors)": {
+      "top1": 0.8061,
+      "recall@10": 0.9651,
+      "p@10": 0.0965
+    },
+    "index minilm-l6 → query anchor (codes)": {
+      "top1": 0.0479,
+      "recall@10": 0.1383,
+      "p@10": 0.0138
+    },
+    "index minilm-l6 → query anchor (codes + alternates)": {
+      "top1": 0.061,
+      "recall@10": 0.1667,
+      "p@10": 0.0167
+    },
+    "minilm-l6 → minilm-l6 (raw vectors, re-index baseline)": {
+      "top1": 0.8976,
+      "recall@10": 1.0,
+      "p@10": 0.1
+    },
+    "index bge-small-en → query anchor (canonical vectors)": {
+      "top1": 0.8344,
+      "recall@10": 0.9913,
+      "p@10": 0.0991
+    },
+    "index bge-small-en → query anchor (codes)": {
+      "top1": 0.0621,
+      "recall@10": 0.1906,
+      "p@10": 0.0191
+    },
+    "index bge-small-en → query anchor (codes + alternates)": {
+      "top1": 0.0784,
+      "recall@10": 0.2288,
+      "p@10": 0.0229
+    },
+    "bge-small-en → bge-small-en (raw vectors, re-index baseline)": {
+      "top1": 0.8943,
+      "recall@10": 1.0,
+      "p@10": 0.1
+    },
+    "index pm-minilm-l12 → query anchor (canonical vectors)": {
+      "top1": 0.8007,
+      "recall@10": 0.9847,
+      "p@10": 0.0985
+    },
+    "index pm-minilm-l12 → query anchor (codes)": {
+      "top1": 0.0741,
+      "recall@10": 0.2505,
+      "p@10": 0.0251
+    },
+    "index pm-minilm-l12 → query anchor (codes + alternates)": {
+      "top1": 0.0893,
+      "recall@10": 0.281,
+      "p@10": 0.0281
+    },
+    "pm-minilm-l12 → pm-minilm-l12 (raw vectors, re-index baseline)": {
+      "top1": 0.8932,
+      "recall@10": 1.0,
+      "p@10": 0.1
+    },
+    "index gte-small → query anchor (canonical vectors)": {
+      "top1": 0.841,
+      "recall@10": 0.9902,
+      "p@10": 0.099
+    },
+    "index gte-small → query anchor (codes)": {
+      "top1": 0.0261,
+      "recall@10": 0.1035,
+      "p@10": 0.0103
+    },
+    "index gte-small → query anchor (codes + alternates)": {
+      "top1": 0.037,
+      "recall@10": 0.1198,
+      "p@10": 0.012
+    },
+    "gte-small → gte-small (raw vectors, re-index baseline)": {
+      "top1": 0.8976,
+      "recall@10": 1.0,
+      "p@10": 0.1
+    },
+    "index labse → query anchor (canonical vectors)": {
+      "top1": 0.8224,
+      "recall@10": 0.9826,
+      "p@10": 0.0983
+    },
+    "index labse → query anchor (codes)": {
+      "top1": 0.061,
+      "recall@10": 0.1993,
+      "p@10": 0.0199
+    },
+    "index labse → query anchor (codes + alternates)": {
+      "top1": 0.0828,
+      "recall@10": 0.256,
+      "p@10": 0.0256
+    },
+    "labse → labse (raw vectors, re-index baseline)": {
+      "top1": 0.8943,
+      "recall@10": 0.9989,
+      "p@10": 0.0999
+    }
+  },
+  "utilization": {
+    "training_corpus": {
+      "n": 68000,
+      "l1_used": 3754,
+      "l1_used_frac": 0.9165,
+      "l1_perplexity": 2181.9,
+      "max_cell_share": 0.0029,
+      "l2_used_frac": 1.0,
+      "l3_used_frac": 1.0,
+      "l4_used_frac": 1.0
+    },
+    "held_out": {
+      "n": 13980,
+      "l1_used": 806,
+      "l1_used_frac": 0.1968,
+      "l1_perplexity": 342.8,
+      "max_cell_share": 0.02818,
+      "l2_used_frac": 0.1953,
+      "l3_used_frac": 0.1992,
+      "l4_used_frac": 0.1406
+    }
+  },
+  "retrieval_translation": {
+    "raw_anchor": {
+      "top1": 0.9962,
+      "recall@10": 0.9998,
+      "p@10": 0.1
+    },
+    "canonical": {
+      "top1": 0.9939,
+      "recall@10": 0.9998,
+      "p@10": 0.1
+    },
+    "codes": {
+      "top1": 0.3032,
+      "recall@10": 0.5553,
+      "p@10": 0.0555
+    },
+    "codes_multiprobe": {
+      "top1": 0.3565,
+      "recall@10": 0.6834,
+      "p@10": 0.0683
+    }
+  },
+  "retrieval_topic_sib200": {
+    "n": 92,
+    "raw_anchor": {
+      "top1": 0.2935,
+      "recall@10": 0.8587,
+      "p@10": 0.1946
+    },
+    "canonical": {
+      "top1": 0.2609,
+      "recall@10": 0.8478,
+      "p@10": 0.2109
+    },
+    "codes": {
+      "top1": 0.2826,
+      "recall@10": 0.7935,
+      "p@10": 0.1663
+    },
+    "codes_en_to_hi": {
+      "top1": 0.2174,
+      "recall@10": 0.75,
+      "p@10": 0.1685
+    },
+    "raw_anchor_en_to_hi": {
+      "top1": 0.2609,
+      "recall@10": 0.7935,
+      "p@10": 0.2087
+    }
+  },
+  "speed": {
+    "encode_fp32_sent_per_s": 155.3,
+    "encode_int8_sent_per_s": 331.0,
+    "quantize_vectors_per_s": 10331,
+    "cpu": "4 vCPU (CI container)"
+  },
+  "int8_variant_agreement": [
+    0.8477,
+    0.7461,
+    0.668,
+    0.5977
+  ],
+  "cross_model": {
+    "sentence-transformers/all-MiniLM-L6-v2": {
+      "agreement_same_text_en": [
+        0.166,
+        0.0306,
+        0.0059,
+        0.0
+      ],
+      "agreement_same_text": [
+        0.0516,
+        0.0117,
+        0.0022,
+        0.0002
+      ],
+      "agreement_cross_lingual": [
+        0.1808,
+        0.087,
+        0.052,
+        0.0266
+      ],
+      "fidelity_en": 0.5482,
+      "grade": "certified"
+    },
+    "BAAI/bge-small-en-v1.5": {
+      "agreement_same_text_en": [
+        0.1383,
+        0.0237,
+        0.004,
+        0.0
+      ],
+      "agreement_same_text": [
+        0.0487,
+        0.0109,
+        0.0025,
+        0.0004
+      ],
+      "agreement_cross_lingual": [
+        0.2214,
+        0.0999,
+        0.0609,
+        0.0295
+      ],
+      "fidelity_en": 0.5678,
+      "grade": "certified"
+    },
+    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": {
+      "agreement_same_text_en": [
+        0.2332,
+        0.0583,
+        0.0178,
+        0.001
+      ],
+      "agreement_same_text": [
+        0.2446,
+        0.0819,
+        0.0227,
+        0.0063
+      ],
+      "agreement_cross_lingual": [
+        0.5482,
+        0.3811,
+        0.2941,
+        0.2138
+      ],
+      "fidelity_en": 0.5798,
+      "grade": "certified-multilingual"
+    },
+    "thenlper/gte-small": {
+      "agreement_same_text_en": [
+        0.0573,
+        0.0049,
+        0.001,
+        0.0
+      ],
+      "agreement_same_text": [
+        0.0335,
+        0.0066,
+        0.0017,
+        0.0003
+      ],
+      "agreement_cross_lingual": [
+        0.304,
+        0.1706,
+        0.1337,
+        0.079
+      ],
+      "fidelity_en": 0.5481,
+      "grade": "certified"
+    },
+    "sentence-transformers/LaBSE": {
+      "agreement_same_text_en": [
+        0.1917,
+        0.0603,
+        0.0188,
+        0.002
+      ],
+      "agreement_same_text": [
+        0.1938,
+        0.0632,
+        0.0185,
+        0.0042
+      ],
+      "agreement_cross_lingual": [
+        0.5632,
+        0.3784,
+        0.2621,
+        0.1824
+      ],
+      "fidelity_en": 0.6024,
+      "grade": "certified-multilingual"
+    },
+    "BAAI/bge-m3": {
+      "agreement_same_text_en": [
+        0.1933,
+        0.0533,
+        0.01,
+        0.0
+      ],
+      "agreement_same_text": [
+        0.2272,
+        0.0678,
+        0.0186,
+        0.0053
+      ],
+      "agreement_cross_lingual": [
+        0.653,
+        0.5118,
+        0.4161,
+        0.2976
+      ],
+      "fidelity_en": 0.6294,
+      "grade": "not-certified"
+    }
+  }
+}
