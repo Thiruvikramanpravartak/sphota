@@ -188,7 +188,6 @@ def run(scale: str) -> dict:
     # ---- reindex-free migration: documents indexed as codes by model A, queried by model B
     from sphota.adapters import get_adapter, registry
 
-    docs_a = {"anchor": qb.indices}
     S_ref = code_rank_scores(rel, qa.indices, qb.indices)
     eyep = np.eye(len(Pa), dtype=bool)
     tie = np.random.default_rng(1).random(S_ref.shape) * 1e-6
