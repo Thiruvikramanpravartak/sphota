@@ -25,6 +25,7 @@ let hover: Cell | null = null;
 let selected: Cell | null = null;
 let markers: Marker[] = [];
 let anim: number | null = null;
+let lastShared = -1;
 let stars: [number, number, number, number][] = [];
 
 const label = (l: Record<string, string> | undefined) => (l ? l[lang] || l.en || "" : "");
@@ -195,7 +196,7 @@ function drawLabels(z: number) {
   // continents (fade out as you zoom in)
   const contAlpha = Math.max(0, Math.min(1, 2.4 - z));
   if (contAlpha > 0.02) {
-    ctx.font = `700 ${z < 1.2 ? 16 : 14}px Inter, system-ui, sans-serif`;
+    ctx.font = `700 ${W < 600 ? 11 : z < 1.2 ? 16 : 14}px Inter, system-ui, sans-serif`;
     for (const c of [...data.continents].sort((a, b) => b.members - a.members)) {
       const [sx, sy] = toScreen(c.x, c.y);
       const txt = continentName(c).toUpperCase();
@@ -557,6 +558,7 @@ async function encodeAndShow() {
     const now = performance.now();
     markers = encs.map((enc, i) => ({ enc, ...positionFor(enc), color: colors[i], born: now }));
     const shared = encs.length === 2 ? sharedLevels(encs[0].levels, encs[1].levels) : -1;
+    lastShared = shared;
     const cell = data.cells[encs[0].levels[0]];
     selected = cell;
     panel.innerHTML = encs.map((enc, i) => `
@@ -721,8 +723,15 @@ async function runDemo() {
     caption(`Now the same meaning in <b>${DEMO[1].lang}</b>…`);
     await typeInto(q2, DEMO[1].text);
     await sleep(400);
-    caption("…different script, different words, <b>same region</b>");
+    caption("…different script, different words…");
     await encodeAndShow();
+    const [a, b] = markers;
+    const near = a && b && data.cells[a.enc.levels[0]].nb.includes(b.enc.levels[0]);
+    caption(lastShared > 0
+      ? `…same meaning, <b>same region</b>: ${lastShared} of 4 levels shared`
+      : near
+        ? "…same meaning lands in a <b>neighbouring region</b> of the same territory"
+        : "…different codes, but <b>a short hop apart</b> on the same map");
     await sleep(4200);
     caption("Sphota · GPS for meaning · <span class=muted>press Demo to replay</span>");
     await sleep(3000);
