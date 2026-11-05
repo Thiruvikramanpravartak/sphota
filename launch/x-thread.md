@@ -1,21 +1,22 @@
-# X / Twitter thread
+# X / Twitter thread — ON HOLD, do not post
 
-1/ Every sentence has an address now. Sphota is GPS for meaning: any text, any language → a short
-code like JYZA-7M-X0-A8. Frozen forever. Open source. 🧭 [Atlas GIF]
+1/ Can meaning have universal coordinates, a code every sentence gets in any language, from any
+model? We tried, with a pass/fail bar fixed in advance. Short answer: not at fine resolution.
+Paper + all numbers 🧵
 
-2/ The first block is a broad region (1 of 4096). Each next block zooms in. Same meaning in
-Spanish or Japanese lands in the same region — and the code tells you how sure it is, like GPS
-accuracy.
+2/ The gate (held-out, 12 languages): coverage ≥ 60%, confident translation agreement ≥ 80%,
+cross-model ≥ 60%, no language collapse. Must hold with ≥ 256 top-level cells. Every build failed.
 
-3/ Embeddings are private dialects: switch models and you re-embed everything. Sphota is a shared,
-frozen space; small adapters bring models in. Index with MiniLM, query with another model:
-96–99% recall@10, no re-indexing.
+3/ The trade-off is brutal: each 4× finer top level costs 10–25 points. 32 cells: 69/79/65/0 (almost
+passes). 4096 cells: 29/65/16/34. Agreement is bought with coarseness.
 
-4/ Codes are just strings: GROUP BY them in SQL, route by prefix, cache LLM answers across
-languages, diff the topics of two documents.
+4/ At fine resolution, clustering starts grouping by language instead of meaning: 55% of Portuguese
+test sentences in Portuguese-only cells. Watch for this in any multilingual quantization.
 
-5/ Honest: discretizing meaning cuts some equivalent texts apart. Translations share the L1 code
-46% of the time, paraphrases 72%. We publish every number and the negative results.
+5/ Better anchor = about one step of resolution. LaBSE vs e5-small at 32 cells: +11 pt coverage,
++4.5 pt translation agreement. Helpful, not universal.
 
-6/ pip install sphota · runs on CPU and in your browser · spec + paper + benchmark in the repo.
-github.com/thiruvikramanpravartak/sphota
+6/ What works: coarse shared regions for multilingual analytics/routing/caching, and model
+migration via stored canonical vectors: 96–99% recall@10 across models, no re-embedding.
+
+7/ Everything is open: paper, gate, negative results, code. github.com/thiruvikramanpravartak/sphota
