@@ -19,7 +19,7 @@ beats e5-small by 11 points of coverage and 4.5 points of confident translation 
 the same granularity) but not enough to change the conclusion on CPU. We also document a
 *language-collapse* failure: at ≥ 256 cells, k-means forms cells that are mostly one language
 (up to 55% of Portuguese test sentences), which a diversified sample only partly fixes. What
-does work: (1) *coarse regions* (32–64 cells) where translations agree 79–89% of the time
+does work: (1) *coarse regions* (32–64 cells) where translations agree 78–89% of the time
 when confident, useful for multilingual topic analytics, routing and caching; and (2)
 *migration through stored canonical vectors*: an index built with one model can be queried
 with another at 96.5–99.1% recall@10 without re-embedding. We release everything, including
@@ -159,7 +159,7 @@ Sources: `bench/results/l1-sweep.json`, `v2-mini-gate.json`, `v2-mini-4096-gate.
 `anchor-check.json`.
 
 **No configuration passes all four criteria at any granularity, and none passes more than one
-criterion at the amended bar of ≥ 256 cells.** The closest configurations (3 of 4) all use
+criterion at the amended bar of ≥ 256 cells: every build at 256, 1024 or 4096 cells fails all four.** The closest configurations (3 of 4) all use
 32–64 top-level cells, which by the amendment cannot support a coordinate-system claim.
 
 ### 5.2 The granularity trade-off
@@ -230,8 +230,9 @@ honest about its uncertainty and still not be *universal*.
 ## 7. What works
 
 ### 7.1 Coarse regions
-At 32–64 top-level cells, confident translations share a region 79–89% of the time, coverage
-is 64–69%, cross-model agreement is 53–65%, and there is no language collapse. That is a
+At 32–64 top-level cells, confident translations share a region 78–89% of the time and there is
+no language collapse; with the v1 space or the LaBSE anchor, coverage is 64–69%, and cross-model
+agreement is 57–65% for the v1 space (lower for LaBSE at 64 cells: 39%, reduced panel). That is a
 useful frozen, multilingual, shared topic partition: readable region codes for analytics
 dashboards, SQL `GROUP BY`, routing queries to specialised handlers, and semantic caching keys,
 with finer levels kept as optional detail carrying explicit confidence.

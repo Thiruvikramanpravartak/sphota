@@ -15,7 +15,7 @@ continuous space is a practical bridge between models.**
   buys about one step of resolution, not a universal code.
 
 **What works**
-- **Coarse multilingual regions** (32–64): confident translations share a region 79–89% of the
+- **Coarse multilingual regions** (32–64): confident translations share a region 78–89% of the
   time, no language collapse. Useful for topic analytics, routing and semantic caching.
 - **Model migration:** store a 256-d canonical vector per item; query an index built with one
   model using another at 96.5–99.1% recall@10, no re-embedding.

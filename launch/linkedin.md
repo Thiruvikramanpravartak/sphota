@@ -9,7 +9,7 @@ grouping text by language instead of meaning.
 
 What did hold up, and what teams can use:
 • Coarse multilingual topic regions for analytics, routing and caching (confident translations
-  share a region 79–89% of the time).
+  share a region 78–89% of the time).
 • Changing embedding models without re-indexing: store one canonical vector per item and query
   across models at 96–99% recall@10.
 

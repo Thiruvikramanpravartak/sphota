@@ -11,7 +11,7 @@ universal coordinate system. The drafts now lead with the research result and th
 * **The finding:** "Can meaning have universal coordinates? A negative-and-positive result"
   (`docs/paper/sphota.md`). Fine-grained universal codes fail a pre-registered held-out gate;
   each 4× finer top level costs 10–25 points; fine partitions collapse into language cells.
-* **What works:** coarse shared regions (32–64 cells; confident translations agree 79–89%) for
+* **What works:** coarse shared regions (32–64 cells; confident translations agree 78–89%) for
   multilingual topic analytics, routing and caching; and model migration through stored
   canonical vectors (96.5–99.1% recall@10 without re-embedding).
 
