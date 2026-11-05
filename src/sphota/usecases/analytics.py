@@ -49,13 +49,13 @@ class TopicReport:
     title: str = "Sphota topic report"
 
     def top(self, k: int = 10) -> list[tuple[str, int, str]]:
-        return [(r.prefix, r.count, label(r.prefix)) for r in self.roots[:k]]
+        return [(r.prefix, r.count, _lab(r.prefix)) for r in self.roots[:k]]
 
     def to_dict(self) -> dict[str, Any]:
         def node(t: TopicNode) -> dict[str, Any]:
             return {
                 "prefix": t.prefix,
-                "label": label(t.prefix),
+                "label": _lab(t.prefix),
                 "count": t.count,
                 "samples": t.samples,
                 "children": [node(c) for c in sorted(t.children.values(), key=lambda c: -c.count)],
@@ -114,6 +114,14 @@ def read_texts(
     return texts, langs
 
 
+def _lab(key: str, lang: str = "en") -> str:
+    if key.startswith("R") and "-" not in key and len(key) == 3:
+        from sphota.regions import region_label
+
+        return region_label(key)
+    return label(key, lang)
+
+
 def build_report(
     texts: Sequence[str],
     codes: Sequence[Sphota] | None = None,
@@ -121,12 +129,18 @@ def build_report(
     min_count: int = 1,
     samples: int = 3,
     title: str = "Sphota topic report",
+    by: str = "region",
 ) -> TopicReport:
+    """Group texts into a two-level tree. ``by='region'`` (default): 32 cross-language regions,
+    then L1 cells; ``by='l1'``: L1 cells, then L2 cells."""
     codes = list(codes) if codes is not None else encode_batch(list(texts))
     langs = list(langs) if langs is not None else [None] * len(texts)
     roots: dict[str, TopicNode] = {}
     for t, c, lg in zip(texts, codes, langs):
-        p1, p2 = str(c.code.prefix(1)), str(c.code.prefix(min(2, c.depth)))
+        if by == "region":
+            p1, p2 = c.region, str(c.code.prefix(1))
+        else:
+            p1, p2 = str(c.code.prefix(1)), str(c.code.prefix(min(2, c.depth)))
         n1 = roots.setdefault(p1, TopicNode(p1))
         n1.count += 1
         if lg:
@@ -161,7 +175,7 @@ def render_html(rep: TopicReport, lang: str = "en") -> str:
     for i, r in enumerate(rep.roots):
         pct = 100 * r.count / rep.n
         kids = "".join(
-            f"<li><code>{esc(c.prefix)}</code> {esc(label(c.prefix, lang).split(' › ')[-1])}"
+            f"<li><code>{esc(c.prefix)}</code> {esc(_lab(c.prefix, lang).split(' › ')[-1])}"
             f" <span class=n>{c.count}</span>"
             + "".join(f"<div class=s>“{esc(s[:160])}”</div>" for s in c.samples[:2])
             + "</li>"
@@ -171,7 +185,7 @@ def render_html(rep: TopicReport, lang: str = "en") -> str:
         samples = "".join(f"<div class=s>“{esc(s[:200])}”</div>" for s in r.samples)
         rows.append(f"""
 <details {"open" if i < 3 else ""}>
-<summary><code>{esc(r.prefix)}</code><span class=lab>{esc(label(r.prefix, lang))}</span>
+<summary><code>{esc(r.prefix)}</code><span class=lab>{esc(_lab(r.prefix, lang))}</span>
 <span class=bar><i style="width:{100 * r.count / mx:.1f}%"></i></span><span class=n>{r.count} · {pct:.1f}%</span></summary>
 <div class=body>{samples}{f"<div class=langs>languages: {esc(langs)}</div>" if langs else ""}
 <ul>{kids}</ul></div></details>""")
@@ -221,10 +235,11 @@ def analyze_file(
     min_count: int = 1,
     lang: str = "en",
     limit: int | None = None,
+    by: str = "region",
 ) -> dict[str, Any]:
     texts, langs = read_texts(path, column, limit)
     rep = build_report(
-        texts, langs=langs, min_count=min_count, title=f"Topics in {Path(path).name}"
+        texts, langs=langs, min_count=min_count, title=f"Topics in {Path(path).name}", by=by
     )
     Path(out).write_text(render_html(rep, lang), encoding="utf-8")
     return {"out": str(out), "n": rep.n, "n_l1": len(rep.roots), "report": rep}

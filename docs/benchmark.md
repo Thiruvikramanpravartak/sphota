@@ -181,6 +181,16 @@ Absolute numbers differ from the L1 sweep above because the clustering corpus is
 **Reading:** LaBSE gives clearly better coverage and cross-lingual agreement; models map into its
 space less well. A larger anchor (bge-m3) on a GPU is the open question.
 
+### Deciding CPU experiment: LaBSE anchor at ≥ 256 cells (D-018-compliant)
+
+| anchor | L1 cells | coverage | translation, confident | cross-model* | collapse | gate (1/2/3/4) |
+|---|---|---|---|---|---|---|
+| LaBSE | 256 | 64.0% | 77.2% | 26.1% | 0.0% | ✓/✗/✗/✓ |
+| LaBSE | 1024 | 79.6% | 79.1% | 50.7% | 0.0% | ✓/✗/✗/✓ |
+
+\* panel: e5-small + all-MiniLM-L6-v2 mapped into the LaBSE space (20k corpus). No ≥ 256-cell configuration passes; translation agreement
+is within ~1 point of the bar at 1024 cells, cross-model agreement is the binding constraint.
+
 ## v2-mini (diversified sample, CPU)
 
 | L1 size | coverage | translation, confident | cross-model | collapse | gate |

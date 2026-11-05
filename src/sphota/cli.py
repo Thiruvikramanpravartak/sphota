@@ -83,6 +83,9 @@ else:
                 print(json.dumps(d, ensure_ascii=False))
                 continue
             con.print(f"[bold cyan]{c}[/]  {c.label_in(lang)}")
+            con.print(
+                f"   region [bold]{c.region}[/] {c.region_label}  (conf {c.region_confidence:.2f})"
+            )
             con.print(f"   {_conf_bar(c.confidence, c.depth)}")
             if alternates:
                 for a, p in c.alternates:
@@ -220,13 +223,16 @@ else:
         ),
         lang: str = typer.Option("en", "--lang"),
         limit: int | None = typer.Option(None, "--limit"),
+        by: str = typer.Option(
+            "region", "--by", help="Top-level grouping: region (cross-language) or l1."
+        ),
     ) -> None:
         """Topic analytics → a standalone HTML report (prefix tree, counts, samples)."""
         from sphota.usecases.analytics import analyze_file
 
         try:
             res = analyze_file(
-                file, column=column, out=out, min_count=min_count, lang=lang, limit=limit
+                file, column=column, out=out, min_count=min_count, lang=lang, limit=limit, by=by
             )
         except Exception as e:
             _fail(e)

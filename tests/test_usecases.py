@@ -147,3 +147,17 @@ def test_compare_documents(fake_encoder, tmp_path):
     f = tmp_path / "d.txt"
     f.write_text(docs["a"], encoding="utf-8")
     assert compare_documents([f, f]).similarity[0, 1] == pytest.approx(1.0)
+
+
+def test_regions(fake_encoder):
+    from sphota import encode
+    from sphota.regions import all_regions
+
+    c = encode("The CEO resigned")
+    assert c.region.startswith("R") and len(c.region) == 3
+    assert 0 < c.region_confidence <= 1 and c.region_label
+    assert c.to_dict()["region"] == c.region
+    assert len(all_regions()) == 32
+    rep = build_report(GOLD)
+    assert all(r.prefix.startswith("R") for r in rep.roots)
+    assert all(r.prefix[0] != "R" for r in build_report(GOLD, by="l1").roots)

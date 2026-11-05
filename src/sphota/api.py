@@ -121,6 +121,26 @@ class Sphota(str):
     def common_prefix(self, other: str) -> int:
         return self.code.common_prefix(parse(other))
 
+    # ---- regions (v1.1): coarse cross-language / cross-model layer
+    @property
+    def region(self) -> str:
+        """One of 32 coarse meaning regions ('R00'..'R31'); stable across languages and models."""
+        from sphota.regions import region_of
+
+        return region_of(self.vector)[0]
+
+    @property
+    def region_confidence(self) -> float:
+        from sphota.regions import region_of
+
+        return region_of(self.vector)[1]
+
+    @property
+    def region_label(self) -> str:
+        from sphota.regions import region_label
+
+        return region_label(self.region)
+
     # ---- labels
     @property
     def label(self) -> str:
@@ -197,6 +217,9 @@ class Sphota(str):
             "code": str(self),
             "label": self.label,
             "confidence": [round(x, 4) for x in self.confidence],
+            "region": self.region,
+            "region_label": self.region_label,
+            "region_confidence": round(self.region_confidence, 4),
             "alternates": [{"code": str(c), "p": round(p, 4)} for c, p in self.alternates],
             **({"text": self.text} if self.text is not None else {}),
         }

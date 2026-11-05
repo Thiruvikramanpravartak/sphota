@@ -1,0 +1,94 @@
+[
+ {
+  "K1": 256,
+  "T": 25.196346750602032,
+  "coverage": 0.6396,
+  "coverage_per_lang": {
+   "en": 0.6512,
+   "hi": 0.6285,
+   "ta": 0.6314,
+   "es": 0.6344,
+   "fr": 0.6413,
+   "de": 0.6255,
+   "zh": 0.7105,
+   "ar": 0.663,
+   "ru": 0.6235,
+   "ja": 0.6245,
+   "pt": 0.6097,
+   "bn": 0.6314
+  },
+  "translation_all": 0.663,
+  "translation_confident": 0.7722,
+  "confident_en_share": 0.6512,
+  "translation_top2": 0.8377,
+  "collapse_max": 0.0,
+  "collapse_worst_lang": "hi",
+  "collapse_per_lang": {
+   "hi": 0.0,
+   "ta": 0.0,
+   "es": 0.0,
+   "fr": 0.0,
+   "de": 0.0,
+   "zh": 0.0,
+   "ar": 0.0,
+   "ru": 0.0,
+   "ja": 0.0,
+   "pt": 0.0,
+   "bn": 0.0
+  },
+  "used_cells_frac": 1.0,
+  "cross_model": 0.2614,
+  "cross_model_per_model": {
+   "multilingual-e5-small": 0.2816,
+   "all-MiniLM-L6-v2": 0.2411
+  },
+  "anchor": "sentence-transformers/LaBSE",
+  "d018_ok": true
+ },
+ {
+  "K1": 1024,
+  "T": 15.11162697116628,
+  "coverage": 0.7961,
+  "coverage_per_lang": {
+   "en": 0.8221,
+   "hi": 0.7796,
+   "ta": 0.7787,
+   "es": 0.7974,
+   "fr": 0.8024,
+   "de": 0.7806,
+   "zh": 0.8192,
+   "ar": 0.8043,
+   "ru": 0.7945,
+   "ja": 0.8014,
+   "pt": 0.8024,
+   "bn": 0.7708
+  },
+  "translation_all": 0.7309,
+  "translation_confident": 0.7913,
+  "confident_en_share": 0.8221,
+  "translation_top2": 0.8867,
+  "collapse_max": 0.0,
+  "collapse_worst_lang": "hi",
+  "collapse_per_lang": {
+   "hi": 0.0,
+   "ta": 0.0,
+   "es": 0.0,
+   "fr": 0.0,
+   "de": 0.0,
+   "zh": 0.0,
+   "ar": 0.0,
+   "ru": 0.0,
+   "ja": 0.0,
+   "pt": 0.0,
+   "bn": 0.0
+  },
+  "used_cells_frac": 1.0,
+  "cross_model": 0.5069,
+  "cross_model_per_model": {
+   "multilingual-e5-small": 0.5306,
+   "all-MiniLM-L6-v2": 0.4832
+  },
+  "anchor": "sentence-transformers/LaBSE",
+  "d018_ok": true
+ }
+]
