@@ -42,11 +42,19 @@ def test_int8_variant_is_close():
 
 def test_onnx_adapter_matches_registry_model():
     import sphota
+    from sphota.api import _encoder_for
+    from sphota.encoders import OnnxEncoder
 
     c = sphota.encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2")
-    assert c.depth == 4 and c.confidence[0] > 0
-    near = sphota.encode("The chief executive stepped down", model="minilm-l6")
-    assert c.similarity(near) > 0.3
+    assert c.depth == 4 and 0 < c.confidence[0] <= 1
+    enc, ad = _encoder_for("minilm-l6")
+    assert isinstance(enc, OnnxEncoder) and ad is not None
+    st = pytest.importorskip("sentence_transformers")
+    texts = ["The CEO resigned", "Heavy rain flooded the streets."]
+    ref = st.SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2").encode(
+        texts, normalize_embeddings=True)
+    got = enc.encode(texts)
+    assert float(np.min(np.sum(ref * got, 1))) > 0.999
 
 
 def test_offline_mode_uses_cache(monkeypatch, onnx_encoder):
