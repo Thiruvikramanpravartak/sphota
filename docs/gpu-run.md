@@ -18,7 +18,7 @@ Dry run on any CPU (tests the whole pipeline, minutes): `bash scripts/gpu_build_
 2. For each anchor (multilingual-e5-small, LaBSE, bge-m3): embeds, fits meaning-LDA on a
    **diversified** sample (≤ 40 sentences per title category, near-duplicates removed, ≤ 8000 per
    language in the clustering corpus) so language-only cells cannot form (D-016), clusters the top
-   level at 32 / 64 / 256 cells, trains ridge adapters for 5 open models, and evaluates the gate.
+   level at 256 / 1024 / 4096 cells (D-018: the gate is only meaningful with ≥ 256 cells), trains ridge adapters for 5 open models, and evaluates the gate.
 3. Writes `bench/results/v2-gate-full-<anchor>.json` and `experiments/v2-full-<anchor>/`
    (experimental artifacts; the frozen v1 space is never modified).
 
@@ -48,6 +48,7 @@ back `bench/results/` and `experiments/`. Set `SPHOTA_THREADS` to the vCPU count
 | 2 | translation agreement within the confident portion | ≥ 80% |
 | 3 | cross-model L1 agreement (5 adapters) | ≥ 60% |
 | 4 | worst language's share in language-only cells | ≤ 5% |
+|   | **and** at least 256 top-level cells, all 12 languages (D-018) | |
 
 All four pass → launch as "GPS for meaning" (s2 via RFC + migration table). Otherwise → position as
 multilingual topic analytics, routing/caching and vector-based model migration.

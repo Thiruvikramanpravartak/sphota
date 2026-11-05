@@ -172,3 +172,23 @@ multilingual topic analytics + routing/caching + vector-based model migration.
 
 Reference (s1, small): coverage 26.0%, translation 66.7%, cross-model 6–23% (exact), collapse 52.8%
 (Portuguese) → FAIL on all four.
+
+## D-018 CPU experiments against D-017, and a loophole in the gate
+**L1 sweep** (v1 canonical vectors, re-clustered top level; `bench/results/l1-sweep.json`): stability is
+bought with coarseness. 4096 cells: 29% coverage, 65% confident translation agreement, 16%
+cross-model, 34% worst collapse (fails all four). 32 cells: 69% / 79.3% / 64.5% / 0% (passes 3 of
+4; translation misses 80% by 0.7 pt).
+**v2-mini** (diversified per-language sample: ≤ 40 sentences per title category, near-duplicates
+removed, ≤ 8000 per language; same anchor; `bench/results/v2-mini-gate.json`): at 32 cells
+63.9% / 78.8% / 62.3% / 0.1% (3 of 4), no better than re-clustering v1. Kept only as an
+experimental build in `experiments/v2-mini/` (labels: c-TF-IDF + label filter); frozen v1 untouched.
+At 4096 cells the diversified sample cuts the worst collapse only from 33.8% to 26.8% (still
+Portuguese), so D-016's cause is partly the anchor itself (e5-small separates Portuguese), not just
+the sample. **Anchor check** (`bench/results/anchor-check.json`, same 20k corpus): LaBSE vs e5-small
+at 32 cells: coverage 66.5% vs 55.8%, confident translation 88.7% vs 84.2%, cross-model 53.0% vs
+60.3%.
+**Loophole:** the tiny-scale dry run of `scripts/gpu_build_v2.sh` "passed" all four criteria with
+16 top-level cells and 6 languages. The gate can be passed by making the top level coarse enough,
+which says nothing about "GPS for meaning". **Amendment (applies to any v2 claim):** the gate must
+be met with **≥ 256 top-level cells**, on all 12 evaluation languages, with the cell count declared
+before the run. Results at 32–64 cells support a *coarse topic* product, not a coordinate system.

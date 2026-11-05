@@ -18,3 +18,4 @@ htmlcov/
 /bundles/
 
 examples/*.html
+experiments/v2-tiny-*/

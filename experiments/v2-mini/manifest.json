@@ -1,0 +1,54 @@
+{
+  "status": "EXPERIMENTAL \u2014 not a frozen space; do not use for stored codes",
+  "built_from": "v1 anchor embeddings (small scale), diversified Wikipedia sample",
+  "anchor": "intfloat/multilingual-e5-small",
+  "sizes": [
+    32,
+    256
+  ],
+  "temperature_l1": 16.322045525011628,
+  "label_filter": {
+    "kept_cells": 32,
+    "review_cells": 23
+  },
+  "gate": [
+    {
+      "1_coverage": {
+        "value": 0.6395,
+        "pass": true
+      },
+      "2_translation_confident": {
+        "value": 0.7881,
+        "pass": false
+      },
+      "3_cross_model": {
+        "value": 0.6233,
+        "pass": true
+      },
+      "4_collapse_max": {
+        "value": 0.001,
+        "pass": true
+      },
+      "K1": 32
+    },
+    {
+      "1_coverage": {
+        "value": 0.5528,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.7891,
+        "pass": false
+      },
+      "3_cross_model": {
+        "value": 0.535,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.001,
+        "pass": true
+      },
+      "K1": 64
+    }
+  ]
+}

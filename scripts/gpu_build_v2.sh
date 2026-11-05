@@ -13,7 +13,7 @@ set -euo pipefail
 SCALE=full
 DRY=0
 ANCHORS="intfloat/multilingual-e5-small sentence-transformers/LaBSE BAAI/bge-m3"
-SIZES="32 64 256"
+SIZES="256 1024 4096"   # D-018: the gate needs >= 256 top-level cells
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --scale) SCALE="$2"; shift 2 ;;

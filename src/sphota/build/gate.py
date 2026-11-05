@@ -206,7 +206,10 @@ def sweep(scale: str, sizes=(64, 256, 1024, 4096)) -> list[dict]:
 
 
 def anchor_check(
-    scale: str, sizes=(32, 64), anchors=(ANCHOR, "sentence-transformers/LaBSE")
+    scale: str,
+    sizes=(32, 64),
+    anchors=(ANCHOR, "sentence-transformers/LaBSE"),
+    panel=("sentence-transformers/all-MiniLM-L6-v2",),
 ) -> list[dict]:
     """Same corpus (20k shared texts + FLORES dev[:800], 12 langs), same meaning-LDA, same L1 sizes.
 
@@ -242,7 +245,8 @@ def anchor_check(
         Yb = np.concatenate([sp(dev_fit[lg][cal]) for lg in langs[1:]])
         Ytr = sp(Xtr)
         Yad = {}
-        for m in [x for x in ADAPTER_MODELS if x != anchor]:
+        # CPU budget: cross-model panel = the other anchor(s) + a small fixed panel
+        for m in [x for x in (*anchors, *panel) if x != anchor]:
             Xm = embed.cached(m, f"adapter-train-{len(texts)}", texts, scale)
             Yad[m] = fit_adapter(m, Xm, Ytr)(
                 embed.cached(m, "flores_devtest_en", test["en"].tolist(), scale)

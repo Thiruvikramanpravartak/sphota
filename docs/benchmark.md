@@ -165,6 +165,33 @@ approach the gate; at 4096 regions (v1) all four criteria fail. The language-col
 the full training corpus (Wikipedia + FLORES dev) to decide which cells are language-dominated, so the
 4096 row (33.8%, Portuguese) differs slightly from the Wikipedia-only figure in D-016 (52.8%).
 
+## Anchor check: multilingual-e5-small vs LaBSE (D-017 metrics)
+
+Same corpus for both anchors (20k shared Wikipedia/FLORES texts + FLORES dev[:800] × 12 languages),
+same meaning-LDA, same L1 sizes; cross-model panel = the other anchor + all-MiniLM-L6-v2 (CPU budget).
+Absolute numbers differ from the L1 sweep above because the clustering corpus is different.
+
+| anchor | L1 size | coverage | translation, confident | top-2 translation | cross-model | collapse | gate (1/2/3/4) |
+|---|---|---|---|---|---|---|---|
+| multilingual-e5-small | 32 | 55.8% | 84.2% | 87.1% | 60.3% | 0.0% | ✗/✓/✓/✓ |
+| multilingual-e5-small | 64 | 49.2% | 81.1% | 82.6% | 49.2% | 0.0% | ✗/✓/✗/✓ |
+| LaBSE | 32 | 66.5% | 88.7% | 91.3% | 53.0% | 0.0% | ✓/✓/✗/✓ |
+| LaBSE | 64 | 64.4% | 85.3% | 89.0% | 39.1% | 0.0% | ✓/✓/✗/✓ |
+
+**Reading:** LaBSE gives clearly better coverage and cross-lingual agreement; models map into its
+space less well. A larger anchor (bge-m3) on a GPU is the open question.
+
+## v2-mini (diversified sample, CPU)
+
+| L1 size | coverage | translation, confident | cross-model | collapse | gate |
+|---|---|---|---|---|---|
+| 32 | 63.9% | 78.8% | 62.3% | 0.1% | ✓/✗/✓/✓ |
+| 64 | 55.3% | 78.9% | 53.5% | 0.1% | ✗/✗/✗/✓ |
+| 4096 | 30.9% | 65.0% | 16.3% | 26.8% (pt) | ✗/✗/✗/✗ |
+
+At 4096 cells the diversified sample reduces the worst collapse (33.8% → 26.8%) but does not fix it.
+See DECISIONS D-018: the gate is only meaningful with ≥ 256 top-level cells.
+
 ## Limitations
 
 * `small`-scale build: ~78k sentences in 12 languages fit 4096 L1 cells (~19 per cell). Regions for
