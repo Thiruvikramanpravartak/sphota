@@ -90,3 +90,6 @@ markers = [
 [tool.coverage.run]
 source = ["sphota"]
 omit = ["src/sphota/build/*", "src/sphota/integrations/*"]
+
+[tool.ruff.format]
+exclude = ["*.md"]
