@@ -15,7 +15,7 @@ RES = ROOT / "bench" / "results"
 
 def load(name: str) -> dict:
     p = RES / name
-    return json.loads(p.read_text()) if p.exists() else {}
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 
 def pct(x: float) -> str:

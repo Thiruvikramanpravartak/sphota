@@ -17,7 +17,7 @@ from sphota.codes import (
     symbols_to_index,
 )
 
-VECTORS = json.loads((Path(__file__).parent / "vectors" / "codes.json").read_text())
+VECTORS = json.loads((Path(__file__).parent / "vectors" / "codes.json").read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("case", VECTORS)

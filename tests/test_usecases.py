@@ -107,22 +107,25 @@ def test_router(fake_encoder):
 
 def test_analytics(fake_encoder, tmp_path):
     p = tmp_path / "t.csv"
-    p.write_text("id,text,lang\n" + "\n".join(f'{i},"{t}",en' for i, t in enumerate(GOLD * 2)))
+    p.write_text(
+        "id,text,lang\n" + "\n".join(f'{i},"{t}",en' for i, t in enumerate(GOLD * 2)),
+        encoding="utf-8",
+    )
     res = analyze_file(p, out=tmp_path / "r.html")
-    html = (tmp_path / "r.html").read_text()
+    html = (tmp_path / "r.html").read_text(encoding="utf-8")
     assert res["n"] == 16 and "<details" in html and "Sphota" in html
     rep = build_report(GOLD, min_count=3)
     assert rep.suppressed > 0 or all(r.count >= 3 for r in rep.roots)
     assert rep.to_dict()["n"] == len(GOLD)
     assert render_html(build_report(GOLD))
     j = tmp_path / "t.jsonl"
-    j.write_text("\n".join(json.dumps({"body": t}) for t in GOLD))
+    j.write_text("\n".join(json.dumps({"body": t}) for t in GOLD), encoding="utf-8")
     assert analyze_file(j, out=tmp_path / "r2.html")["n"] == len(GOLD)
     t = tmp_path / "t.txt"
-    t.write_text("\n".join(GOLD))
+    t.write_text("\n".join(GOLD), encoding="utf-8")
     assert analyze_file(t, out=tmp_path / "r3.html", limit=3)["n"] == 3
     bad = tmp_path / "bad.csv"
-    bad.write_text("a,b\n1,2\n")
+    bad.write_text("a,b\n1,2\n", encoding="utf-8")
     with pytest.raises(ValueError, match="--column"):
         analyze_file(bad, out=tmp_path / "x.html")
 
@@ -142,5 +145,5 @@ def test_compare_documents(fake_encoder, tmp_path):
     assert cmp.diff("a", "b").similarity < 1
     assert "a" in cmp.table()
     f = tmp_path / "d.txt"
-    f.write_text(docs["a"])
+    f.write_text(docs["a"], encoding="utf-8")
     assert compare_documents([f, f]).similarity[0, 1] == pytest.approx(1.0)

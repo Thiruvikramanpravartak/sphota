@@ -162,7 +162,9 @@ def main() -> None:
     ap.add_argument("--steps", type=int, default=6000)
     a = ap.parse_args()
     res = run(a.scale, a.model, a.steps)
-    (ROOT / "bench" / "results" / f"vec2vec-{a.scale}.json").write_text(json.dumps(res, indent=2))
+    (ROOT / "bench" / "results" / f"vec2vec-{a.scale}.json").write_text(
+        json.dumps(res, indent=2), encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":

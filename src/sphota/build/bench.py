@@ -179,8 +179,14 @@ def run(scale: str) -> dict:
                 ag = np.all(Q["en"].indices[:, : lvl + 1] == Q[lg].indices[:, : lvl + 1], 1)
                 cov.append(m.mean())
                 acc.append(ag[m].mean() if m.any() else np.nan)
-            sel.append({"level": lvl + 1, "min_confidence": tau, "coverage": round(float(np.mean(cov)), 4),
-                        "agreement": round(float(np.nanmean(acc)), 4)})
+            sel.append(
+                {
+                    "level": lvl + 1,
+                    "min_confidence": tau,
+                    "coverage": round(float(np.mean(cov)), 4),
+                    "agreement": round(float(np.nanmean(acc)), 4),
+                }
+            )
     res["selective_cross_lingual"] = sel
     log(f"selective: {sel}")
     log("truncation: " + str(res["truncation_cross_lingual"]))
@@ -345,7 +351,7 @@ def run(scale: str) -> dict:
     # ---- cross-model agreement (from adapters results)
     p = ROOT / "bench" / "results" / f"adapters-{scale}.json"
     if p.exists():
-        ad = json.loads(p.read_text())
+        ad = json.loads(p.read_text(encoding="utf-8"))
         res["cross_model"] = {
             m: {
                 k: v[k]
@@ -368,7 +374,7 @@ def main() -> None:
     a = ap.parse_args()
     res = run(a.scale)
     out = ROOT / "bench" / "results" / f"benchmark-{a.scale}.json"
-    out.write_text(json.dumps(res, indent=2, ensure_ascii=False))
+    out.write_text(json.dumps(res, indent=2, ensure_ascii=False), encoding="utf-8")
     log(f"wrote {out}")
 
 

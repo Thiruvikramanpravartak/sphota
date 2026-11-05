@@ -106,7 +106,9 @@ def run(scale: str, models: list[str], out_dir: Path, mlp: bool = False) -> dict
     results: dict = {}
     reg_path = out_dir / "registry.json"
     registry = (
-        json.loads(reg_path.read_text()) if reg_path.exists() else {"space": "s1", "adapters": {}}
+        json.loads(reg_path.read_text(encoding="utf-8"))
+        if reg_path.exists()
+        else {"space": "s1", "adapters": {}}
     )
     for model in models:
         cfg = MODELS[model]
@@ -199,7 +201,7 @@ def run(scale: str, models: list[str], out_dir: Path, mlp: bool = False) -> dict
                 ]
             },
         }
-        reg_path.write_text(json.dumps(registry, indent=2))
+        reg_path.write_text(json.dumps(registry, indent=2), encoding="utf-8")
         results[model] = res
         log(
             f"{model}: en {m['agreement_same_text_en']} all {m['agreement_same_text']} "
@@ -270,9 +272,9 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     res = run(a.scale, a.models, out_dir, mlp=a.mlp)
     p = ROOT / "bench" / "results" / f"adapters-{a.scale}.json"
-    old = json.loads(p.read_text()) if p.exists() else {}
+    old = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
     old.update(res)
-    p.write_text(json.dumps(old, indent=2))
+    p.write_text(json.dumps(old, indent=2), encoding="utf-8")
     log(f"wrote {p}")
 
 

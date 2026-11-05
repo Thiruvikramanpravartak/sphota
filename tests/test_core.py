@@ -13,7 +13,7 @@ from sphota.distance import distance, neighbors, path, reconstruct, similarity
 from sphota.release import load_release
 from sphota.space import project, quantize, topk_codes
 
-GOLDEN = json.loads((Path(__file__).parent / "vectors" / "golden.json").read_text())
+GOLDEN = json.loads((Path(__file__).parent / "vectors" / "golden.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")

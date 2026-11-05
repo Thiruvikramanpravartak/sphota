@@ -71,7 +71,8 @@ class Adapter:
             arrays["A2"] = self.A2.astype(np.float32)
             arrays["b2"] = self.b2.astype(np.float32)
         with open(path, "wb") as f:
-            np.savez(f, **arrays)
+            savez: Any = np.savez  # numpy's stubs reject **kwargs of arrays
+            savez(f, **arrays)
         return path
 
 

@@ -116,7 +116,7 @@ def main() -> None:
     res = run(a.scale, a.anchors, a.quantizers, a.dim)
     out = ROOT / "bench" / "results" / f"bakeoff-{a.scale}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(res, indent=2))
+    out.write_text(json.dumps(res, indent=2), encoding="utf-8")
     log(f"wrote {out}")
 
 

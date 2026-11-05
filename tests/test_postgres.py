@@ -61,7 +61,7 @@ def test_sql_helpers(conn):
 
     install(conn, k=8)
     with conn.cursor() as cur:
-        cur.execute((ROOT / "integrations/postgres/demo.sql").read_text())
+        cur.execute((ROOT / "integrations/postgres/demo.sql").read_text(encoding="utf-8"))
         conn.commit()
         cur.execute(
             "SELECT sphota_depth('JYZA-7M-X0-A8'), sphota_prefix('JYZA-7M-X0-A8', 2), sphota_level('JYZA-7M-X0-A8', 3)"

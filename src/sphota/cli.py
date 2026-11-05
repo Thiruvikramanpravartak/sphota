@@ -275,7 +275,7 @@ else:
             _fail(e)
         con.print(render_certificate(cert))
         if out:
-            out.write_text(json.dumps(cert, indent=2))
+            out.write_text(json.dumps(cert, indent=2), encoding="utf-8")
             con.print(f"[dim]certificate written to {out}[/]")
         raise typer.Exit(0 if cert["pass"] else 3)
 

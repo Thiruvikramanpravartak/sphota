@@ -330,7 +330,7 @@ def write_manifest(out: Path, **info) -> dict:
         "files": files,
         "license": "Apache-2.0 (artifacts derived from CC-BY-SA data; see NOTICE)",
     }
-    (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return manifest
 
 
@@ -339,13 +339,13 @@ def refresh_manifest(out: Path) -> dict:
     from sphota.release import sha256_file
 
     mpath = out / "manifest.json"
-    manifest = json.loads(mpath.read_text())
+    manifest = json.loads(mpath.read_text(encoding="utf-8"))
     manifest["files"] = {
         str(p.relative_to(out)): {"sha256": sha256_file(p), "bytes": p.stat().st_size}
         for p in sorted(out.rglob("*"))
         if p.is_file() and p.name != "manifest.json" and "adapters" not in p.parts
     }
-    mpath.write_text(json.dumps(manifest, indent=2))
+    mpath.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return manifest
 
 

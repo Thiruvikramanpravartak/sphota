@@ -45,9 +45,9 @@ def test_encode_cli(fake_encoder):
 
 def test_fingerprint_compare_diff_cli(fake_encoder, tmp_path):
     a = tmp_path / "a.txt"
-    a.write_text("The CEO resigned. Quantum computers use qubits.")
+    a.write_text("The CEO resigned. Quantum computers use qubits.", encoding="utf-8")
     b = tmp_path / "b.txt"
-    b.write_text("The CEO resigned. Add two cups of flour and stir until smooth.")
+    b.write_text("The CEO resigned. Add two cups of flour and stir until smooth.", encoding="utf-8")
     assert run("fingerprint", str(a)).exit_code == 0
     assert run("fingerprint", str(a), "--json").exit_code == 0
     assert run("compare", str(a), str(b)).exit_code == 0

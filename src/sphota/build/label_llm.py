@@ -56,7 +56,7 @@ def name_cells(
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    done: dict = json.loads(cache.read_text()) if cache.exists() else {}
+    done: dict = json.loads(cache.read_text(encoding="utf-8")) if cache.exists() else {}
     todo = [k for k in cells if k not in done]
     if not todo:
         return done
@@ -95,7 +95,7 @@ def name_cells(
         res = tok.batch_decode(out[:, enc.input_ids.shape[1] :], skip_special_tokens=True)
         for k, r in zip(keys, res):
             done[k] = _clean(r)
-        cache.write_text(json.dumps(done, ensure_ascii=False))
+        cache.write_text(json.dumps(done, ensure_ascii=False), encoding="utf-8")
         n = s + len(keys)
         log(
             f"named {n}/{len(todo)} ({(time.time() - t0) / n:.2f}s each) e.g. {keys[0]}: {done[keys[0]]}"
@@ -106,7 +106,7 @@ def name_cells(
 def translate(names: dict, cache: Path, langs: list[str], batch: int = 64) -> dict:
     from transformers import MarianMTModel, MarianTokenizer
 
-    done: dict = json.loads(cache.read_text()) if cache.exists() else {}
+    done: dict = json.loads(cache.read_text(encoding="utf-8")) if cache.exists() else {}
     for lang in langs:
         repo, tag = MT[lang]
         have = done.setdefault(lang, {})
@@ -124,7 +124,7 @@ def translate(names: dict, cache: Path, langs: list[str], batch: int = 64) -> di
             out = model.generate(**enc, max_new_tokens=32, num_beams=2)
             for k, r in zip(keys, tok.batch_decode(out, skip_special_tokens=True)):
                 have[k] = r.strip().rstrip("।.。")[:80]
-        cache.write_text(json.dumps(done, ensure_ascii=False))
+        cache.write_text(json.dumps(done, ensure_ascii=False), encoding="utf-8")
         log(f"translated {len(todo)} labels → {lang} in {time.time() - t0:.0f}s")
     return done
 
@@ -132,15 +132,17 @@ def translate(names: dict, cache: Path, langs: list[str], batch: int = 64) -> di
 def merge(scale: str, release_dir: Path, langs: list[str]) -> None:
     cache = DATA_DIR / scale / "build"
     names = {
-        **json.loads((cache / "names_l1.json").read_text()),
-        **json.loads((cache / "names_l2.json").read_text()),
+        **json.loads((cache / "names_l1.json").read_text(encoding="utf-8")),
+        **json.loads((cache / "names_l2.json").read_text(encoding="utf-8")),
     }
-    tr = json.loads((cache / "translations.json").read_text())
+    tr = json.loads((cache / "translations.json").read_text(encoding="utf-8"))
     kw_path = release_dir / "keywords.json"
     lab_path = release_dir / "labels.json"
     # the c-TF-IDF output currently in labels.json becomes keywords.json (first run only)
     keywords = (
-        json.loads(kw_path.read_text()) if kw_path.exists() else json.loads(lab_path.read_text())
+        json.loads(kw_path.read_text(encoding="utf-8"))
+        if kw_path.exists()
+        else json.loads(lab_path.read_text(encoding="utf-8"))
     )
     labels: dict[str, dict[str, str]] = {}
     for k, en in names.items():
@@ -173,14 +175,14 @@ def main() -> None:
     a = ap.parse_args()
     cache = DATA_DIR / a.scale / "build"
     if a.step in ("all", "name"):
-        l1 = json.loads((cache / "cells_l1.json").read_text())
+        l1 = json.loads((cache / "cells_l1.json").read_text(encoding="utf-8"))
         n1 = name_cells(l1, cache / "names_l1.json")
-        l2 = json.loads((cache / "cells_l2.json").read_text())
+        l2 = json.loads((cache / "cells_l2.json").read_text(encoding="utf-8"))
         name_cells(l2, cache / "names_l2.json", parent=n1, llm=LLM_SMALL)
     if a.step in ("all", "translate"):
         names = {
-            **json.loads((cache / "names_l1.json").read_text()),
-            **json.loads((cache / "names_l2.json").read_text()),
+            **json.loads((cache / "names_l1.json").read_text(encoding="utf-8")),
+            **json.loads((cache / "names_l2.json").read_text(encoding="utf-8")),
         }
         translate(names, cache / "translations.json", a.langs)
     if a.step in ("all", "merge"):

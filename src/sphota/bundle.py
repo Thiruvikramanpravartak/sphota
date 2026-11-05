@@ -54,7 +54,7 @@ def make_bundle(out: str | Path, int8: bool = False) -> Path:
 def verify_bundle(path: str | Path) -> list[str]:
     """Return a list of problems (empty if the bundle is intact)."""
     path = Path(path)
-    meta = json.loads((path / "bundle.json").read_text())
+    meta = json.loads((path / "bundle.json").read_text(encoding="utf-8"))
     bad = []
     for name, digest in meta["files"].items():
         p = path / name

@@ -68,13 +68,13 @@ def build(out: Path, n_continents: int = 24) -> None:
     xy /= np.abs(xy).max()
     cont = AgglomerativeClustering(n_clusters=n_continents, linkage="ward").fit_predict(C1n)
     counts = np.load(rel.root / "neighbors.npz")["l1_counts"]
-    examples = json.loads((rel.root / "examples.json").read_text())
+    examples = json.loads((rel.root / "examples.json").read_text(encoding="utf-8"))
     labels = rel.labels
     cache = DATA_DIR / "small" / "build"
     cont_names = {}
     p = cache / "continent_names.json"
     if p.exists():
-        cont_names = {int(k): v for k, v in json.loads(p.read_text()).items()}
+        cont_names = {int(k): v for k, v in json.loads(p.read_text(encoding="utf-8")).items()}
     cells = []
     for i in range(rel.sizes[0]):
         lab = labels.get(str(i), {})
@@ -143,7 +143,8 @@ def build(out: Path, n_continents: int = 24) -> None:
             {"space": rel.version, "cells": cells, "continents": conts, "l2": l2},
             ensure_ascii=False,
             separators=(",", ":"),
-        )
+        ),
+        encoding="utf-8",
     )
     # binary space for in-browser encoding
     parts = [rel.mu.astype("<f4"), rel.W.astype("<f4")] + [c.astype("<f4") for c in rel.codebooks]
@@ -168,7 +169,7 @@ def build(out: Path, n_continents: int = 24) -> None:
         "perm_a": list(PERM_A),
         "perm_b": list(PERM_B),
     }
-    (out / "space.json").write_text(json.dumps(meta, indent=1))
+    (out / "space.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     log(f"atlas data: {len(cells)} L1, {len(l2)} L2, {n_continents} continents → {out}")
 
 

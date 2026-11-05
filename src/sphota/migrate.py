@@ -69,7 +69,7 @@ def build_table(
         ]
         X = default_encoder().encode(texts)
     res = table_from_vectors(src_dir, dst_dir, X, level=level)
-    Path(out).write_text(json.dumps(res, indent=1))
+    Path(out).write_text(json.dumps(res, indent=1), encoding="utf-8")
     return res
 
 
@@ -88,7 +88,7 @@ def migrate_code(code: str, table: dict) -> tuple[str, float]:
 
 
 def apply_table(codes_file: str | Path, table_path: str | Path, out: str | Path) -> int:
-    table = json.loads(Path(table_path).read_text())
+    table = json.loads(Path(table_path).read_text(encoding="utf-8"))
     n = 0
     with (
         open(codes_file, newline="", encoding="utf-8") as f,

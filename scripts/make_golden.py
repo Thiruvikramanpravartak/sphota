@@ -66,7 +66,8 @@ def main() -> None:
     out.write_text(
         json.dumps(
             {"space": "s1", "encoder": enc.name, "items": items}, ensure_ascii=False, indent=1
-        )
+        ),
+        encoding="utf-8",
     )
     for it in items:
         print(f"{it['code']}  {it['confidence']}  [{it['lang']}] {it['text']}  ::  {it['label']}")
