@@ -49,7 +49,8 @@ select { background: rgba(255,255,255,0.06); border: 1px solid var(--line); bord
 .shared { padding: 10px 12px; border-radius: 10px; background: rgba(255,107,107,0.12); }
 .shared.ok { background: rgba(105,219,124,0.14); }
 code { font-family: "JetBrains Mono", ui-monospace, monospace; background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 6px; }
-#legend { position: fixed; left: 16px; bottom: 40px; display: flex; flex-wrap: wrap; gap: 6px; max-width: min(720px, calc(100% - 32px)); }
+#legend { position: fixed; left: 16px; bottom: 40px; display: flex; flex-wrap: wrap; gap: 6px; max-width: min(560px, calc(100% - 420px)); }
+.leg.more { color: var(--muted); }
 .leg { display: flex; align-items: center; gap: 6px; background: rgba(10,18,32,0.7); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 11px; cursor: pointer; }
 .leg i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 #tooltip { position: fixed; pointer-events: none; max-width: 290px; background: rgba(5,8,15,0.92); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 12px; }
@@ -65,3 +66,4 @@ footer a { color: var(--accent); }
   #legend { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+.leg[hidden] { display: none; }

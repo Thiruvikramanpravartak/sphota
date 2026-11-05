@@ -88,9 +88,13 @@
       "sha256": "3d4f3d1bd1df127fa404fe01221c83eb7e57d1ba878d369b115ec5b5eb4b49f5",
       "bytes": 788298
     },
-    "labels.json": {
+    "keywords.json": {
       "sha256": "27e2d94a73fd3a5163b2d8c1c8e69ad2c9860cb3bc41522c49261343a3a0e26e",
       "bytes": 627462
+    },
+    "labels.json": {
+      "sha256": "a87e108107d1474ca33051985439bb68a278c3caa2f676a99a4bd2aead7fa8ce",
+      "bytes": 4091307
     },
     "neighbors.npz": {
       "sha256": "e20112f9b73f4df4f68e849880f460af0f5eca37acf9a78c04501ee9d48ed9e8",

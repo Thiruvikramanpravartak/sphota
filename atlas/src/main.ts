@@ -524,16 +524,23 @@ async function main() {
   space = s;
   $<HTMLSpanElement>("count").textContent = `${data.cells.length.toLocaleString()} regions · ${data.l2.length.toLocaleString()} labelled sub-regions`;
   const legend = $<HTMLDivElement>("legend");
-  legend.innerHTML = data.continents
-    .slice()
-    .sort((a, b) => b.members - a.members)
-    .map((c) => `<button class="leg" data-k="${c.k}"><i style="background:${c.color}"></i>${esc(continentName(c))}</button>`)
-    .join("");
-  legend.querySelectorAll<HTMLButtonElement>(".leg").forEach((b) =>
+  const sorted = data.continents.slice().sort((a, b) => b.members - a.members);
+  const chip = (c: Continent, hidden: boolean) =>
+    `<button class="leg${hidden ? " extra" : ""}" data-k="${c.k}"${hidden ? " hidden" : ""}><i style="background:${c.color}"></i>${esc(continentName(c))}</button>`;
+  legend.innerHTML = sorted.map((c, i) => chip(c, i >= 8)).join("") +
+    `<button class="leg more" aria-expanded="false">+${sorted.length - 8} more</button>`;
+  legend.querySelectorAll<HTMLButtonElement>(".leg[data-k]").forEach((b) =>
     b.addEventListener("click", () => {
       const c = data.continents[+b.dataset.k!];
       flyTo(c.x, c.y, baseK * 3);
     }));
+  const more = legend.querySelector<HTMLButtonElement>(".more")!;
+  more.addEventListener("click", () => {
+    const open = more.getAttribute("aria-expanded") !== "true";
+    legend.querySelectorAll<HTMLButtonElement>(".extra").forEach((b) => (b.hidden = !open));
+    more.setAttribute("aria-expanded", String(open));
+    more.textContent = open ? "fewer" : `+${sorted.length - 8} more`;
+  });
   resize();
   fromHash();
   window.addEventListener("hashchange", fromHash);

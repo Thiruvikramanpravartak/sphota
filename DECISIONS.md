@@ -122,3 +122,12 @@ L1 cell to be among the model's top-3 L1 candidates for a minimum share of Engli
 sentences and a minimum fidelity; exact agreement is reported, not gated. Each adapter stores a
 `temperature_scale` fitted by maximum likelihood on held-out pairs, so confidence for adapted
 models is wider (more truncation) instead of over-confident.
+
+## D-014 Labels: LLM names + MarianMT, quality-gated per language
+English names come from Qwen2.5-1.5B-Instruct (L1, 4096 cells) and Qwen2.5-0.5B-Instruct (L2,
+4186 populated cells; 400 non-English outputs discarded). Translations via opus-mt. Manual spot
+check: es/fr/de/pt/ru/zh good; hi/ta/bn mixed (some transliteration noise) — shipped, flagged as
+machine-translated, with native c-TF-IDF keyphrases kept in `keywords.json`; **ja dropped**
+(opus-mt-en-jap is Bible-domain and produced nonsense), Japanese falls back to English.
+L2 labels are translated into hi, ta, bn, es, fr, zh only (CPU budget). Labels are informative
+data and can be improved without an RFC (a human review drive is on the roadmap).

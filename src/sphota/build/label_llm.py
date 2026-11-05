@@ -42,7 +42,8 @@ MT = {
     "zh": ("Helsinki-NLP/opus-mt-en-zh", ">>cmn_Hans<< "),
     "ar": ("Helsinki-NLP/opus-mt-en-ar", ">>arb<< "),
     "ru": ("Helsinki-NLP/opus-mt-en-ru", ""),
-    "ja": ("Helsinki-NLP/opus-mt-en-jap", ""),
+    # "ja": opus-mt-en-jap is trained on Bible text and produced unusable labels (D-014);
+    # Japanese falls back to English.
 }
 
 
@@ -121,7 +122,8 @@ def name_continents(cache: Path) -> dict:
         msg = (
             "These are names of related topic areas on a map of meaning:\n"
             + "\n".join("- " + e for e in c["examples"])
-            + "\n\nGive one short umbrella name (1-3 words, Title Case) for this whole continent. "
+            + "\n\nGive one short umbrella topic name (1-3 words, Title Case) that covers all of them, "
+            "like 'Football', 'Biology' or 'European History'. "
             "Reply with the name only."
         )
         enc = tok(
@@ -209,7 +211,7 @@ def main() -> None:
     ap.add_argument(
         "--langs",
         nargs="*",
-        default=["hi", "ta", "bn", "es", "fr", "de", "pt", "zh", "ar", "ru", "ja"],
+        default=["hi", "ta", "bn", "es", "fr", "de", "pt", "zh", "ar", "ru"],
     )
     ap.add_argument(
         "--step", choices=["all", "name", "translate", "merge", "continents"], default="all"
