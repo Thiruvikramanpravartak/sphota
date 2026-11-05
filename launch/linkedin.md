@@ -1,18 +1,17 @@
-# LinkedIn post
+# LinkedIn post — ON HOLD, do not post
 
-**Every meaning deserves an address.**
+**We tried to give meaning universal coordinates. It didn't work, and that's a useful result.**
 
-Today we're open-sourcing Sphota, "GPS for meaning": a frozen, human-readable coordinate system
-that maps any text, in any language, to a short code like JYZA-7M-X0-A8.
+Sphota set out to map any text, in any language, to one shared, readable code. We fixed a
+pass/fail bar on held-out data before the decisive experiments. No build passed at useful
+resolution: every 4× finer level costs 10–25 points of agreement, and fine partitions start
+grouping text by language instead of meaning.
 
-Why it matters for teams running search, RAG and analytics:
-• Switch embedding models without re-indexing: store each item once in a shared, frozen space.
-• Analyze topics in any language with a SQL GROUP BY on a code prefix.
-• Route tickets, cache LLM answers and deduplicate content across languages.
-• Every code carries a calibrated confidence, like GPS accuracy.
+What did hold up, and what teams can use:
+• Coarse multilingual topic regions for analytics, routing and caching (confident translations
+  share a region 79–89% of the time).
+• Changing embedding models without re-indexing: store one canonical vector per item and query
+  across models at 96–99% recall@10.
 
-The name comes from Bhartṛhari's idea of sphoṭa: the meaning that stays the same however it is
-expressed. Apache-2.0, runs on a laptop CPU and in the browser. We publish every benchmark,
-including the limitations.
-
-Repo, live map and paper draft: github.com/thiruvikramanpravartak/sphota
+The paper, the gate, the negative results and the code are open (Apache-2.0).
+github.com/thiruvikramanpravartak/sphota

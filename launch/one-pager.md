@@ -1,25 +1,29 @@
-# Sphota — press one-pager
+# Sphota — press one-pager (ON HOLD, do not distribute)
 
-**What:** an open, frozen, human-readable coordinate system for meaning ("GPS for meaning").
-Any text in any language → a short hierarchical code (e.g. `JYZA-7M-X0-A8`) with a calibrated
-confidence per level and labels in 11 languages.
+**What:** an open research project and toolkit that asked whether meaning can have universal,
+human-readable coordinates across languages and embedding models. The answer, measured against
+a gate fixed in advance: **not at fine resolution; yes for coarse regions; and the shared
+continuous space is a practical bridge between models.**
 
-**Why now:** organizations run search, RAG and analytics on embedding vectors that are tied to
-one model. Every model upgrade forces re-embedding entire corpora. Vectors can't be read, shared
-or grouped. Sphota provides a stable, shared reference frame; models connect through small
-adapters.
+**The negative result**
+- No build passed the pre-registered held-out gate (coverage, translation agreement, cross-model
+  agreement, language collapse) at ≥ 256 top-level cells.
+- Each 4× finer top level costs roughly 10–25 points of agreement.
+- At fine resolution the clustering starts grouping by *language* instead of meaning (up to 55%
+  of Portuguese test sentences in Portuguese-only cells).
+- A better anchor helps (LaBSE vs e5-small: +11 pt coverage, +4.5 pt translation agreement) but
+  buys about one step of resolution, not a universal code.
 
-**Key facts**
-- Frozen space `s1`: 256-d canonical space + 4-level codebook (4096·256·256·256), checksummed.
-- 12 languages aligned and calibrated (incl. Hindi, Tamil, Bengali, Arabic, Chinese, Japanese).
-- Translations share the top-level code 46% of the time, paraphrases 72%; confident codes are
-  more reliable (selective accuracy in the benchmark).
-- Cross-model search through the shared space: 96–99% recall@10 without re-indexing.
-- Runs on CPU and in the browser; numpy-only core; air-gapped bundles.
-- RFC-style specification, conformance certification, Apache-2.0.
+**What works**
+- **Coarse multilingual regions** (32–64): confident translations share a region 79–89% of the
+  time, no language collapse. Useful for topic analytics, routing and semantic caching.
+- **Model migration:** store a 256-d canonical vector per item; query an index built with one
+  model using another at 96.5–99.1% recall@10, no re-embedding.
 
-**Name:** from Bhartṛhari's *sphoṭa* (Sanskrit philosophy of language): meaning that bursts
-forth whole and stays the same across its expressions.
+**Practical:** numpy-only core, runs on CPU and in the browser, Apache-2.0, all benchmarks and
+negative results published.
 
-**Links:** repository, Meaning Atlas (live demo), paper draft, benchmark.
-**Contact:** maintainers via GitHub.
+**Name:** from Bhartṛhari's *sphoṭa*, meaning that stays the same across its expressions; our
+results say it does so only at a coarse resolution.
+
+**Links:** repository, paper, benchmark, gate definitions (DECISIONS D-017/D-018).
