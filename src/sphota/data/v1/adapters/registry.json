@@ -1,0 +1,37 @@
+{
+  "space": "s1",
+  "adapters": {
+    "sentence-transformers/all-MiniLM-L6-v2": {
+      "short": "minilm-l6",
+      "file": "minilm-l6.npz",
+      "sha256": "51980136799c3082269782df37a52b9d1b6c89c30960c4973ba59ee75feb47fd",
+      "model_license": "apache-2.0",
+      "multilingual": false,
+      "prefix": "",
+      "certificate": {
+        "agreement_same_text_en": [
+          0.166,
+          0.0306,
+          0.0059,
+          0.0
+        ],
+        "agreement_same_text": [
+          0.0516,
+          0.0117,
+          0.0022,
+          0.0002
+        ],
+        "agreement_cross_lingual": [
+          0.1808,
+          0.087,
+          0.052,
+          0.0265
+        ],
+        "fidelity_en": 0.5482,
+        "fidelity_all": 0.3008,
+        "grade": "not-certified",
+        "n_per_lang": 1012
+      }
+    }
+  }
+}

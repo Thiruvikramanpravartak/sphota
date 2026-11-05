@@ -212,10 +212,11 @@ def _to_codes(
     max_level: int,
     stable: bool,
     rel: Release,
+    temp_scale: float = 1.0,
 ) -> list[Sphota]:
     if not 1 <= max_level <= len(rel.codebooks):
         raise ValueError(f"max_level must be between 1 and {len(rel.codebooks)}")
-    q = quantize(rel, Y, levels=len(rel.codebooks), stable=stable)
+    q = quantize(rel, Y, levels=len(rel.codebooks), stable=stable, temp_scale=temp_scale)
     conf = q.confidence
     out = []
     for i in range(len(Y)):
@@ -295,7 +296,8 @@ def encode_batch(
     enc, ad = _encoder_for(model)
     X = enc.encode(texts)
     Y = project(rel, X) if ad is None else ad(X)
-    return _to_codes(Y, texts, min_confidence, max_level, stable, rel)
+    ts = float(ad.meta.get("temperature_scale", 1.0)) if ad is not None else 1.0
+    return _to_codes(Y, texts, min_confidence, max_level, stable, rel, ts)
 
 
 def encode(
@@ -343,13 +345,16 @@ def from_vector(
     X = np.asarray(vec, dtype=np.float32)
     single = X.ndim == 1
     X = np.atleast_2d(X)
+    ts = 1.0
     if model is None or model in {rel.anchor["model"], "anchor", "default"}:
         Y = project(rel, X)
     else:
         from sphota.adapters import get_adapter
 
-        Y = get_adapter(model)(X)
-    out = _to_codes(Y, [None] * len(Y), min_confidence, max_level, stable, rel)
+        ad = get_adapter(model)
+        Y = ad(X)
+        ts = float(ad.meta.get("temperature_scale", 1.0))
+    out = _to_codes(Y, [None] * len(Y), min_confidence, max_level, stable, rel, ts)
     return out[0] if single else out
 
 

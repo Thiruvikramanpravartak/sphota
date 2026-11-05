@@ -84,8 +84,13 @@ def quantize(
     levels: int | None = None,
     stable: bool = False,
     chunk: int = 2048,
+    temp_scale: float = 1.0,
 ) -> Quantized:
-    """Quantize canonical vectors ``Y`` (n, D)."""
+    """Quantize canonical vectors ``Y`` (n, D).
+
+    ``temp_scale`` widens the confidence model for noisier encoders (adapters carry their own
+    calibrated scale); it never changes the chosen code.
+    """
     Y = np.atleast_2d(np.asarray(Y, dtype=np.float32))
     L = levels or len(rel.codebooks)
     n = len(Y)
@@ -98,7 +103,7 @@ def quantize(
         for lvl in range(L):
             C = rel.codebooks[lvl]
             cand, d2 = _topm(R, C, rel.cnorm(lvl), TOP_M)
-            T = float(rel.temperatures[lvl])
+            T = float(rel.temperatures[lvl]) * temp_scale
             logits = -(d2 - d2[:, :1]) / T
             p = np.exp(logits)
             p /= p.sum(1, keepdims=True)

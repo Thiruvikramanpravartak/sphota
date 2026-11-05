@@ -136,6 +136,7 @@ def load_eval(quick: bool = False) -> dict[str, list[str]]:
 def evaluate(Y_model: dict[str, np.ndarray], Y_anchor: dict[str, np.ndarray]) -> dict[str, Any]:
     """Certificate metrics from canonical vectors per language (model-adapted and anchor)."""
     rel = load_release()
+    qfull = {k: quantize(rel, v, levels=1) for k, v in Y_model.items()}
     qm = {k: quantize(rel, v).indices for k, v in Y_model.items()}
     qa = {k: quantize(rel, v).indices for k, v in Y_anchor.items()}
 
@@ -152,7 +153,20 @@ def evaluate(Y_model: dict[str, np.ndarray], Y_anchor: dict[str, np.ndarray]) ->
     same_all = np.mean([agree(qm[k], qa[k]) for k in langs], 0)
     xl = np.mean([agree(qm["en"], qm[k]) for k in langs if k != "en"], 0)
     xl_anchor = np.mean([agree(qa["en"], qa[k]) for k in langs if k != "en"], 0)
+    nb = rel.l1_neighbors
+
+    def top3(lang: str) -> float:
+        return float((qfull[lang].cand[0][:, :3] == qa[lang][:, :1]).any(1).mean())
+
+    def neighborhood(lang: str) -> float:
+        a, m = qa[lang][:, 0], qm[lang][:, 0]
+        near = (m == a) | ((nb[a][:, :8] == m[:, None]).any(1) if nb is not None else False)
+        return float(np.mean(near))
+
     return {
+        "l1_top3_en": round(top3("en"), 4),
+        "l1_top3_all": round(float(np.mean([top3(k) for k in Y_model])), 4),
+        "l1_neighborhood_en": round(neighborhood("en"), 4),
         "agreement_same_text_en": [round(x, 4) for x in agree(qm["en"], qa["en"])],
         "agreement_same_text": [round(float(x), 4) for x in same_all],
         "agreement_cross_lingual": [round(float(x), 4) for x in xl],
