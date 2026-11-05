@@ -675,8 +675,9 @@ void main();
 
 // ---------------------------------------------------------------- guided demo (~30 s)
 const DEMO = [
-  { lang: "English", text: "Heavy rain flooded the city streets" },
-  { lang: "हिन्दी · Hindi", text: "भारी बारिश से शहर की सड़कों पर पानी भर गया" },
+  // verified with the Python encoder: same L1 cell (691M, confidence 0.99 / 0.99) and same region (1.00)
+  { lang: "English", text: "The team won the football match" },
+  { lang: "हिन्दी · Hindi", text: "टीम ने फुटबॉल मैच जीत लिया" },
 ];
 let demoRunning = false;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -733,7 +734,7 @@ async function runDemo() {
         ? "…same meaning lands in a <b>neighbouring region</b> of the same territory"
         : "…different codes, but <b>a short hop apart</b> on the same map");
     await sleep(4200);
-    caption("Sphota · GPS for meaning · <span class=muted>press Demo to replay</span>");
+    caption("Sphota · readable multilingual meaning codes · <span class=muted>press Demo to replay</span>");
     await sleep(3000);
   } catch (err) {
     caption(`Demo stopped: ${esc((err as Error).message)}`);
