@@ -28,6 +28,8 @@ from sphota.build.common import DATA_DIR, HF_CACHE, ROOT, log
 
 LLM = "Qwen/Qwen2.5-1.5B-Instruct"  # L1 names
 LLM_SMALL = "Qwen/Qwen2.5-0.5B-Instruct"  # L2 names (4x faster)
+# L2 labels are translated into a subset of languages (CPU budget); others fall back to English.
+L2_LANGS = ["hi", "ta", "bn", "es", "fr", "zh"]
 MT = {
     "hi": ("Helsinki-NLP/opus-mt-en-hi", ""),
     "ta": ("Helsinki-NLP/opus-mt-en-dra", ">>tam<< "),
@@ -222,11 +224,10 @@ def main() -> None:
         name_continents(cache)
         return
     if a.step in ("all", "translate"):
-        names = {
-            **json.loads((cache / "names_l1.json").read_text(encoding="utf-8")),
-            **json.loads((cache / "names_l2.json").read_text(encoding="utf-8")),
-        }
-        translate(names, cache / "translations.json", a.langs)
+        n1 = json.loads((cache / "names_l1.json").read_text(encoding="utf-8"))
+        n2 = json.loads((cache / "names_l2.json").read_text(encoding="utf-8"))
+        translate(n1, cache / "translations.json", a.langs)  # L1: every label language
+        translate(n2, cache / "translations.json", [lg for lg in L2_LANGS if lg in a.langs])
     if a.step in ("all", "merge"):
         merge(a.scale, Path(a.release), a.langs)
         from sphota.build.release import refresh_manifest
