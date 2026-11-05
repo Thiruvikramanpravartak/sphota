@@ -36,7 +36,7 @@ Status legend: `[x]` done, `[~]` partial (see PROGRESS.md), `[ ]` todo.
 - [x] Small-scale data + anchor embeddings
 - [x] Canonical space + alignment (measure before/after)
 - [x] Quantizer, calibration, stable mode
-- [~] Labels (multilingual keyphrases), distance/neighbour table
+- [x] Labels (multilingual keyphrases), distance/neighbour table
 - [x] Freeze: manifest + checksums in `src/sphota/data/v1`
 
 ## M3: SDK + CLI
@@ -46,8 +46,8 @@ Status legend: `[x]` done, `[~]` partial (see PROGRESS.md), `[ ]` todo.
 - [x] CLI mirrors API; coverage ≥ 85% core; fresh-venv install test
 
 ## M4: Adapters + registry
-- [~] ≥4 adapters (all-MiniLM-L6-v2, bge-small-en-v1.5, gte-small, multilingual MiniLM, LaBSE, bge-m3)
-- [~] vec2vec-style unsupervised experiment (honest report)
+- [x] ≥4 adapters (all-MiniLM-L6-v2, bge-small-en-v1.5, gte-small, multilingual MiniLM, LaBSE, bge-m3)
+- [x] vec2vec-style unsupervised experiment (honest report)
 - [x] `sphota train-adapter`, `sphota certify`; OpenAI/Cohere recipes (not run)
 
 ## M5: Benchmark + leaderboard
@@ -63,17 +63,17 @@ Status legend: `[x]` done, `[~]` partial (see PROGRESS.md), `[ ]` todo.
 - [x] LangChain, LlamaIndex; PostgreSQL SQL helpers + docker-compose; Qdrant/Chroma example
 
 ## M8: Meaning Atlas
-- [~] Vite + TS static app, zoomable map, in-browser encoding, fly-to, share URL, compare, accuracy radius
-- [~] Deploy docs for GitHub Pages and HF Spaces
+- [x] Vite + TS static app, zoomable map, in-browser encoding, fly-to, share URL, compare, accuracy radius
+- [x] Deploy docs for GitHub Pages and HF Spaces
 
 ## M9: Open data
 - [x] Tag multilingual Wikipedia sample; dataset card; upload script (not run)
 
 ## M10: Docs + launch kit
-- [~] README, mkdocs site, Colab notebook, examples in CI, HF Space app, paper draft, launch/
+- [x] README, mkdocs site, Colab notebook, examples in CI, HF Space app, paper draft, launch/
 
 ## M11: Hardening
-- [~] Performance, OS notes, security review, license audit, Atlas accessibility, 1.0.0rc1
+- [x] Performance, OS notes, security review, license audit, Atlas accessibility, 1.0.0rc1
 
 ## M12: Final audit
-- [~] Clean clone + venv, README walk-through, examples, tests, CI, Atlas screenshot, docs vs numbers
+- [x] Clean clone + venv, README walk-through, examples, tests, CI, Atlas screenshot, docs vs numbers

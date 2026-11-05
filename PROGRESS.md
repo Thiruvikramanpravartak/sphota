@@ -1,46 +1,59 @@
-# Progress
+# Progress — final summary (v1.0.0rc1, space s1)
 
-_Last updated: M10–M12 (labels being translated; final audit next)._
+## What was built
+- **Standard:** RFC-style spec (`docs/spec/`, parts 1–3, 6–10), frozen space `s1`
+  (`src/sphota/data/v1`, SHA-256 manifest), golden tests pinning every code, conformance
+  procedure with certificates, governance/RFC process. The release build is deterministic: a
+  rebuild reproduced every golden code bit-for-bit.
+- **Library:** numpy-only core (parse/compare/distance/labels), ONNX encoder (bit-exact with
+  PyTorch), `encode`/`encode_batch`/`from_vector`/`explain`/`similarity`/`neighbors`/`path`/
+  alternates/top-k/`fingerprint`/`compare`/`diff`, precision truncation, stable mode, privacy by
+  depth, offline bundles, migration tooling, CLI mirroring everything.
+- **Adapters:** 5 certified (all-MiniLM-L6-v2, bge-small-en-v1.5, gte-small: certified;
+  paraphrase-multilingual-MiniLM-L12-v2, LaBSE: certified-multilingual), ONNX paths where
+  available, per-adapter calibrated confidence; `train-adapter`, `certify`; OpenAI/Cohere recipes.
+- **Benchmark + leaderboard:** `bench/results/*.json`, `docs/benchmark.md`, `bench/leaderboard/`.
+- **Use cases:** CodeIndex (never re-index), analytics HTML report, cross-lingual search/dedupe,
+  semantic cache, prefix router, document comparison. **Integrations:** Postgres (tested on PG16),
+  LangChain, LlamaIndex, Qdrant.
+- **Meaning Atlas:** static Vite/TS app; in-browser encoding (codes identical to Python fp32 in
+  Playwright tests), fly-to, share URLs, compare mode, accuracy radius, 11 label languages.
+- **Open data:** 68k tagged Wikipedia sentences pipeline + dataset card + upload script.
+- **Docs & launch:** README, mkdocs site (strict build in CI), Colab notebook, HF Space app, paper
+  draft, launch kit (HN, Reddit, X, LinkedIn, video script, one-pager, 30-day plan).
+- **Hardening:** CI on Linux/macOS/Windows × Python 3.10/3.13, encode job with slow tests and all
+  examples, Atlas build, docs build; license audit; security/a11y notes; publish script (not run).
 
-## Done
-- **R**: licenses verified, tiny bake-off (e5-small, multilingual MiniLM, LaBSE; bge-m3 did not
-  finish on CPU), gap analysis, small-scale design sweep. Decisions D-001…D-013.
-- **M0** foundation; **M1** spec (parts 1–3, 6–10); **M2** s1 release (frozen, checksummed,
-  rebuild reproduces every golden code bit-for-bit).
-- **M3** SDK + CLI; numpy-only core; ONNX encoder (bit-exact with torch); fresh-venv install of
-  the wheel verified (no torch imported); core coverage: codes 100%, space 100%, release 97%,
-  distance 95%, api 90% (total incl. model-dependent modules 84%).
-- **M4** 4 certified adapters (all-MiniLM-L6-v2, bge-small-en-v1.5, gte-small: certified;
-  paraphrase-multilingual-MiniLM-L12-v2: certified-multilingual), ONNX encoders for adapters,
-  per-adapter calibrated temperature, train-adapter/certify, OpenAI/Cohere recipes.
-- **M5** benchmark JSON + docs/benchmark.md + static leaderboard.
-- **M6** use cases; **M7** integrations (Postgres tested on a real PG16 cluster).
-- **M8** Atlas: in-browser encoding verified with Playwright (codes identical to Python fp32).
-- **M9** 68k-sentence tagged Wikipedia sample + dataset card + upload script (not run).
-- **M10** README, mkdocs site (strict build in CI), notebook, HF Space app, paper draft, launch kit.
-- **M11** license audit script (all Hub assets permissive), compatibility/security/a11y notes,
-  Windows fixes (UTF-8 I/O, .gitattributes for checksummed files), publish script (not run).
-- CI green on Linux/macOS/Windows × Python 3.10/3.13, encode job (slow tests + examples), Atlas build.
+## Key measured results (held-out FLORES-200 devtest, 12 languages; STS-B)
+| | L1 | L2 | L3 | L4 |
+|---|---|---|---|---|
+| translation shares prefix | 46.1% | 22.9% | 11.0% | 4.8% |
+| paraphrase shares prefix | 71.6% | 53.8% | 38.3% | 27.8% |
+| both codes confident ≥ 0.7 | 88.7% (16% of pairs) | 85.6% (2%) | | |
+- Alignment ablation: PCA-only L1 34.1% → meaning-LDA 46.1%.
+- Never re-index (index with model X, query with anchor) via canonical vectors: recall@10
+  96.5–99.1% vs 100% re-embedding; codes alone 10–28%.
+- Utilization 92% of 4096 L1 cells; speed 160 sent/s (fp32 ONNX, 4 vCPU).
+- Negative results: cross-model whitening (D-012), vec2vec at CPU budget (0% top-1).
 
-## Doing
-- Label translation (opus-mt) → merge → continent names → Atlas data + screenshot.
-- LaBSE / bge-m3 adapters and the vec2vec run (CPU-heavy, after labels).
+## Known limitations
+- `small`-scale build (≈78k sentences); small anchor; very short sentences get low confidence.
+- Exact code identity across models is modest (6–23% at L1); certification is neighbourhood-level.
+- Labels are machine-generated; hi/ta/bn translation quality mixed; no Japanese labels.
+- bge-m3 adapter not certified at the CPU budget; bge-m3 anchor bake-off not completed.
 
-## Next
-- M12 final audit (clean clone, README walk-through, docs vs numbers), PR description.
+## Exact next steps
+1. **GPU `full` scale (space s2 candidate):** `python -m sphota.build.data --scale full`,
+   re-run the bake-off including bge-m3 as anchor, `python -m sphota.build.release --scale full
+   --out <dir>`, adapters, bench; produce `s1→s2` table with `sphota migrate --build`; open RFC.
+2. **Labels:** human review drive (Hindi, Tamil, Bengali); better Japanese MT; regenerate with
+   `python -m sphota.build.label_llm` (labels can change without an RFC).
+3. **Publishing (owner decision):** `bash scripts/publish.sh all` (PyPI, GitHub Pages, HF Space,
+   HF dataset) — see RELEASING.md.
+4. **Launch order:** publish → Atlas live → Show HN (launch/hacker-news.md) → X/LinkedIn same day →
+   Reddit next day → follow launch/growth-30-days.md.
 
-## Incidents / blockers
-- Container restarted once (all jobs resumable; nothing lost).
-- `.gitignore` patterns `data/`/`build/` silently excluded `src/sphota/data` and
-  `src/sphota/build`; fixed (anchored patterns) and committed.
-- Disk reads ~12 MB/s after the restart made large-model loading slow.
-- bge-m3 bake-off not completed (8–15 sentences/s on 4 vCPU).
-
-## Measured numbers (small scale, held-out FLORES-200 devtest, 12 languages)
-- Cross-lingual agreement L1/L2/L3/L4: 46.1 / 22.9 / 11.0 / 4.8% (PCA-only: 34.1 / 8.3%).
-- Paraphrase agreement (STS-B ≥ 4.5): 71.6 / 53.8 / 38.3 / 27.8%.
-- Stable mode: +0.6 pt L1 cross-lingual (small).
-- Utilization: 92% of 4096 L1 cells, perplexity 2182, largest cell 0.29%.
-- Cross-model migration recall@10 via canonical vectors: 96.5–99.1% (codes only: 10–28%).
-- Adapters: exact L1 agreement with anchor 6–23%; neighbourhood agreement 62–64%.
-- Speed: 160 sent/s fp32 ONNX, 313 int8, 10.8k vectors/s quantization (4 vCPU).
+## Incidents during the build
+- Container restart (all jobs resumable; nothing lost).
+- `.gitignore` patterns excluded `src/sphota/data`/`build` for a while; fixed.
+- Windows checksum failures from CRLF conversion; fixed with `.gitattributes`.
