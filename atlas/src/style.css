@@ -60,10 +60,55 @@ footer a { color: var(--accent); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: -999px; top: 0; background: var(--accent); color: #000; padding: 8px; z-index: 10; }
 .skip:focus { left: 8px; }
-@media (max-width: 760px) {
-  header { top: 8px; left: 8px; width: calc(100% - 16px); }
-  #panel { top: auto; bottom: 8px; right: 8px; width: calc(100% - 16px); max-height: 42%; }
-  #legend { display: none; }
-}
+
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 .leg[hidden] { display: none; }
+
+/* ---- polish & motion */
+header, #panel, #legend { transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+body:not(.ready) header { opacity: 0; transform: translateY(-12px); }
+body:not(.ready) #panel { opacity: 0; transform: translateX(16px); }
+body:not(.ready) #legend { opacity: 0; }
+header, #panel { box-shadow: 0 10px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05); }
+h1 { background: linear-gradient(90deg, #fff, #b8d4ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+button[type="submit"], .demo-btn { transition: transform .15s ease, box-shadow .2s ease; }
+button[type="submit"]:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,107,107,0.35); }
+.demo-btn { background: rgba(77,171,247,0.14); border: 1px solid rgba(77,171,247,0.5); border-radius: 10px; padding: 7px 12px; font-weight: 600; cursor: pointer; }
+.demo-btn:hover { background: rgba(77,171,247,0.24); transform: translateY(-1px); }
+body.demo .demo-btn { animation: glow 1.4s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: 0 0 0 4px rgba(77,171,247,0.25); } }
+#panel > * { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
+#panel > *:nth-child(2) { animation-delay: .06s; } #panel > *:nth-child(3) { animation-delay: .12s; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+.code { background: linear-gradient(90deg, #fff, #ffd43b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.leg { transition: border-color .2s, transform .15s; backdrop-filter: blur(8px); }
+.leg:hover { border-color: var(--accent); transform: translateY(-1px); }
+#caption { position: fixed; left: 50%; bottom: 72px; transform: translate(-50%, 10px); max-width: min(680px, calc(100% - 32px)); text-align: center;
+  background: rgba(5,8,15,0.86); border: 1px solid var(--line); border-radius: 14px; padding: 12px 20px; font-size: 17px; line-height: 1.35;
+  backdrop-filter: blur(12px); box-shadow: 0 10px 40px rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .4s ease, transform .4s ease; z-index: 5; }
+#caption.show { opacity: 1; transform: translate(-50%, 0); }
+#caption b { color: #ffd43b; }
+body.demo #legend { opacity: 0.35; }
+
+/* ---- mobile: compact search on top, details as a bottom sheet */
+@media (max-width: 760px) {
+  html, body { font-size: 13px; }
+  header { top: 8px; left: 8px; width: calc(100% - 16px); padding: 10px 12px; border-radius: 14px; }
+  .brand { margin-bottom: 8px; gap: 10px; }
+  .logo { font-size: 22px; }
+  h1 { font-size: 16px; }
+  input { padding: 9px 10px; font-size: 16px; margin-bottom: 6px; }
+  .row { gap: 8px; flex-wrap: wrap; }
+  .examples { margin-top: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .examples::-webkit-scrollbar { display: none; }
+  .examples button { flex: 0 0 auto; }
+  #panel { top: auto; bottom: 8px; right: 8px; left: 8px; width: auto; max-height: 38%; padding: 12px 14px; border-radius: 16px 16px 14px 14px; }
+  #panel::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.2); margin: -4px auto 8px; }
+  #panel h2 { font-size: 16px; }
+  .code { font-size: 20px; }
+  #legend { display: none; }
+  footer { display: none; }
+  #caption { bottom: calc(38% + 20px); font-size: 14px; padding: 10px 14px; }
+}
+@media (max-width: 760px) and (max-height: 700px) { .examples { display: none; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

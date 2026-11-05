@@ -29,6 +29,7 @@
         </div>
         <div class="row">
           <button type="submit">Locate</button>
+          <button type="button" id="demo" class="demo-btn" title="Play a 30-second guided demo">▶ Demo</button>
           <label class="toggle"><input type="checkbox" id="compare" /> Compare</label>
           <label class="sr" for="lang">Label language</label>
           <select id="lang" title="Label language">
@@ -56,6 +57,7 @@
     </aside>
     <nav id="legend" aria-label="Continents of meaning"></nav>
     <div id="tooltip" hidden></div>
+    <div id="caption" aria-live="polite"></div>
     <div id="live" class="sr" aria-live="polite"></div>
     <footer><a href="https://github.com/thiruvikramanpravartak/sphota">Sphota</a> · open, frozen coordinates for meaning · Apache-2.0</footer>
     <script type="module" src="/src/main.ts"></script>
