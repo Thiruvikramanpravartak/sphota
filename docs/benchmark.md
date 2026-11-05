@@ -144,6 +144,27 @@ Anchor int8 ONNX variant vs fp32 reference (same text): 84.8% | 74.6% | 66.8% | 
 * Encode, ONNX fp32: **155.3 sentences/s**; int8: 331.0 sentences/s (4 vCPU (CI container)).
 * Quantize precomputed vectors (numpy): 10,331 vectors/s.
 
+
+## L1 granularity sweep (D-017 gate metrics)
+
+Top level re-clustered on the frozen v1 canonical vectors (no re-embedding); confidence temperature
+re-calibrated per size on the same held-out calibration pairs. FLORES-200 devtest, 12 languages.
+Cross-model = mean over the 5 registry adapters (same English text, same L1 cell as the anchor).
+
+| L1 size | coverage (conf ≥ 0.7) | translation, all | translation, confident | top-2 translation | cross-model | worst language collapse | gate (1/2/3/4) |
+|---|---|---|---|---|---|---|---|
+| 32 | 69.0% | 70.5% | 79.3% | 88.5% | 64.5% | 0.0% (hi) | ✓/✗/✓/✓ |
+| 64 | 65.0% | 70.7% | 78.3% | 86.3% | 57.1% | 0.0% (hi) | ✓/✗/✗/✓ |
+| 128 | 54.1% | 62.9% | 73.6% | 79.2% | 44.6% | 0.1% (ar) | ✗/✗/✗/✓ |
+| 256 | 49.2% | 61.4% | 74.4% | 76.6% | 32.8% | 54.6% (pt) | ✗/✗/✗/✗ |
+| 1024 | 42.5% | 55.3% | 69.7% | 71.2% | 23.1% | 44.2% (pt) | ✗/✗/✗/✗ |
+| 4096 | 29.4% | 46.1% | 65.1% | 61.4% | 15.7% | 33.8% (pt) | ✗/✗/✗/✗ |
+
+**Reading:** stability is bought with coarseness. Only very coarse top levels (32–64 regions)
+approach the gate; at 4096 regions (v1) all four criteria fail. The language-collapse criterion uses
+the full training corpus (Wikipedia + FLORES dev) to decide which cells are language-dominated, so the
+4096 row (33.8%, Portuguese) differs slightly from the Wikipedia-only figure in D-016 (52.8%).
+
 ## Limitations
 
 * `small`-scale build: ~78k sentences in 12 languages fit 4096 L1 cells (~19 per cell). Regions for
