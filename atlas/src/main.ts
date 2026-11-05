@@ -4,7 +4,7 @@ import "./style.css";
 import { SphotaSpace, embed, formatLevels, loadModel, parseCode, type Encoded } from "./encoder";
 
 interface Cell { i: number; code: string; x: number; y: number; n: number; c: number; l: Record<string, string>; ex: string[]; nb: number[] }
-interface Continent { k: number; x: number; y: number; color: string; name: string; members: number; top: string[] }
+interface Continent { k: number; x: number; y: number; color: string; name: string; members: number; top: string[]; spread?: number }
 interface L2 { code: string; p: number; x: number; y: number; l: Record<string, string> }
 interface MapData { space: string; cells: Cell[]; continents: Continent[]; l2: L2[] }
 interface Marker { enc: Encoded; x: number; y: number; radius: number; color: string; born: number }
@@ -25,6 +25,8 @@ let hover: Cell | null = null;
 let selected: Cell | null = null;
 let markers: Marker[] = [];
 let anim: number | null = null;
+let lastShared = -1;
+let stars: [number, number, number, number][] = [];
 
 const label = (l: Record<string, string> | undefined) => (l ? l[lang] || l.en || "" : "");
 const stripTilde = (s: string) => s.replace(/^~\s*/, "");
@@ -59,7 +61,9 @@ function draw() {
   g.addColorStop(1, "#05080f");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
+  drawStars(t);
   drawGrid();
+  drawRegions(z);
 
   // land masses: soft glows per cell, additive blending
   ctx.globalCompositeOperation = "lighter";
@@ -119,6 +123,50 @@ function draw() {
   if (selected) ring(selected.x, selected.y, "#ffffff", 9, 1.5);
 }
 
+function drawStars(t: number) {
+  // parallax starfield: moves slower than the map, twinkles gently
+  for (const [sx0, sy0, r, ph] of stars) {
+    const sx = ((sx0 - cam.x * 18) % W + W) % W;
+    const sy = ((sy0 + cam.y * 18) % H + H) % H;
+    const a = reduceMotion ? 0.35 : 0.2 + 0.25 * (0.5 + 0.5 * Math.sin(t / 900 + ph));
+    ctx.fillStyle = `rgba(200,215,255,${a})`;
+    ctx.fillRect(sx, sy, r, r);
+  }
+}
+
+// Coarse "region" layer: one soft territory per continent, strongest when zoomed out.
+function drawRegions(z: number) {
+  const a = Math.max(0, Math.min(1, (2.6 - z) / 1.4));
+  if (a < 0.02) return;
+  ctx.globalCompositeOperation = "lighter";
+  for (const c of data.continents) {
+    const [sx, sy] = toScreen(c.x, c.y);
+    const r = Math.max(40, (c.spread || 0.15) * cam.k * 1.35);
+    if (sx < -r || sy < -r || sx > W + r || sy > H + r) continue;
+    const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
+    g.addColorStop(0, hexA(c.color, 0.20 * a));
+    g.addColorStop(0.55, hexA(c.color, 0.08 * a));
+    g.addColorStop(1, hexA(c.color, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+  // dashed territory outline
+  ctx.setLineDash([3, 7]);
+  ctx.lineWidth = 1;
+  for (const c of data.continents) {
+    const [sx, sy] = toScreen(c.x, c.y);
+    const r = Math.max(30, (c.spread || 0.15) * cam.k * 0.9);
+    ctx.strokeStyle = hexA(c.color, 0.22 * a);
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+
 function drawGrid() {
   ctx.strokeStyle = "rgba(120,150,200,0.06)";
   ctx.lineWidth = 1;
@@ -148,18 +196,22 @@ function drawLabels(z: number) {
   // continents (fade out as you zoom in)
   const contAlpha = Math.max(0, Math.min(1, 2.4 - z));
   if (contAlpha > 0.02) {
-    ctx.font = "600 15px Inter, system-ui, sans-serif";
-    for (const c of data.continents) {
+    ctx.font = `700 ${W < 600 ? 11 : z < 1.2 ? 16 : 14}px Inter, system-ui, sans-serif`;
+    for (const c of [...data.continents].sort((a, b) => b.members - a.members)) {
       const [sx, sy] = toScreen(c.x, c.y);
       const txt = continentName(c).toUpperCase();
       const w = ctx.measureText(txt).width;
       const b: Box = [sx - w / 2 - 6, sy - 11, sx + w / 2 + 6, sy + 11];
       if (!fits(b)) continue;
       boxes.push(b);
-      ctx.fillStyle = `rgba(5,8,15,${0.55 * contAlpha})`;
-      ctx.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);
+      ctx.fillStyle = `rgba(5,8,15,${0.6 * contAlpha})`;
+      roundRect(b[0], b[1], b[2] - b[0], b[3] - b[1], 11);
+      ctx.fill();
+      ctx.strokeStyle = hexA(c.color, 0.45 * contAlpha);
+      ctx.lineWidth = 1;
+      ctx.stroke();
       ctx.fillStyle = hexA(c.color, contAlpha);
-      ctx.fillText(txt, sx, sy);
+      ctx.fillText(txt, sx, sy + 0.5);
     }
   }
   // L1 labels: bigger cells first, more appear as you zoom
@@ -197,6 +249,16 @@ function drawLabels(z: number) {
   }
 }
 
+function roundRect(x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
 function hexA(hex: string, a: number) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
@@ -229,6 +291,17 @@ function drawMarkers(t: number) {
     // accuracy radius: world units → pixels, never smaller than 14px
     const rad = Math.max(14, m.radius * cam.k);
     const pulse = reduceMotion ? 0 : 0.5 + 0.5 * Math.sin((t - m.born) / 380);
+    if (!reduceMotion) {
+      for (let k = 0; k < 3; k++) {
+        const u = (((t - m.born) / 2400 + k / 3) % 1);
+        ctx.strokeStyle = hexA(m.color, 0.5 * (1 - u));
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 8 + u * rad * 1.6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    const drop = reduceMotion ? 1 : Math.min(1, (t - m.born) / 500);
     const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, rad);
     g.addColorStop(0, hexA(m.color, 0.32));
     g.addColorStop(1, hexA(m.color, 0));
@@ -244,17 +317,29 @@ function drawMarkers(t: number) {
     ctx.stroke();
     ctx.setLineDash([]);
     // pin
+    ctx.shadowColor = m.color;
+    ctx.shadowBlur = 18;
     ctx.fillStyle = m.color;
     ctx.beginPath();
-    ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+    ctx.arc(sx, sy, 6 * (0.4 + 0.6 * drop) + (1 - drop) * 10, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.font = "600 13px 'JetBrains Mono', ui-monospace, monospace";
+    ctx.shadowBlur = 0;
+    ctx.font = "700 13px 'JetBrains Mono', ui-monospace, monospace";
     ctx.textAlign = "left";
+    const tw = ctx.measureText(m.enc.code).width;
+    const ly = sy - 14 - (markers.indexOf(m) * 24);
+    ctx.fillStyle = "rgba(5,8,15,0.8)";
+    roundRect(sx + 10, ly - 10, tw + 14, 20, 6);
+    ctx.fill();
+    ctx.strokeStyle = hexA(m.color, 0.8);
+    ctx.stroke();
     ctx.fillStyle = "#fff";
-    ctx.fillText(m.enc.code, sx + 12, sy - 12);
+    ctx.globalAlpha = drop;
+    ctx.fillText(m.enc.code, sx + 17, ly + 0.5);
+    ctx.globalAlpha = 1;
     ctx.textAlign = "center";
   }
 }
@@ -265,15 +350,19 @@ function continentName(c: Continent) {
 
 // ---------------------------------------------------------------- animation
 function loop() {
-  draw();
-  if (markers.length && !reduceMotion) requestAnimationFrame(loop);
+  if (!anim) draw();
+  if (!reduceMotion) requestAnimationFrame(loop);
 }
 
-function flyTo(x: number, y: number, k: number, ms = 1600) {
+function flyTo(x: number, y: number, k: number, ms = 1600): Promise<void> {
+  return new Promise((done) => flyToCb(x, y, k, ms, done));
+}
+function flyToCb(x: number, y: number, k: number, ms: number, done: () => void) {
   if (anim) cancelAnimationFrame(anim);
   if (reduceMotion) {
     Object.assign(cam, { x, y, k });
     draw();
+    done();
     return;
   }
   const s = { ...cam };
@@ -292,7 +381,7 @@ function flyTo(x: number, y: number, k: number, ms = 1600) {
     cam.k = Math.exp(lk);
     draw();
     anim = u < 1 ? requestAnimationFrame(step) : null;
-    if (!anim) loop();
+    if (!anim) done();
   };
   anim = requestAnimationFrame(step);
 }
@@ -469,6 +558,7 @@ async function encodeAndShow() {
     const now = performance.now();
     markers = encs.map((enc, i) => ({ enc, ...positionFor(enc), color: colors[i], born: now }));
     const shared = encs.length === 2 ? sharedLevels(encs[0].levels, encs[1].levels) : -1;
+    lastShared = shared;
     const cell = data.cells[encs[0].levels[0]];
     selected = cell;
     panel.innerHTML = encs.map((enc, i) => `
@@ -488,7 +578,7 @@ async function encodeAndShow() {
     const mx = markers.reduce((s, m) => s + m.x, 0) / markers.length;
     const my = markers.reduce((s, m) => s + m.y, 0) / markers.length;
     const span = markers.length === 2 ? Math.hypot(markers[0].x - markers[1].x, markers[0].y - markers[1].y) : 0;
-    flyTo(mx, my, span > 0.05 ? Math.min(baseK * 6, (Math.min(W, H) * 0.35) / span) : baseK * 7);
+    await flyTo(mx, my, span > 0.05 ? Math.min(baseK * 6, (Math.min(W, H) * 0.35) / span) : baseK * 7);
   } catch (err) {
     status.textContent = `Could not run the encoder here (${(err as Error).message}). Try another browser, or use: pip install sphota`;
   }
@@ -507,7 +597,7 @@ function sharedLevels(a: number[], b: number[]) {
 function fromHash() {
   if (!data || !space) return;
   const h = decodeURIComponent(location.hash.slice(1));
-  if (!h) return;
+  if (!h || h === "demo") return;
   if (h.startsWith("q=")) {
     $<HTMLInputElement>("q").value = h.slice(2);
     void encodeAndShow();
@@ -541,8 +631,19 @@ async function main() {
     more.setAttribute("aria-expanded", String(open));
     more.textContent = open ? "fewer" : `+${sorted.length - 8} more`;
   });
+  for (const c of data.continents) {
+    const mem = data.cells.filter((x) => x.c === c.k);
+    c.spread = mem.length ? Math.sqrt(mem.reduce((s, x) => s + (x.x - c.x) ** 2 + (x.y - c.y) ** 2, 0) / mem.length) : 0.15;
+  }
+  stars = Array.from({ length: 220 }, () => [Math.random() * 4000, Math.random() * 3000, Math.random() < 0.85 ? 1 : 2, Math.random() * 6.3]);
   resize();
+  // intro: drift in from far away
+  const k0 = cam.k;
+  if (!reduceMotion && !location.hash) { cam.k = k0 * 0.35; void flyTo(0, 0, k0, 1800); }
+  requestAnimationFrame(loop);
+  document.body.classList.add("ready");
   fromHash();
+  if (new URLSearchParams(location.search).has("demo") || location.hash === "#demo") setTimeout(() => void runDemo(), 1200);
   window.addEventListener("hashchange", fromHash);
 }
 
@@ -571,3 +672,77 @@ document.querySelectorAll<HTMLButtonElement>("[data-example]").forEach((b) =>
     void encodeAndShow();
   }));
 void main();
+
+// ---------------------------------------------------------------- guided demo (~30 s)
+const DEMO = [
+  { lang: "English", text: "Heavy rain flooded the city streets" },
+  { lang: "हिन्दी · Hindi", text: "भारी बारिश से शहर की सड़कों पर पानी भर गया" },
+];
+let demoRunning = false;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+function caption(html: string) {
+  const el = $<HTMLDivElement>("caption");
+  el.innerHTML = html;
+  el.classList.toggle("show", !!html);
+}
+async function typeInto(el: HTMLInputElement, text: string) {
+  el.value = "";
+  el.focus();
+  for (const ch of Array.from(text)) {
+    el.value += ch;
+    await sleep(reduceMotion ? 0 : 55);
+  }
+}
+async function runDemo() {
+  if (demoRunning || !data || !space) return;
+  demoRunning = true;
+  document.body.classList.add("demo");
+  const q = $<HTMLInputElement>("q"), q2 = $<HTMLInputElement>("q2"), cmp = $<HTMLInputElement>("compare");
+  try {
+    cmp.checked = false;
+    $<HTMLDivElement>("q2wrap").hidden = true;
+    markers = [];
+    caption("<b>The Meaning Atlas</b> · every sentence, in any language, has an address");
+    await flyTo(0, 0, baseK * 0.9, 2200);
+    caption("Zoomed out, you see <b>regions</b>: the broad continents of meaning");
+    await sleep(2600);
+    const status = $<HTMLDivElement>("status");
+    status.textContent = "Loading the in-browser encoder…";
+    await loadModel(space.meta.browser_model, (m) => (status.textContent = m));
+    status.textContent = "";
+    caption(`Type a sentence in <b>${DEMO[0].lang}</b>…`);
+    await typeInto(q, DEMO[0].text);
+    await sleep(400);
+    caption("…it is encoded <b>in your browser</b> and lands on its Sphota code");
+    await encodeAndShow();
+    await sleep(3200);
+    caption("Back out to the regions…");
+    await flyTo(cam.x, cam.y, baseK * 1.1, 1600);
+    cmp.checked = true;
+    $<HTMLDivElement>("q2wrap").hidden = false;
+    caption(`Now the same meaning in <b>${DEMO[1].lang}</b>…`);
+    await typeInto(q2, DEMO[1].text);
+    await sleep(400);
+    caption("…different script, different words…");
+    await encodeAndShow();
+    const [a, b] = markers;
+    const near = a && b && data.cells[a.enc.levels[0]].nb.includes(b.enc.levels[0]);
+    caption(lastShared > 0
+      ? `…same meaning, <b>same region</b>: ${lastShared} of 4 levels shared`
+      : near
+        ? "…same meaning lands in a <b>neighbouring region</b> of the same territory"
+        : "…different codes, but <b>a short hop apart</b> on the same map");
+    await sleep(4200);
+    caption("Sphota · GPS for meaning · <span class=muted>press Demo to replay</span>");
+    await sleep(3000);
+  } catch (err) {
+    caption(`Demo stopped: ${esc((err as Error).message)}`);
+    await sleep(3000);
+  } finally {
+    caption("");
+    demoRunning = false;
+    document.body.classList.remove("demo");
+  }
+}
+$<HTMLButtonElement>("demo").addEventListener("click", () => void runDemo());
+(window as unknown as { sphotaDemo: () => Promise<void> }).sphotaDemo = runDemo;
