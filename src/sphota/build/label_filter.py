@@ -28,16 +28,68 @@ from sphota.build.common import DATA_DIR, ROOT, log
 
 # Deliberately broad: false positives only send a label to human review.
 BLOCKLIST = {
-    "sex", "sexual", "sexy", "porn", "pornography", "porno", "erotic", "erotica", "nude", "nudity",
-    "naked", "fetish", "ejaculation", "ejaculatory", "orgasm", "genital", "genitals", "penis",
-    "vagina", "masturbation", "prostitution", "prostitute", "escort", "brothel", "rape", "incest",
-    "pedophile", "pedophilia", "bdsm", "xxx", "fuck", "shit", "bitch", "slut", "whore", "cunt",
-    "nigger", "faggot", "retard", "kike", "chink", "spic", "tranny", "suicide", "self-harm",
-    "nazi", "terrorist", "terrorism", "jihad", "genocide", "massacre",
+    "sex",
+    "sexual",
+    "sexy",
+    "porn",
+    "pornography",
+    "porno",
+    "erotic",
+    "erotica",
+    "nude",
+    "nudity",
+    "naked",
+    "fetish",
+    "ejaculation",
+    "ejaculatory",
+    "orgasm",
+    "genital",
+    "genitals",
+    "penis",
+    "vagina",
+    "masturbation",
+    "prostitution",
+    "prostitute",
+    "escort",
+    "brothel",
+    "rape",
+    "incest",
+    "pedophile",
+    "pedophilia",
+    "bdsm",
+    "xxx",
+    "fuck",
+    "shit",
+    "bitch",
+    "slut",
+    "whore",
+    "cunt",
+    "nigger",
+    "faggot",
+    "retard",
+    "kike",
+    "chink",
+    "spic",
+    "tranny",
+    "suicide",
+    "self-harm",
+    "nazi",
+    "terrorist",
+    "terrorism",
+    "jihad",
+    "genocide",
+    "massacre",
 }
 SCRIPTS = {
-    "hi": "DEVANAGARI", "mr": "DEVANAGARI", "bn": "BENGALI", "ta": "TAMIL", "te": "TELUGU",
-    "ar": "ARABIC", "ru": "CYRILLIC", "zh": "CJK", "ja": "CJK",
+    "hi": "DEVANAGARI",
+    "mr": "DEVANAGARI",
+    "bn": "BENGALI",
+    "ta": "TAMIL",
+    "te": "TELUGU",
+    "ar": "ARABIC",
+    "ru": "CYRILLIC",
+    "zh": "CJK",
+    "ja": "CJK",
 }
 LATIN = {"en", "es", "fr", "de", "pt", "it", "id", "tr", "vi", "sw"}
 
@@ -71,7 +123,9 @@ def check(lang: str, text: str, english: str | None = None) -> str | None:
     if len(words) >= 2 and len(set(words)) <= len(words) / 2:
         return "repeated tokens"
     # CJK labels often contain Latin brand/place names; require less of the native script
-    if lang in SCRIPTS and _script_share(t, SCRIPTS[lang]) < (0.3 if SCRIPTS[lang] == "CJK" else 0.6):
+    if lang in SCRIPTS and _script_share(t, SCRIPTS[lang]) < (
+        0.3 if SCRIPTS[lang] == "CJK" else 0.6
+    ):
         return f"wrong script for {lang}"
     if lang in LATIN and _script_share(t, "LATIN") < 0.8:
         return f"wrong script for {lang}"
@@ -97,7 +151,9 @@ def filter_labels(labels: dict[str, dict[str, str]]) -> tuple[dict, dict]:
         for lang, text in entry.items():
             reason = check(lang, text, en)
             if reason:
-                review.setdefault(key, {"labels": entry, "rejected": {}}).setdefault("rejected", {})[lang] = reason
+                review.setdefault(key, {"labels": entry, "rejected": {}}).setdefault(
+                    "rejected", {}
+                )[lang] = reason
             else:
                 out[lang] = text
         if out:
@@ -119,9 +175,12 @@ def run(release: Path, scale: str = "small") -> dict:
     for v in review.values():
         for lang in v.get("rejected", {}):
             per_lang[lang] = per_lang.get(lang, 0) + 1
-    stats = {"labels_in": n_in, "labels_kept": n_out,
-             "cells_held_offensive": sum(1 for v in review.values() if "reason" in v),
-             "rejected_per_language": dict(sorted(per_lang.items()))}
+    stats = {
+        "labels_in": n_in,
+        "labels_kept": n_out,
+        "cells_held_offensive": sum(1 for v in review.values() if "reason" in v),
+        "rejected_per_language": dict(sorted(per_lang.items())),
+    }
     log(f"label filter: {stats}")
     return stats
 
@@ -131,7 +190,9 @@ def main() -> None:
 
     rel = ROOT / "src" / "sphota" / "data" / "v1"
     stats = run(rel)
-    (ROOT / "bench" / "results" / "label-filter-small.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
+    (ROOT / "bench" / "results" / "label-filter-small.json").write_text(
+        json.dumps(stats, indent=2), encoding="utf-8"
+    )
     refresh_manifest(rel)
 
 

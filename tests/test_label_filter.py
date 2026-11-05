@@ -20,7 +20,11 @@ def test_rejects_garbage():
 def test_offensive_cells_held_for_review():
     assert offensive("Sex Work and Rights Issues")
     assert not offensive("Corporate Executive")
-    kept, review = filter_labels({"1": {"en": "Corporate Executive", "ru": "Corporate Executive"},
-                                  "2": {"en": "Porn Websites"}})
+    kept, review = filter_labels(
+        {
+            "1": {"en": "Corporate Executive", "ru": "Corporate Executive"},
+            "2": {"en": "Porn Websites"},
+        }
+    )
     assert kept == {"1": {"en": "Corporate Executive"}}
     assert "reason" in review["2"] and review["1"]["rejected"]["ru"]
