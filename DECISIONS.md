@@ -24,7 +24,7 @@ unknown), `facebook/flores` (gated script dataset).
 | multilingual-e5-small | 0.617 (0.639 at D=384) | 0.355 | 160 | 470 MB fp32 / 118 MB int8 | MIT |
 | paraphrase-multilingual-MiniLM-L12-v2 | 0.619 | 0.386 | ~170 | 470 MB | Apache-2.0 |
 | LaBSE | 0.666 | 0.435 | ~45 | 1.9 GB | Apache-2.0 |
-| bge-m3 | see D-012 | | 8–15 | 2.2 GB | MIT |
+| bge-m3 | not completed (encoding the tiny set at 8–15 sent/s exceeded the CPU budget) | | 8–15 | 2.2 GB | MIT |
 
 **Decision:** e5-small. It is within a few points of LaBSE on cross-lingual agreement, ~4×
 faster on CPU, has an official fp32 ONNX export (bit-exact with PyTorch: max abs diff 7e-8)

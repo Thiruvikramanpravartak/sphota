@@ -1,6 +1,6 @@
 # Sphota Specification v1, Part 10: Governance and the RFC Process
 
-See also [GOVERNANCE.md](../../GOVERNANCE.md).
+See also [GOVERNANCE.md](https://github.com/thiruvikramanpravartak/sphota/blob/main/GOVERNANCE.md).
 
 ## 1. What is normative
 

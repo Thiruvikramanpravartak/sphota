@@ -119,8 +119,8 @@ IAB / Google product taxonomies give human categories.
 
 ## 6. Bake-off (milestone R)
 
-See [`DECISIONS.md`](../../DECISIONS.md) D-003…D-006 and
-[`bench/results/bakeoff-tiny.json`](../../bench/results/bakeoff-tiny.json).
+See [`DECISIONS.md`](https://github.com/thiruvikramanpravartak/sphota/blob/main/DECISIONS.md) D-003…D-006 and
+[`bench/results/bakeoff-tiny.json`](https://github.com/thiruvikramanpravartak/sphota/blob/main/bench/results/bakeoff-tiny.json).
 
 ## References
 
