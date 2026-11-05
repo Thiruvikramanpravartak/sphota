@@ -169,6 +169,20 @@ def run(scale: str) -> dict:
                 ece += m.mean() * abs(conf[m].mean() - ag[m].mean())
         rel_tab.append({"level": lvl + 1, "ece": round(float(ece), 4), "bins": rows})
     res["calibration_unseen"] = rel_tab
+    # selective accuracy: only codes whose level-l confidence >= tau (both sides)
+    sel = []
+    for lvl in (0, 1):
+        for tau in (0.0, 0.5, 0.7, 0.8, 0.9):
+            cov, acc = [], []
+            for lg in langs[1:]:
+                m = (Q["en"].confidence[:, lvl] >= tau) & (Q[lg].confidence[:, lvl] >= tau)
+                ag = np.all(Q["en"].indices[:, : lvl + 1] == Q[lg].indices[:, : lvl + 1], 1)
+                cov.append(m.mean())
+                acc.append(ag[m].mean() if m.any() else np.nan)
+            sel.append({"level": lvl + 1, "min_confidence": tau, "coverage": round(float(np.mean(cov)), 4),
+                        "agreement": round(float(np.nanmean(acc)), 4)})
+    res["selective_cross_lingual"] = sel
+    log(f"selective: {sel}")
     log("truncation: " + str(res["truncation_cross_lingual"]))
 
     # ---- paraphrase stability (STS-B >= 4.5, English)
