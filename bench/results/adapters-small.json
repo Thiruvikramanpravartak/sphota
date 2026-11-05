@@ -242,5 +242,128 @@
     "temperature_scale": 1.2599,
     "train_pairs": 40000,
     "seconds": 15
+  },
+  "sentence-transformers/LaBSE": {
+    "model": "sentence-transformers/LaBSE",
+    "l1_top3_en": 0.3211,
+    "l1_top3_all": 0.3333,
+    "l1_neighborhood_en": 0.5692,
+    "agreement_same_text_en": [
+      0.1917,
+      0.0603,
+      0.0188,
+      0.002
+    ],
+    "agreement_same_text": [
+      0.1938,
+      0.0632,
+      0.0185,
+      0.0042
+    ],
+    "agreement_cross_lingual": [
+      0.5632,
+      0.3784,
+      0.2621,
+      0.1824
+    ],
+    "anchor_cross_lingual": [
+      0.4614,
+      0.2294,
+      0.1095,
+      0.0482
+    ],
+    "fidelity_en": 0.6024,
+    "fidelity_all": 0.5949,
+    "n_per_lang": 1012,
+    "languages": [
+      "en",
+      "hi",
+      "ta",
+      "es",
+      "fr",
+      "de",
+      "zh",
+      "ar",
+      "ru",
+      "ja",
+      "pt",
+      "bn"
+    ],
+    "checks": {
+      "l1_neighborhood_en": true,
+      "l1_top3_en": true,
+      "fidelity_en": true,
+      "multilingual_l1_top3_all": true,
+      "multilingual_fidelity_all": true
+    },
+    "pass": true,
+    "multilingual": true,
+    "grade": "certified-multilingual",
+    "reference_model": false,
+    "temperature_scale": 0.7071,
+    "train_pairs": 20000,
+    "seconds": 1104
+  },
+  "BAAI/bge-m3": {
+    "model": "BAAI/bge-m3",
+    "l1_top3_en": 0.2733,
+    "l1_top3_all": 0.34,
+    "l1_neighborhood_en": 0.5267,
+    "agreement_same_text_en": [
+      0.1933,
+      0.0533,
+      0.01,
+      0.0
+    ],
+    "agreement_same_text": [
+      0.2272,
+      0.0678,
+      0.0186,
+      0.0053
+    ],
+    "agreement_cross_lingual": [
+      0.653,
+      0.5118,
+      0.4161,
+      0.2976
+    ],
+    "anchor_cross_lingual": [
+      0.4524,
+      0.2424,
+      0.1179,
+      0.0527
+    ],
+    "fidelity_en": 0.6294,
+    "fidelity_all": 0.6192,
+    "n_per_lang": 300,
+    "languages": [
+      "en",
+      "hi",
+      "ta",
+      "es",
+      "fr",
+      "de",
+      "zh",
+      "ar",
+      "ru",
+      "ja",
+      "pt",
+      "bn"
+    ],
+    "checks": {
+      "l1_neighborhood_en": false,
+      "l1_top3_en": true,
+      "fidelity_en": true,
+      "multilingual_l1_top3_all": true,
+      "multilingual_fidelity_all": true
+    },
+    "pass": false,
+    "multilingual": false,
+    "grade": "not-certified",
+    "reference_model": false,
+    "temperature_scale": 0.63,
+    "train_pairs": 6000,
+    "seconds": 1066,
+    "note": "Not in the registry: neighbourhood agreement 0.527 < 0.55 with a CPU-limited budget (6k training pairs, 300 test sentences/language). Re-run at full scale."
   }
 }

@@ -1,0 +1,27 @@
+{
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "steps": 2500,
+  "unpaired_texts_per_side": 20000,
+  "unsupervised": {
+    "top1_retrieval": 0.0,
+    "mean_cosine": 0.0038,
+    "agreement": [
+      0.004,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "supervised_ridge_reference": {
+    "top1_retrieval": 0.9654,
+    "mean_cosine": 0.5444,
+    "agreement": [
+      0.2233,
+      0.0573,
+      0.0069,
+      0.001
+    ]
+  },
+  "chance_top1": 0.00099,
+  "seconds": 135
+}

@@ -25,6 +25,12 @@ sphota certify --model intfloat/e5-small-v2 --adapter e5-small-v2.sphota-adapter
 | `BAAI/bge-small-en-v1.5` | MIT | certified |
 | `thenlper/gte-small` | MIT | certified |
 | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Apache-2.0 | certified-multilingual |
+| `sentence-transformers/LaBSE` | Apache-2.0 | certified-multilingual (torch; no small ONNX export) |
+
+`BAAI/bge-m3` was trained and evaluated at a CPU-limited budget (6k pairs) and missed the
+neighbourhood threshold (0.53 < 0.55); it is not in the registry. Its codes were the most
+cross-lingually consistent of all models (65% L1), so it is the first candidate for a
+full-scale adapter.
 
 Full certificates (exact and neighbourhood agreement, fidelity) are in the
 [benchmark](benchmark.md) and the [leaderboard](https://github.com/thiruvikramanpravartak/sphota/blob/main/bench/leaderboard/index.html).
@@ -52,5 +58,5 @@ the default registry.
 ## Unsupervised adapters (experiment)
 
 A vec2vec-style adapter trained without paired data is reported in the benchmark; at small scale
-it is far from the supervised ridge adapter. Paired data from the anchor is cheap to produce, so
+it failed completely (top-1 retrieval 0% vs 96.5% supervised). Paired data from the anchor is cheap to produce, so
 supervised adapters remain the default.

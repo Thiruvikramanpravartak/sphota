@@ -16,7 +16,7 @@ confidence calibrated by maximum likelihood on held-out translations, enabling G
 precision truncation, alternates for near-boundary inputs and multi-code assignment. Other
 embedding models enter the space through linear adapters; storing the 256-d canonical vector
 next to the code lets an index built with one model be queried with another at 96.5–99.1%
-recall@10 (paraphrase retrieval), without re-embedding the corpus. We release the
+recall@10 (paraphrase retrieval; 98.3% for LaBSE), without re-embedding the corpus. We release the
 specification, a conformance procedure with certificates, the frozen artifacts, a numpy-only
 core library, integrations, and an in-browser "Meaning Atlas". We report negative results
 and limitations openly: exact code identity across models is modest (6–23% at L1), and a
@@ -136,7 +136,14 @@ codes only: 10–28%.
 agreement at 1024 L1 cells (held-out model 0.18 → 0.21 at λ=1) but not at 4096 (0.166 vs 0.167)
 while lowering cross-lingual agreement (0.462 → 0.450). We kept λ = 0.
 
-**Unsupervised adapter.** See `bench/results/vec2vec-small.json` and docs/benchmark.md §8.
+**Selective accuracy.** When both codes have L1 confidence ≥ 0.7 (16% of pairs), translations
+share the L1 code 88.7% of the time; at ≥ 0.9 (5%), 96.5%.
+
+**Unsupervised adapter.** A vec2vec-style translator (adversarial + reconstruction + cycle +
+VSP losses, 20k unpaired texts per side, 2,500 CPU steps) failed completely at this budget
+(top-1 retrieval 0%, mean cosine 0.004), versus 96.5% top-1 for a supervised ridge adapter on
+the same texts. Unsupervised alignment at small scale remains open; paired anchor outputs are
+cheap, so supervised adapters are the default.
 
 ## 5. Discussion and limitations
 

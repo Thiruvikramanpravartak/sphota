@@ -104,12 +104,12 @@ languages; STS-B paraphrases). Full tables: [docs/benchmark.md](docs/benchmark.m
 |---|---|---|---|---|
 | Translation gets the same prefix (en ↔ 11 languages) | **46%** | 23% | 11% | 5% |
 | Paraphrase gets the same prefix (English) | **72%** | 54% | 38% | 28% |
-| …with `min_confidence=0.7`, codes never contradict (shorter is a prefix of longer) | see [table](docs/benchmark.md#3-precision-truncation-gps-accuracy) | | | |
+| …only when both codes are confident (≥ 0.7; 16% of pairs at L1, 2% at L2) | **89%** | 86% | | |
 
 | Never re-index (index with model X, query with the anchor) | recall@10 |
 |---|---|
 | re-embed everything with one model (baseline) | 100% |
-| **Sphota canonical vectors**, all-MiniLM-L6 / bge-small / gte-small / multilingual-MiniLM | **96.5% / 99.1% / 99.0% / 98.5%** |
+| **Sphota canonical vectors**, all-MiniLM-L6 / bge-small / gte-small / multilingual-MiniLM / LaBSE | **96.5% / 99.1% / 99.0% / 98.5% / 98.3%** |
 | Sphota codes only (13 characters, no vectors) | 10–28% (coarse: for grouping/routing, not ranking) |
 
 Utilization: 92% of the 4096 L1 cells used, largest cell 0.3% of data (no codebook collapse).

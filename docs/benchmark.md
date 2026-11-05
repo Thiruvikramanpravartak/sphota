@@ -110,16 +110,28 @@ when fitting the space (their disagreement is treated as noise); held-out models
 | model | role | L1 (en) | L2 (en) | L1 (all langs) | cross-lingual L1 (model) | fidelity (cos) | grade |
 |---|---|---|---|---|---|---|---|
 | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | not used to fit the space | 23.3% | 5.8% | 24.5% | 54.8% | 0.580 | certified-multilingual |
+| `BAAI/bge-m3` | not used to fit the space | 19.3% | 5.3% | 22.7% | 65.3% | 0.629 | not-certified |
+| `sentence-transformers/LaBSE` | not used to fit the space | 19.2% | 6.0% | 19.4% | 56.3% | 0.602 | certified-multilingual |
 | `sentence-transformers/all-MiniLM-L6-v2` | not used to fit the space | 16.6% | 3.1% | 5.2% | 18.1% | 0.548 | certified |
 | `BAAI/bge-small-en-v1.5` | not used to fit the space | 13.8% | 2.4% | 4.9% | 22.1% | 0.568 | certified |
 | `thenlper/gte-small` | not used to fit the space | 5.7% | 0.5% | 3.4% | 30.4% | 0.548 | certified |
 
 Anchor int8 ONNX variant vs fp32 reference (same text): 84.8% | 74.6% | 66.8% | 59.8% (L1..L4).
 
+## 8. Unsupervised adapter (vec2vec-style, no paired data)
+
+`sentence-transformers/all-MiniLM-L6-v2` → s1 with disjoint text sets (20,000 per side), 2500 steps on CPU.
+
+| | top-1 retrieval (of 1012) | mean cosine | L1 agreement | L2 agreement |
+|---|---|---|---|---|
+| unsupervised | 0.0% | 0.004 | 0.4% | 0.0% |
+| supervised ridge (same budget) | 96.5% | 0.544 | 22.3% | 5.7% |
+| chance | 0.1% | 0 | ≈0 | ≈0 |
+
 ## 9. Speed (CPU)
 
-* Encode, ONNX fp32: **154.1 sentences/s**; int8: 313.9 sentences/s (4 vCPU (CI container)).
-* Quantize precomputed vectors (numpy): 9,957 vectors/s.
+* Encode, ONNX fp32: **155.3 sentences/s**; int8: 331.0 sentences/s (4 vCPU (CI container)).
+* Quantize precomputed vectors (numpy): 10,331 vectors/s.
 
 ## Limitations
 
