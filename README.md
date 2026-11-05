@@ -2,10 +2,10 @@
 
 # स्फोट Sphota
 
-### GPS for meaning.
+### Readable, multilingual meaning codes for topic analytics, routing, caching and model migration.
 
-An open, **frozen**, human-readable coordinate system for meaning.
-Any text, in any language, embedded by any supported model → one short hierarchical code.
+Any text, in any language → a short, frozen, human-readable code plus one of **32 meaning regions**
+that stays the same across languages and embedding models most of the time.
 
 [![CI](https://github.com/thiruvikramanpravartak/sphota/actions/workflows/ci.yml/badge.svg)](https://github.com/thiruvikramanpravartak/sphota/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -95,6 +95,17 @@ sphota certify --model sentence-transformers/all-MiniLM-L6-v2
 * **Light.** Parse/compare/distance/labels need only numpy; encoding uses ONNX Runtime (no
   torch); runs in the browser; `sphota bundle` for air-gapped machines.
 
+## What holds (measured on held-out data)
+
+| Layer | Use it for | Measured |
+|---|---|---|
+| **Region** (`c.region`, 32 regions) | cross-language / cross-model analytics, routing, caching | translation lands in the same region **79%** of the time when confident (69% of sentences), **71%** overall; models agree **64.5%** |
+| **Stored canonical vector** (`c.vector`, 256-d) | switching embedding models without re-indexing | **96.5–99.1% recall@10** across 5 models vs 100% re-embedding |
+| **Fine code** (`JYZA-7M-X0-A8`) | precision *within* one model / language family | translation agreement 46% (L1) → 5% (L4); see below |
+
+The fine code is not (yet) a universal "GPS for meaning": no configuration we built passes the
+v2 decision gate at ≥ 256 regions (DECISIONS D-017/D-018; see Roadmap).
+
 ## Measured (honest) results
 
 `small`-scale build on CPU, test data never used for fitting (FLORES-200 devtest, 12
@@ -162,6 +173,12 @@ Design decisions and the experiments behind them (including negative results) ar
 | [`launch/`](launch/) | launch kit |
 
 ## Roadmap
+
+**Research: universal fine-grained coordinates.** Decision gate D-017 (+ D-018: ≥ 256 regions):
+coverage ≥ 60%, confident translation agreement ≥ 80%, cross-model ≥ 60%, no language collapse.
+Best so far (CPU, LaBSE anchor, 1024 regions): 79.6% / 79.1% / 50.7% / 0% → FAIL on two criteria.
+A GPU run with bge-m3 / LaBSE anchors is scripted (`scripts/gpu_build_v2.sh`, `docs/gpu-run.md`).
+
 
 1. **`full`-scale build on a GPU** (millions of sentences, 100+ languages) as space `s2`, with an
    `s1 → s2` migration table.

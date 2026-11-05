@@ -1,7 +1,9 @@
-# Sphota: GPS for meaning
+# Sphota
 
-**An open, frozen, human-readable coordinate system for meaning.** Any text, in any language,
-embedded by any supported model → one short hierarchical code.
+**Readable, multilingual meaning codes for topic analytics, routing, caching and model migration.**
+Every text gets a frozen hierarchical code and one of 32 regions that is stable across languages
+(79% for confident codes) and models (64.5%); stored canonical vectors give 96.5–99.1% recall
+when you switch embedding models. Finer levels are precision within a model.
 
 ```text
 "The CEO resigned"               (en)  →  JYZA-7M-X0-A8

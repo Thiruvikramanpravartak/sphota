@@ -1,9 +1,13 @@
 name: CI
 
+# Cost control: every push / PR runs lint + Linux fast tests only. The full OS matrix, model
+# tests, Atlas and docs builds run on version tags or when started manually (workflow_dispatch).
 on:
   push:
     branches: [main, "build/**", "claude/**"]
+    tags: ["v*"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,8 +24,18 @@ jobs:
       - run: ruff format --check .
       - run: mypy
 
+  fast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[cli]" pytest
+      - run: pytest -m "not slow"
+
   test-core:
-    # numpy-only core + CLI, no model downloads
+    # numpy-only core + CLI, no model downloads; full OS matrix on tags / manual runs only
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -36,6 +50,7 @@ jobs:
       - run: pytest -m "not slow" --cov=sphota --cov-report=term-missing
 
   test-encode:
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     # ONNX encoder end-to-end (downloads the small anchor model once, cached)
     runs-on: ubuntu-latest
     steps:
@@ -53,6 +68,7 @@ jobs:
           for f in examples/[0-9]*.py; do echo "== $f"; python "$f" || exit 1; done
 
   atlas:
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: atlas } }
     steps:
@@ -63,6 +79,7 @@ jobs:
       - run: npm run build
 
   docs:
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

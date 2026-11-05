@@ -80,9 +80,33 @@ near-pass uses only 32–64 top-level cells, which D-018 rules out as evidence f
   recall@10 across models). Use a coarse top level (32–64 regions) where agreement is 79–89%, keep
   finer levels as optional detail with explicit confidence.
 
+## Deciding CPU experiment: LaBSE anchor at ≥ 256 regions (`bench/results/labse-fine.json`)
+| L1 cells | coverage ≥ 60% | translation (confident) ≥ 80% | cross-model ≥ 60% | collapse ≤ 5% |
+|---|---|---|---|---|
+| 256 | 64.0% PASS | 77.2% FAIL | 26.1% FAIL | 0.0% PASS |
+| 1024 | 79.6% PASS | 79.1% FAIL (−0.9 pt) | 50.7% FAIL | 0.0% PASS |
+
+(cross-model panel: e5-small + all-MiniLM-L6-v2 mapped into the LaBSE space; 20k-text corpus.)
+
+## v1.1 shipped (pivot)
+- `c.region` / `c.region_label` / `c.region_confidence`: 32 cross-language regions
+  (`src/sphota/data/regions`, separate from frozen v1); shown by `sphota encode`; `sphota analyze`
+  groups by region by default (`--by l1` for the fine view).
+- README/docs repositioned: "Readable, multilingual meaning codes for topic analytics, routing,
+  caching and model migration"; universal fine-grained GPS moved to Roadmap/research.
+- CI cost cut: push/PR = lint + Linux/3.12 fast tests; full matrix on tags / manual dispatch.
+
+## Final recommendation
+**GPU run: yes, one bounded attempt, with LaBSE and bge-m3 anchors at 1024 regions.** A strong
+aligned anchor already passes coverage and collapse at ≥ 256 regions on CPU-scale data and misses
+translation agreement by under 1 point at 1024. Cross-model agreement (51%) is the real obstacle: the
+GPU run must improve adapters too (more paired texts, nonlinear adapters), not only the anchor. If
+cross-model stays < 60%, keep the v1.1 positioning permanently (regions + stored vectors) and treat
+fine codes as within-model precision.
+
 ## GPU run (exact command)
 ```bash
-bash scripts/gpu_build_v2.sh --scale full --sizes "256 1024 4096"
+bash scripts/gpu_build_v2.sh --scale full --anchors "sentence-transformers/LaBSE BAAI/bge-m3" --sizes "1024 4096"
 ```
 Guide, VRAM/time estimates and renting instructions: `docs/gpu-run.md`. Dry run verified on CPU:
 `bash scripts/gpu_build_v2.sh --scale tiny --dry-run` (~3 min).

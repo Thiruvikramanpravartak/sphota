@@ -24,6 +24,14 @@ other model ─────────► adapter ─────────�
 * **Adapters**: small linear maps from other embedding models into the canonical space. Store
   codes once; switch models later without re-indexing.
 
+## Regions (v1.1): the cross-language layer
+
+`c.region` (e.g. `R07`) is one of 32 coarse regions with its own confidence and label. Regions are
+the layer that is shared across languages and models (79% confident translation agreement, 64.5%
+cross-model). The four code levels below add precision *within* a model; their cross-language
+agreement drops quickly with depth. `sphota analyze` groups by region by default (`--by l1` for
+the finer view).
+
 ## Levels and prefixes
 
 | Level | Example | Meaning |
