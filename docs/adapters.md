@@ -6,8 +6,9 @@ anchor. Registry adapters run through ONNX Runtime (no torch) when an ONNX expor
 
 ```python
 from sphota import encode, from_vector
+
 encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2")
-from_vector(my_bge_vectors, model="BAAI/bge-small-en-v1.5")      # vectors you already have
+from_vector(my_bge_vectors, model="BAAI/bge-small-en-v1.5")  # vectors you already have
 ```
 
 ```bash
