@@ -156,3 +156,19 @@ space and its labels; it goes into the full-scale run, which must (a) sample Wik
 topic/length diversity per language, (b) report the language-collapse metric, and (c) treat any
 language with > 5% of test sentences in own-language cells as a gate failure. Coverage excluding
 Portuguese: 27.9% at τ = 0.7 (26.0% including it).
+
+## D-017 Space v2 decision gate (fixed before any v2 run)
+All four criteria are measured on **held-out** sentences (FLORES-200 devtest, 12 languages; never
+used to fit the space, codebooks, calibration, labels or adapters). A v2 space may be launched as
+"GPS for meaning" only if it passes **all four**; otherwise the product is positioned as
+multilingual topic analytics + routing/caching + vector-based model migration.
+
+| # | Criterion | Definition | Bar |
+|---|---|---|---|
+| 1 | Coverage | share of held-out sentences (all 12 languages) with top-level (L1) confidence ≥ 0.7 | ≥ 60% |
+| 2 | Translation agreement | among en↔x pairs where the English code has L1 confidence ≥ 0.7, share with the same L1 code (mean over 11 languages) | ≥ 80% |
+| 3 | Cross-model agreement | same English text, certified adapter vs anchor, same L1 code (mean over registry adapters) | ≥ 60% |
+| 4 | Language collapse | for every language, share of its held-out sentences in L1 cells whose training members are ≥ 80% that language (English excluded) | ≤ 5% for every language |
+
+Reference (s1, small): coverage 26.0%, translation 66.7%, cross-model 6–23% (exact), collapse 52.8%
+(Portuguese) → FAIL on all four.
