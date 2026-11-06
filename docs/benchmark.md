@@ -239,6 +239,15 @@ Each language against its English original, frozen space s1, confidence threshol
 * Region names are translated (machine, unreviewed) for te, kn, ml, gu, or, as, ur; Punjabi and
   Nepali names fall back to English (D-021).
 
+## GPU gate, medium scale (interim, Kaggle T4, D-022)
+| anchor | L1 regions | coverage ≥ 60% | translation (confident) ≥ 80% | cross-model ≥ 60% | collapse ≤ 5% |
+|---|---|---|---|---|---|
+| e5-small | (kept) | | | 16.2% FAIL | 34.2% FAIL |
+| LaBSE | 256 | 69.4% PASS | 83.5% PASS | 40.1% FAIL | 0.2% PASS |
+| LaBSE | 1024 | 55.2% FAIL | 83.9% PASS | 29.4% FAIL | 0.1% PASS |
+
+LaBSE at 4096 and the bge-m3 anchor were still running; `bench/results/kaggle-medium-interim.json`.
+
 ## Limitations
 
 * `small`-scale build: ~78k sentences in 12 languages fit 4096 L1 cells (~19 per cell). Regions for

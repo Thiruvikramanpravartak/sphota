@@ -227,3 +227,12 @@ alone does not protect users there; the docs say so explicitly. Region names wer
 dropped: opus-mt-en-inc ignores `>>pan<<`/`>>npi<<` and returned mixed Hindi/Bengali/Marathi
 script, which the script check did not fully catch (a single-script check is still a follow-up).
 The new names go on a separate review sheet (`reports/region_names_review_more.csv`).
+
+## D-022 GPU gate, interim result (medium scale, Kaggle T4)
+Interim numbers from the owner's Kaggle run (`bench/results/kaggle-medium-interim.json`):
+e5-small fails (cross-model 16.2%, collapse 34.2%). LaBSE at 256 regions passes three of four bars
+(coverage 69.4%, confident translation 83.5%, collapse 0.2%) and fails cross-model at 40.1%; at
+1024 regions coverage drops to 55.2% and cross-model to 29.4%. More data fixed translation (77.2%
+→ 83.5% at 256 vs the CPU run) but not cross-model agreement, as D-018 predicted. Unless bge-m3
+(still running) clears 60% cross-model at ≥ 256 regions, the gate fails and the v1.1 positioning
+(regions + themes + stored-vector migration) is permanent for v1. No change to the frozen space.

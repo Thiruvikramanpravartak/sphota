@@ -1,0 +1,10 @@
+{
+ "source": "Kaggle notebook log (notebooks/kaggle_gpu_gate.ipynb, --scale medium, Tesla T4), pasted by the owner on 2026-11-06; transcribed by hand. Replace with the v2-gate-medium-*.json files from sphota-v2-results.zip when the run finishes.",
+ "status": "interim: LaBSE K1=4096 and the bge-m3 anchor were still running",
+ "gate": {"1_coverage": ">= 0.60", "2_translation_confident": ">= 0.80", "3_cross_model": ">= 0.60", "4_collapse_max": "<= 0.05", "min_K1": 256},
+ "runs": [
+  {"anchor": "intfloat/multilingual-e5-small", "K1": "kept configuration (number not in the pasted lines)", "3_cross_model": 0.162, "4_collapse_max": 0.342, "overall": "FAIL", "note": "coverage and translation lines were not in the pasted excerpt"},
+  {"anchor": "sentence-transformers/LaBSE", "K1": 256, "1_coverage": 0.6938, "2_translation_confident": 0.8351, "3_cross_model": 0.4007, "4_collapse_max": 0.002, "passes": 3},
+  {"anchor": "sentence-transformers/LaBSE", "K1": 1024, "1_coverage": 0.5521, "2_translation_confident": 0.8387, "3_cross_model": 0.2935, "4_collapse_max": 0.001, "passes": 2}
+ ]
+}

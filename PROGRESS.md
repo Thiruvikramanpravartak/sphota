@@ -10,8 +10,9 @@
   topics and translated into 10 languages (`c.region_label_in(lang)`), filtered by the label gate;
   R24 renamed by hand ("Law, Culture and Travel"). Assignment is unchanged.
 - **CI:** fixed (repo made public; Actions minutes were the cause). All 11 jobs green on dispatch.
-- **GPU run:** running on the owner's Kaggle account (`notebooks/kaggle_gpu_gate.ipynb`, medium
-  scale; smoke test passed on a T4). Results pending.
+- **GPU run (interim, D-022):** e5-small FAIL. LaBSE @256 regions passes 3/4 (coverage 69.4%,
+  translation 83.5%, collapse 0.2%) but cross-model is 40.1% (bar 60%); @1024 passes 2/4. bge-m3
+  still running. Cross-model agreement is the blocker, as predicted. Positioning stays v1.1.
 - **Atlas "Analyze a file"** (2026-11-06): drop a CSV/TSV/TXT/JSONL (≤ 3,000 rows), encoded in the
   browser, grouped by theme (first code block) or region, CSV download, bundled multilingual sample.
   Themes beat regions on single-domain data (83% vs 29% purity, D-020).
