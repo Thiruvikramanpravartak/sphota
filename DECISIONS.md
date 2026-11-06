@@ -225,7 +225,9 @@ Assamese, Sindhi, Sanskrit and Kashmiri are partial (78–83%); Manipuri (Bengal
 alone does not protect users there; the docs say so explicitly. Region names were machine-translated
 (OPUS-MT) into te, kn, ml, gu, or, as and ur and passed the label filter. Punjabi and Nepali were
 dropped: opus-mt-en-inc ignores `>>pan<<`/`>>npi<<` and returned mixed Hindi/Bengali/Marathi
-script, which the script check did not fully catch (a single-script check is still a follow-up).
+script, which the script check did not fully catch. Follow-ups done: the label filter now rejects labels
+with letters from a second non-Latin script, and `encode` warns on Ol Chiki / Meetei Mayek input
+(codes unchanged, frozen behaviour).
 The new names go on a separate review sheet (`reports/region_names_review_more.csv`).
 
 ## D-022 GPU gate, interim result (medium scale, Kaggle T4)

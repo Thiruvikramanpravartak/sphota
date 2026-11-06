@@ -11,6 +11,7 @@ Sphota('7F3A-C2-91-0B')
 from __future__ import annotations
 
 import re
+import warnings
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -306,6 +307,37 @@ def _encoder_for(model: str | None):
     return _ENCODERS[ad.model], ad
 
 
+# Scripts where the anchor model fails (FLORES benchmark, D-021): codes look confident but are
+# wrong. Encoding is unchanged (frozen behaviour); callers get a warning.
+_UNSUPPORTED_SCRIPTS = {
+    "Ol Chiki (Santali)": (0x1C50, 0x1C7F),
+    "Meetei Mayek (Manipuri)": (0xABC0, 0xABFF),
+}
+
+
+def unsupported_script(text: str) -> str | None:
+    """Name of an unsupported script that makes up most of ``text``'s letters, else ``None``."""
+    letters = [ord(ch) for ch in text if ch.isalpha()]
+    if not letters:
+        return None
+    for name, (lo, hi) in _UNSUPPORTED_SCRIPTS.items():
+        if sum(lo <= o <= hi for o in letters) >= 0.5 * len(letters):
+            return name
+    return None
+
+
+def _warn_unsupported(texts: list[str]) -> None:
+    hits = {n for t in texts if (n := unsupported_script(t))}
+    if hits:
+        warnings.warn(
+            f"Sphota codes are unreliable for {', '.join(sorted(hits))}: the anchor model does not "
+            "understand this script, so codes can look confident and still be wrong (see "
+            "docs/benchmark.md, Indian languages). Transliterate or translate the text first.",
+            UserWarning,
+            stacklevel=3,
+        )
+
+
 def encode_batch(
     texts: Iterable[str],
     *,
@@ -320,6 +352,7 @@ def encode_batch(
         return []
     if not all(isinstance(t, str) for t in texts):
         raise TypeError("encode_batch expects strings; for vectors use from_vector(vec, model=...)")
+    _warn_unsupported(texts)
     rel = load_release()
     enc, ad = _encoder_for(model)
     X = enc.encode(texts)

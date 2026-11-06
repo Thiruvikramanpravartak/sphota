@@ -46,6 +46,7 @@ not valid codes they are treated as texts and encoded.
 | `fingerprint(doc, level=2)` | `Fingerprint` (weighted histogram of prefixes; `.top(n)`) |
 | `compare(doc_a, doc_b)` | similarity in [0, 1] |
 | `diff(doc_a, doc_b)` | `FingerprintDiff` (`added`, `removed`, `shared`) |
+| `unsupported_script(text)` | name of a script Sphota cannot handle (Ol Chiki, Meetei Mayek), else `None`; `encode` warns for these |
 
 ## Use cases (`sphota.usecases`)
 

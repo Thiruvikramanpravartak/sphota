@@ -28,3 +28,12 @@ def test_offensive_cells_held_for_review():
     )
     assert kept == {"1": {"en": "Corporate Executive"}}
     assert "reason" in review["2"] and review["1"]["rejected"]["ru"]
+
+
+def test_rejects_mixed_scripts():
+    from sphota.build.label_filter import check
+
+    assert check("hi", "বিশ্বব্যাপী सांस्कृतिक व ऐतिहासिक पहलू", "x") == "mixed scripts for hi"
+    assert check("hi", "धर्म और विज्ञान", "Religion and Science") is None
+    assert check("ur", "مذہب اور سائنس", "Religion and Science") is None
+    assert check("as", "ধৰ্ম আৰু বিজ্ঞান", "Religion and Science") is None

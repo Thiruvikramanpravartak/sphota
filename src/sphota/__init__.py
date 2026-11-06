@@ -30,6 +30,7 @@ from sphota.api import (
     path,
     prefix,
     similarity,
+    unsupported_script,
 )
 from sphota.codes import Code, SphotaCodeError, is_valid, parse
 
@@ -59,4 +60,5 @@ __all__ = [
     "path",
     "prefix",
     "similarity",
+    "unsupported_script",
 ]

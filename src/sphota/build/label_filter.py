@@ -116,6 +116,17 @@ def _script_share(text: str, script: str) -> float:
     return hit / len(letters)
 
 
+def _foreign_letters(text: str, script: str) -> int:
+    """Letters from a non-Latin script other than ``script`` (e.g. Bengali inside a Hindi label)."""
+    n = 0
+    for ch in text:
+        if unicodedata.category(ch)[0] not in "LM":
+            continue
+        first = unicodedata.name(ch, "").split(" ")[0]
+        n += first not in {script, "LATIN", "COMBINING", ""}
+    return n
+
+
 def check(lang: str, text: str, english: str | None = None) -> str | None:
     """Return a rejection reason, or None if the label passes."""
     t = text.strip()
@@ -135,6 +146,8 @@ def check(lang: str, text: str, english: str | None = None) -> str | None:
         0.3 if SCRIPTS[lang] == "CJK" else 0.6
     ):
         return f"wrong script for {lang}"
+    if lang in SCRIPTS and SCRIPTS[lang] != "CJK" and _foreign_letters(t, SCRIPTS[lang]) >= 2:
+        return f"mixed scripts for {lang}"
     if lang in LATIN and _script_share(t, "LATIN") < 0.8:
         return f"wrong script for {lang}"
     if lang != "en" and english and lang in SCRIPTS and t.lower() == english.lower():

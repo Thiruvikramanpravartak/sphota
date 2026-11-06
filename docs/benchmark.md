@@ -235,7 +235,9 @@ Each language against its English original, frozen space s1, confidence threshol
 * **Partial:** Assamese, Sindhi, Sanskrit, Kashmiri (78–83% confident agreement, 92–98% retrieval).
 * **Not supported:** Manipuri (Bengali script) and Santali (Ol Chiki). Santali is *confidently wrong*:
   94% of its sentences get region confidence ≥ 0.7, but 97.5% land in one region (R17), and retrieval
-  is 2.6%. Do not use Sphota codes for these languages.
+  is 2.6%. Do not use Sphota codes for these languages. `encode` warns when a text is mostly Ol Chiki
+  or Meetei Mayek (`sphota.unsupported_script`); Manipuri in Bengali script cannot be told apart
+  from Bengali by script alone.
 * Region names are translated (machine, unreviewed) for te, kn, ml, gu, or, as, ur; Punjabi and
   Nepali names fall back to English (D-021).
 
