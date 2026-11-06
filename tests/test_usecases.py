@@ -170,3 +170,14 @@ def test_region_labels_multilingual():
     assert len(names) == 32 and all(" / " not in n for n in names.values())
     assert region_label("R16", "es") != region_label("R16")  # translated
     assert region_label("R16", "xx") == region_label("R16")  # falls back to English
+
+
+def test_build_report_theme_names_groups_by_own_text():
+    rep = build_report(GOLD, by="theme")
+    assert all(r.prefix[0] != "R" for r in rep.roots)
+    assert all(r.name in GOLD or any(g.startswith(r.name) for g in GOLD) for r in rep.roots)
+    assert rep.to_dict()["topics"][0]["label"] == rep.roots[0].name
+    hidden = build_report(GOLD, by="theme", min_count=2)
+    assert all(r.name is None for r in hidden.roots)  # no raw text when suppressing
+    with pytest.raises(ValueError):
+        build_report(GOLD, by="nope")

@@ -236,3 +236,6 @@ e5-small fails (cross-model 16.2%, collapse 34.2%). LaBSE at 256 regions passes 
 → 83.5% at 256 vs the CPU run) but not cross-model agreement, as D-018 predicted. Unless bge-m3
 (still running) clears 60% cross-model at ≥ 256 regions, the gate fails and the v1.1 positioning
 (regions + themes + stored-vector migration) is permanent for v1. No change to the frozen space.
+* D-020 follow-up (2026-11-06): `sphota analyze` now defaults to `--by theme` too (same grouping as
+  the Atlas). `build_report(by=...)` keeps `region` as its default for API stability. With
+  `--min-count > 1`, theme names fall back to the automatic labels so no raw text is shown.

@@ -12,7 +12,7 @@
 | `sphota validate CODE` | check a code (exit 1 if invalid) |
 | `sphota fingerprint FILE [--json]` | document fingerprint |
 | `sphota compare FILE_A FILE_B` / `sphota diff FILE_A FILE_B` | document comparison |
-| `sphota analyze data.csv [-o report.html] [--min-count 10]` | topic analytics report |
+| `sphota analyze data.csv [-o report.html] [--min-count 10] [--by theme\|region\|l1]` | topic analytics report; `theme` (default) names each group by its most confident text |
 | `sphota adapters` | certified adapters |
 | `sphota train-adapter --model HF_ID` | fit an adapter |
 | `sphota certify --model HF_ID [--adapter f.npz] [--out cert.json]` | conformance certificate |

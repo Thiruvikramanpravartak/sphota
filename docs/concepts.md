@@ -29,10 +29,11 @@ other model ─────────► adapter ─────────�
 `c.region` (e.g. `R07`) is one of 32 coarse regions with its own confidence and label. Regions are
 the layer that is shared across languages and models (79% confident translation agreement, 64.5%
 cross-model). The four code levels below add precision *within* a model; their cross-language
-agreement drops quickly with depth. `sphota analyze` groups by region by default (`--by l1` for
-the finer view). For a file from one domain (support tickets, reviews), group by the first code
-block instead: regions are fitted on general text, so one domain falls into a few of them, while the
-first block still separates themes across languages (83% vs 29% purity on the Atlas sample, D-020).
+agreement drops quickly with depth. `sphota analyze` groups by theme by default: the first code block, named by the group's own most
+confident text (`--by region` for the 32 broad regions, `--by l1` for the automatic labels). Regions
+are fitted on general text, so a file from one domain (support tickets, reviews) falls into a few of
+them, while the first block still separates themes across languages (83% vs 29% purity on the Atlas
+sample, D-020).
 
 ## Levels and prefixes
 

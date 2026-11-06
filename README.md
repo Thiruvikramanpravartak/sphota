@@ -72,7 +72,7 @@ sphota certify --model sentence-transformers/all-MiniLM-L6-v2
 | Use case | One line | Notes |
 |---|---|---|
 | **Never re-index again** | `CodeIndex().add_texts(docs, model="A")` … `.search(q, model="B")` | items store code + canonical vector; switching models changes only queries ([benchmark](docs/benchmark.md#6-never-re-index-cross-model-retrieval)) |
-| Topic analytics | `sphota analyze data.csv` | standalone HTML report: prefix tree, counts, samples, labels in 11 languages |
+| Topic analytics | `sphota analyze data.csv` or drop the file in the [Atlas](atlas/) | themes across languages, named by your own messages; counts, samples, CSV/HTML report |
 | Cross-lingual search & dedupe | `cross_lingual_search(q, docs)`, `dedupe(texts)` | Tamil query → Hindi, Spanish, English docs |
 | Semantic cache | `SemanticCache(depth=2).get_or_compute(q, llm)` | hits across paraphrases and languages |
 | Routing | `PrefixRouter().fit(examples, routes).route(text)` | rules written once apply to every language |

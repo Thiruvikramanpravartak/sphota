@@ -224,7 +224,10 @@ else:
         lang: str = typer.Option("en", "--lang"),
         limit: int | None = typer.Option(None, "--limit"),
         by: str = typer.Option(
-            "region", "--by", help="Top-level grouping: region (cross-language) or l1."
+            "theme",
+            "--by",
+            help="Grouping: theme (first code block, named by your texts; best for one domain), "
+            "region (32 broad cross-language regions) or l1 (automatic labels).",
         ),
     ) -> None:
         """Topic analytics → a standalone HTML report (prefix tree, counts, samples)."""
