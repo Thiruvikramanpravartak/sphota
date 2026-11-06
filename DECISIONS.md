@@ -203,3 +203,15 @@ layout (t-SNE) is unchanged: `python -m sphota.build.atlas_data --regions-only` 
 existing `map.json`. Regions are looser on the t-SNE layout than the old clusters (63% vs 75% of
 5 nearest map neighbours share a group), so each region label sits at its densest cluster of cells,
 not its mean position.
+
+## D-020 "Analyze a file" groups by theme (first code block), not by region
+The Atlas can now analyze a CSV/TSV/TXT/JSONL file in the browser (up to 3,000 rows). On the bundled
+48-message multilingual support sample (`atlas/public/data/sample-feedback.csv`, 10 hand-tagged themes,
+en/hi/ta/bn/es), grouping by the 32 regions gives 5 groups, purity 29%, with 60% of messages in one
+region (R17); Tamil messages lean to R24 whatever the topic. Grouping by the first code block (L1 cell)
+gives 22 groups, purity 83%, largest group 21%, and several groups hold the same complaint in 4–5
+languages (payment failed: WJX1; late delivery: FN0K). Regions are fitted on general Wikipedia text, so
+one domain falls into a few of them. Decision: the file report groups by theme (L1) by default, names
+each theme by its most confident message from the file (the Wikipedia-derived L1 labels are misleading
+out of domain), and keeps "32 regions" as a toggle. Follow-up: the same default for `sphota analyze`
+on single-domain files, and merging near-duplicate themes.

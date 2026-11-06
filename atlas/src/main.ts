@@ -1,13 +1,14 @@
 // Copyright 2026 The Sphota Authors. SPDX-License-Identifier: Apache-2.0
 // Meaning Atlas: a zoomable map of the Sphota s1 space, coloured by its 32 regions.
 import "./style.css";
-import { SphotaSpace, embed, formatLevels, loadModel, parseCode, type Encoded } from "./encoder";
+import { SphotaSpace, embed, embedBatch, formatLevels, loadModel, parseCode, type Encoded } from "./encoder";
+import { readMessages, scriptOf, summarize, toCsv, type FileRow, type GroupSummary, type GroupBy } from "./analyze";
 
 interface Cell { i: number; code: string; x: number; y: number; n: number; r: number; l: Record<string, string>; ex: string[]; nb: number[] }
 interface Region { k: number; id: string; x: number; y: number; color: string; name: string; full: string; members: number; spread: number }
 interface L2 { code: string; p: number; x: number; y: number; l: Record<string, string> }
 interface MapData { space: string; cells: Cell[]; regions: Region[]; l2: L2[] }
-interface RegionModel { temperature: number; dim: number; centroids: number[]; labels: Record<string, string> }
+interface RegionModel { temperature: number; dim: number; centroids: number[]; labels: Record<string, string>; labels_i18n?: Record<string, Record<string, string>> }
 interface Marker { enc: Encoded; region: { k: number; p: number }; x: number; y: number; radius: number; color: string; born: number }
 
 const DATA = `${import.meta.env.BASE_URL}data`;
@@ -192,6 +193,7 @@ function draw(t = performance.now()) {
     }
     ctx.fill();
   }
+  if (fileRows.length) drawFileLayer(sz);
   for (const c of [hover, selected]) {
     if (!c) continue;
     ctx.fillStyle = "#ffffff";
@@ -817,6 +819,186 @@ function fromHash() {
   if (lv) selectCell(data.cells[lv[0]], true, lv);
 }
 
+// ---------------------------------------------------------------- analyze a file (all in the browser)
+const MAX_ROWS = 3000;
+let fileRows: FileRow[] = [];
+let fileCounts = new Map<number, number>();
+let fileName = "";
+let fileFocus: number | null = null; // group key (L1 cell or region) the report is focused on
+let fileGroupBy: GroupBy = "cell";
+const MAX_GROUPS = 25;
+let fileJob: { cancelled: boolean } | null = null;
+
+function regionName(k: number): string {
+  const key = String(k);
+  return regionModel.labels_i18n?.[lang]?.[key] || regionModel.labels[key] || `R${String(k).padStart(2, "0")}`;
+}
+
+function drawFileLayer(sz: number) {
+  // the user's messages: amber discs on the cells they landed in, sized by count
+  ctx.fillStyle = "rgba(255,190,80,0.28)";
+  ctx.strokeStyle = "rgba(255,200,110,0.95)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  for (const [i, n] of fileCounts) {
+    const c = data.cells[i];
+    if (fileFocus !== null && (fileGroupBy === "cell" ? i !== fileFocus : c.r !== fileFocus)) continue;
+    const r = Math.min(26, (2.5 + 2.2 * Math.sqrt(n)) * Math.max(0.8, sz * 0.7));
+    if (SX[i] < -r || SY[i] < -r || SX[i] > W + r || SY[i] > H + r) continue;
+    ctx.moveTo(SX[i] + r, SY[i]);
+    ctx.arc(SX[i], SY[i], r, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.stroke();
+}
+
+async function analyzeFile(name: string, src: string, column?: string) {
+  const status = $<HTMLDivElement>("status");
+  let parsed;
+  try {
+    parsed = readMessages(name, src, column);
+  } catch (err) {
+    status.textContent = `Could not read ${name}: ${(err as Error).message}`;
+    return;
+  }
+  if (!parsed.texts.length) { status.textContent = `No messages found in ${name}.`; return; }
+  const texts = parsed.texts.slice(0, MAX_ROWS);
+  const langs = parsed.langs.slice(0, MAX_ROWS);
+  if (fileJob) fileJob.cancelled = true;
+  const job = { cancelled: false };
+  fileJob = job;
+  fileName = name;
+  markers = [];
+  panel.innerHTML = `<div class="report"><h2>Analyzing ${esc(name)}</h2>
+    <p class="muted">${texts.length.toLocaleString()} messages from column <b>${esc(parsed.column)}</b>${parsed.total > MAX_ROWS ? ` (first ${MAX_ROWS.toLocaleString()} of ${parsed.total.toLocaleString()})` : ""}. Nothing leaves your browser.</p>
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${texts.length}"><i style="width:0%"></i></div>
+    <p class="muted" id="prog-text">Loading the encoder…</p>
+    <button type="button" class="chip" id="cancel-file">Cancel</button></div>`;
+  $<HTMLButtonElement>("cancel-file").onclick = () => { job.cancelled = true; };
+  try {
+    await loadModel(space.meta.browser_model, (m) => { const el = document.getElementById("prog-text"); if (el) el.textContent = m; });
+    const t0 = performance.now();
+    const vecs = await embedBatch(space.meta.browser_model, texts, (done, total) => {
+      const bar = panel.querySelector<HTMLElement>(".progress i");
+      const el = document.getElementById("prog-text");
+      if (bar) bar.style.width = `${(100 * done) / total}%`;
+      const rate = done / Math.max(0.001, (performance.now() - t0) / 1000);
+      if (el) el.textContent = `Encoded ${done.toLocaleString()} / ${total.toLocaleString()} · about ${Math.max(0, Math.round((total - done) / rate))} s left`;
+    }, 16, job);
+    const rows: FileRow[] = vecs.map((v, i) => {
+      const y = space.project(v);
+      const enc = space.quantize(y, texts[i]);
+      const reg = regionOf(y);
+      return { text: texts[i], lang: langs[i], script: scriptOf(texts[i]), cell: enc.levels[0], cellP: enc.levelConf[0], region: reg.k, regionP: reg.p, code: enc.code };
+    });
+    fileRows = rows;
+    fileCounts = new Map();
+    for (const r of rows) fileCounts.set(r.cell, (fileCounts.get(r.cell) ?? 0) + 1);
+    fileFocus = null;
+    renderReport(parsed.columns, parsed.column);
+    status.textContent = "";
+    live.textContent = `Analyzed ${rows.length} messages from ${name}.`;
+    const h = home();
+    void flyTo(h.x, h.y, h.k, 1400);
+  } catch (err) {
+    if ((err as Error).message === "cancelled") { panel.innerHTML = `<p class="muted">Analysis cancelled.</p>`; return; }
+    panel.innerHTML = `<p>Could not run the encoder here (${esc((err as Error).message)}). Try another browser, or use <code>sphota analyze file.csv</code>.</p>`;
+  } finally {
+    if (fileJob === job) fileJob = null;
+    requestDraw();
+  }
+}
+
+function renderReport(columns: string[] = [], column = "") {
+  const byCell = fileGroupBy === "cell";
+  const all: GroupSummary[] = summarize(fileRows, fileGroupBy);
+  const sums = all.slice(0, MAX_GROUPS);
+  const rest = all.slice(MAX_GROUPS).reduce((t, s) => t + s.count, 0);
+  const n = fileRows.length;
+  const max = sums[0]?.count ?? 1;
+  const uncertain = fileRows.filter((r) => (byCell ? r.cellP : r.regionP) < 0.5).length;
+  const scripts = summarize(fileRows.map((r) => ({ ...r, region: 0 })), "region")[0]?.scripts ?? [];
+  const colPicker = columns.length > 1
+    ? `<label class="muted">Text column <select id="file-col">${columns.map((c) => `<option${c === column ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></label>` : "";
+  const clip = (t: string, m: number) => (t.length > m ? t.slice(0, m - 1) + "…" : t);
+  panel.innerHTML = `<div class="report">
+    <h2>${esc(fileName)}</h2>
+    <p class="muted">${n.toLocaleString()} messages in <b>${all.length}</b> ${byCell ? "themes" : "of 32 regions"} · scripts: ${scripts.map(([s, c]) => `${esc(s)} ${Math.round((100 * c) / n)}%`).join(", ")}${uncertain ? ` · ${Math.round((100 * uncertain) / n)}% low-confidence` : ""}</p>
+    <div class="seg" role="group" aria-label="Group by">
+      <button type="button" data-by="cell" aria-pressed="${byCell}">Themes (code)</button>
+      <button type="button" data-by="region" aria-pressed="${!byCell}">32 regions</button>
+    </div>
+    ${colPicker}
+    <ol class="regions">${sums.map((s) => {
+      const cell = byCell ? data.cells[s.k] : null;
+      const r = data.regions[cell ? cell.r : s.k];
+      const id = cell ? cell.code.slice(0, 4) : r.id;
+      const name = cell ? `“${clip(s.samples[0] ?? "", 70)}”` : regionName(s.k);
+      const mix = s.langs.length ? s.langs.map(([l, c]) => `${esc(l)} ${c}`).join(" · ") : s.scripts.map(([l, c]) => `${esc(l)} ${c}`).join(" · ");
+      return `<li class="${fileFocus === s.k ? "on" : ""}">
+        <button type="button" class="rrow" data-k="${s.k}" aria-expanded="${fileFocus === s.k}">
+          <span class="rid" style="color:${r.color}">${esc(id)}</span>
+          <span class="rname">${esc(name)}</span>
+          <span class="rnum">${s.count} · ${Math.round(100 * s.share)}%</span>
+          <span class="rbar"><i style="width:${(100 * s.count) / max}%;background:${r.color}"></i></span>
+        </button>
+        <div class="rdetail"${fileFocus === s.k ? "" : " hidden"}>
+          <p class="muted">${mix}${s.uncertain ? ` · ${s.uncertain} low-confidence` : ""}${cell ? ` · region ${r.id} ${esc(regionName(r.k))}` : ""}</p>
+          <ul>${s.samples.map((t) => `<li>${esc(clip(t, 160))}</li>`).join("")}</ul>
+        </div></li>`;
+    }).join("")}</ol>
+    ${rest ? `<p class="muted">+ ${rest.toLocaleString()} messages in ${all.length - sums.length} smaller groups (all in the CSV).</p>` : ""}
+    <div class="row">
+      <button type="button" class="chip" id="dl-file">Download results (CSV)</button>
+      <button type="button" class="chip" id="clear-file">Clear</button>
+    </div>
+    <p class="muted">Encoded in your browser with multilingual-e5-small; nothing was uploaded. ${byCell
+      ? "A theme is the first block of the code: translations of the same complaint usually share it. Themes are named by your own messages."
+      : "Regions are 32 broad, general-knowledge areas; most messages from one domain (e.g. support tickets) fall into a few of them."}</p>
+  </div>`;
+  panel.querySelectorAll<HTMLButtonElement>(".seg button").forEach((b) => b.addEventListener("click", () => {
+    const by = b.dataset.by as GroupBy;
+    if (by === fileGroupBy) return;
+    fileGroupBy = by;
+    fileFocus = null;
+    renderReport(columns, column);
+    requestDraw();
+  }));
+  panel.querySelectorAll<HTMLButtonElement>(".rrow").forEach((b) => b.addEventListener("click", () => {
+    const k = +b.dataset.k!;
+    fileFocus = fileFocus === k ? null : k;
+    renderReport(columns, column);
+    if (fileFocus !== null) {
+      const t = fileGroupBy === "cell" ? data.cells[k] : data.regions[k];
+      void flyTo(t.x, t.y, baseK * (fileGroupBy === "cell" ? 4 : 2.2), 1200);
+    }
+    requestDraw();
+  }));
+  $<HTMLButtonElement>("dl-file").onclick = () => {
+    const blob = new Blob([toCsv(fileRows, regionName)], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName.replace(/\.[^.]+$/, "") + "-sphota.csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  $<HTMLButtonElement>("clear-file").onclick = () => {
+    fileRows = []; fileCounts = new Map(); fileFocus = null;
+    panel.innerHTML = `<p class="muted">Cleared. Drop another file, or type a sentence.</p>`;
+    requestDraw();
+  };
+  const sel = document.getElementById("file-col") as HTMLSelectElement | null;
+  if (sel) sel.onchange = () => { if (lastFile) void analyzeFile(lastFile.name, lastFile.text, sel.value); };
+}
+
+let lastFile: { name: string; text: string } | null = null;
+async function openFile(f: File) {
+  if (f.size > 25 * 1024 * 1024) { $<HTMLDivElement>("status").textContent = "That file is over 25 MB; try a sample of it."; return; }
+  const text = await f.text();
+  lastFile = { name: f.name, text };
+  await analyzeFile(f.name, text);
+}
+
 // ---------------------------------------------------------------- boot
 async function main() {
   const [d, s, rm] = await Promise.all([
@@ -863,6 +1045,26 @@ async function main() {
 }
 
 window.addEventListener("resize", resize);
+// analyze a file: button, drag-and-drop anywhere, and a bundled multilingual sample
+const fileInput = $<HTMLInputElement>("file");
+$<HTMLButtonElement>("open-file").addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => { const f = fileInput.files?.[0]; if (f) void openFile(f); fileInput.value = ""; });
+$<HTMLButtonElement>("sample-file").addEventListener("click", async () => {
+  const text = await fetch(`${DATA}/sample-feedback.csv`).then((r) => r.text());
+  lastFile = { name: "sample-feedback.csv", text };
+  await analyzeFile("sample-feedback.csv", text);
+});
+let dragDepth = 0;
+window.addEventListener("dragenter", (e) => { if (e.dataTransfer?.types.includes("Files")) { dragDepth++; document.body.classList.add("dropping"); } });
+window.addEventListener("dragleave", () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) document.body.classList.remove("dropping"); });
+window.addEventListener("dragover", (e) => { if (e.dataTransfer?.types.includes("Files")) e.preventDefault(); });
+window.addEventListener("drop", (e) => {
+  if (!e.dataTransfer?.files.length) return;
+  e.preventDefault();
+  dragDepth = 0;
+  document.body.classList.remove("dropping");
+  void openFile(e.dataTransfer.files[0]);
+});
 $<HTMLFormElement>("search").addEventListener("submit", (e) => {
   e.preventDefault();
   void encodeAndShow();
@@ -873,6 +1075,7 @@ $<HTMLInputElement>("compare").addEventListener("change", (e) => {
 $<HTMLSelectElement>("lang").addEventListener("change", (e) => {
   lang = (e.target as HTMLSelectElement).value;
   document.documentElement.lang = lang;
+  if (fileRows.length) renderReport();
   requestDraw();
 });
 document.querySelectorAll<HTMLButtonElement>("[data-example]").forEach((b) =>

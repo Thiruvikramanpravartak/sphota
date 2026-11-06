@@ -9,13 +9,12 @@
 - **Region names** (2026-11-06): the 32 regions are now named by Qwen2.5-1.5B from their top member
   topics and translated into 10 languages (`c.region_label_in(lang)`), filtered by the label gate;
   R24 renamed by hand ("Law, Culture and Travel"). Assignment is unchanged.
-- **CI red cross:** jobs on GitHub stop after 2–3 s with no logs (they never start), since ~06:45 UTC
-  on 2026-11-05. Lint, tests, mypy and the Atlas build pass locally on every commit. Most likely the
-  private repo's Actions minutes / spending limit (the earlier macOS matrix counts 10×). Check
-  GitHub → Settings → Billing → Actions.
-- **GPU run, free route:** `notebooks/kaggle_gpu_gate.ipynb` (medium scale, ~2–4 h on Kaggle's free GPU).
-  The pipeline now uses CUDA + fp16 when a GPU is present; the report refuses to call a < 256-region
-  run a gate result (D-018).
+- **CI:** fixed (repo made public; Actions minutes were the cause). All 11 jobs green on dispatch.
+- **GPU run:** running on the owner's Kaggle account (`notebooks/kaggle_gpu_gate.ipynb`, medium
+  scale; smoke test passed on a T4). Results pending.
+- **Atlas "Analyze a file"** (2026-11-06): drop a CSV/TSV/TXT/JSONL (≤ 3,000 rows), encoded in the
+  browser, grouped by theme (first code block) or region, CSV download, bundled multilingual sample.
+  Themes beat regions on single-domain data (83% vs 29% purity, D-020).
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 

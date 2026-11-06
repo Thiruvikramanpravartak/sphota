@@ -100,7 +100,7 @@ def regions_layer(C1: np.ndarray, xy: np.ndarray, counts: np.ndarray) -> tuple[n
 
 def write_regions(out: Path) -> None:
     """Region centroids for in-browser region lookup (mirrors sphota.regions.region_of)."""
-    from sphota.regions import _load
+    from sphota.regions import _load, _meta
 
     C, T, names = _load()
     (out / "regions.json").write_text(
@@ -110,6 +110,7 @@ def write_regions(out: Path) -> None:
                 "dim": int(C.shape[1]),
                 "centroids": [round(float(v), 5) for v in C.ravel()],
                 "labels": names,
+                "labels_i18n": _meta().get("labels_i18n", {}),
             },
             ensure_ascii=False,
             separators=(",", ":"),

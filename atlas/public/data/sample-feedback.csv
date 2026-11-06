@@ -1,0 +1,49 @@
+id,language,message
+1,en,My order was supposed to arrive on Monday and it still hasn't been delivered.
+2,hi,मेरा ऑर्डर सोमवार को आना था लेकिन अभी तक डिलीवर नहीं हुआ।
+3,ta,என் ஆர்டர் திங்கட்கிழமை வர வேண்டும், இன்னும் டெலிவரி ஆகவில்லை.
+4,bn,আমার অর্ডার সোমবার আসার কথা ছিল কিন্তু এখনও ডেলিভারি হয়নি।
+5,es,Mi pedido debía llegar el lunes y todavía no lo han entregado.
+6,en,The courier marked the parcel as delivered but I never received it.
+7,hi,कूरियर ने पार्सल को डिलीवर बता दिया पर मुझे मिला ही नहीं।
+8,en,I returned the shoes two weeks ago and I am still waiting for my refund.
+9,hi,मैंने दो हफ्ते पहले जूते वापस किए थे और अब तक रिफंड नहीं मिला।
+10,ta,இரண்டு வாரங்களுக்கு முன்பு காலணிகளைத் திருப்பி அனுப்பினேன், இன்னும் பணம் திரும்ப வரவில்லை.
+11,bn,দুই সপ্তাহ আগে জুতো ফেরত দিয়েছি, এখনও টাকা ফেরত পাইনি।
+12,es,Devolví los zapatos hace dos semanas y sigo esperando el reembolso.
+13,en,How long does it take to get money back after a cancellation?
+14,hi,ऑर्डर कैंसिल करने के बाद पैसे वापस आने में कितना समय लगता है?
+15,en,My payment failed but the money was deducted from my bank account.
+16,hi,पेमेंट फेल हो गया लेकिन मेरे बैंक खाते से पैसे कट गए।
+17,ta,பணம் செலுத்துவது தோல்வியடைந்தது, ஆனால் என் வங்கிக் கணக்கிலிருந்து பணம் எடுக்கப்பட்டது.
+18,bn,পেমেন্ট ব্যর্থ হয়েছে কিন্তু আমার ব্যাংক অ্যাকাউন্ট থেকে টাকা কেটে নেওয়া হয়েছে।
+19,es,El pago falló pero me cobraron el dinero de la cuenta bancaria.
+20,en,UPI payment keeps showing pending for the last three hours.
+21,hi,यूपीआई पेमेंट पिछले तीन घंटे से पेंडिंग दिखा रहा है।
+22,en,The app crashes every time I open the cart.
+23,hi,कार्ट खोलते ही ऐप हर बार बंद हो जाता है।
+24,ta,கார்ட்டைத் திறக்கும் ஒவ்வொரு முறையும் ஆப் மூடிவிடுகிறது.
+25,bn,কার্ট খুললেই প্রতিবার অ্যাপ বন্ধ হয়ে যায়।
+26,es,La aplicación se cierra cada vez que abro el carrito.
+27,en,I can't log in because the OTP never arrives on my phone.
+28,hi,ओटीपी फोन पर आता ही नहीं इसलिए मैं लॉगिन नहीं कर पा रहा हूँ।
+29,ta,ஓடிபி என் போனுக்கு வரவே இல்லை, அதனால் லாகின் செய்ய முடியவில்லை.
+30,en,The phone I received has a cracked screen and the box was damaged.
+31,hi,जो फोन मिला उसकी स्क्रीन टूटी हुई है और डिब्बा भी खराब था।
+32,ta,எனக்கு வந்த போனின் திரை உடைந்திருந்தது, பெட்டியும் சேதமடைந்திருந்தது.
+33,bn,যে ফোনটা পেয়েছি তার স্ক্রিন ফাটা আর বাক্সটাও নষ্ট ছিল।
+34,es,El teléfono llegó con la pantalla rota y la caja dañada.
+35,en,The shirt colour is completely different from the photo on the website.
+36,hi,शर्ट का रंग वेबसाइट की फोटो से बिल्कुल अलग है।
+37,en,The customer support agent was very kind and solved my problem quickly.
+38,hi,कस्टमर सपोर्ट एजेंट बहुत अच्छे थे और उन्होंने मेरी समस्या जल्दी हल कर दी।
+39,ta,வாடிக்கையாளர் சேவை அதிகாரி மிகவும் அன்பாகப் பேசி என் பிரச்சினையை விரைவாகத் தீர்த்தார்.
+40,bn,কাস্টমার সাপোর্টের কর্মী খুব ভদ্র ছিলেন এবং দ্রুত আমার সমস্যার সমাধান করলেন।
+41,es,El agente de atención al cliente fue muy amable y resolvió mi problema rápido.
+42,en,Thank you for the fast delivery, everything arrived in perfect condition.
+43,hi,जल्दी डिलीवरी के लिए धन्यवाद, सब कुछ बिल्कुल सही हालत में पहुँचा।
+44,en,Please add cash on delivery for my pin code.
+45,hi,कृपया मेरे पिन कोड के लिए कैश ऑन डिलीवरी शुरू करें।
+46,ta,என் பின் கோடுக்கு கேஷ் ஆன் டெலிவரி வசதி வேண்டும்.
+47,en,Your prices went up again this month and the discount coupons don't work.
+48,hi,इस महीने फिर से दाम बढ़ गए और डिस्काउंट कूपन काम नहीं करते।

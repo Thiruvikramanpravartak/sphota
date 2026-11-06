@@ -192,3 +192,27 @@ export async function embed(model: string, text: string): Promise<Float32Array> 
   const out = await ex("query: " + text, { pooling: "mean", normalize: true });
   return out.data;
 }
+
+type BatchExtractor = (texts: string[], opts: Record<string, unknown>) => Promise<{ data: Float32Array; dims: number[] }>;
+
+/** Embed many texts in batches; calls onProgress(done, total) after each batch. */
+export async function embedBatch(
+  model: string,
+  texts: string[],
+  onProgress?: (done: number, total: number) => void,
+  batch = 16,
+  signal?: { cancelled: boolean },
+): Promise<Float32Array[]> {
+  const ex = (await loadModel(model)) as unknown as BatchExtractor;
+  const out: Float32Array[] = [];
+  for (let s = 0; s < texts.length; s += batch) {
+    if (signal?.cancelled) throw new Error("cancelled");
+    const chunk = texts.slice(s, s + batch).map((t) => "query: " + t);
+    const res = await ex(chunk, { pooling: "mean", normalize: true });
+    const dim = res.dims[res.dims.length - 1];
+    for (let i = 0; i < chunk.length; i++) out.push(res.data.slice(i * dim, (i + 1) * dim));
+    onProgress?.(out.length, texts.length);
+    await new Promise((r) => setTimeout(r, 0)); // keep the page responsive
+  }
+  return out;
+}
