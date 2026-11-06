@@ -35,6 +35,15 @@ MT = {
     "ta": ("Helsinki-NLP/opus-mt-en-dra", ">>tam<< "),
     "bn": ("Helsinki-NLP/opus-mt-en-inc", ">>ben<< "),
     "mr": ("Helsinki-NLP/opus-mt-en-inc", ">>mar<< "),
+    # region names only (32 labels; D-021): more Indian languages
+    "te": ("Helsinki-NLP/opus-mt-en-dra", ">>tel<< "),
+    "kn": ("Helsinki-NLP/opus-mt-en-dra", ">>kan<< "),
+    "ml": ("Helsinki-NLP/opus-mt-en-dra", ">>mal<< "),
+    "gu": ("Helsinki-NLP/opus-mt-en-inc", ">>guj<< "),
+    "or": ("Helsinki-NLP/opus-mt-en-inc", ">>ori<< "),
+    "as": ("Helsinki-NLP/opus-mt-en-inc", ">>asm<< "),
+    # pa, ne: en-inc has no usable target tag (output was mixed Hindi/Bengali/Marathi script)
+    "ur": ("Helsinki-NLP/opus-mt-en-ur", ""),
     "es": ("Helsinki-NLP/opus-mt-en-es", ""),
     "fr": ("Helsinki-NLP/opus-mt-en-fr", ""),
     "de": ("Helsinki-NLP/opus-mt-en-de", ""),
@@ -204,6 +213,28 @@ def name_regions(langs: list[str]) -> dict:
     return names
 
 
+def translate_regions(langs: list[str]) -> dict:
+    """Translate the current English region names into more languages and add them (filtered)
+    to regions.json. Existing translations are kept; names and assignment are unchanged."""
+    from sphota.build.label_filter import check
+    from sphota.regions import REGIONS_DIR, _load, _meta
+
+    meta_path = REGIONS_DIR / "regions.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    names = meta["labels"]
+    tr = translate(names, DATA_DIR / "small" / "build" / "region_translations_more.json", langs)
+    for lg in langs:
+        kept = {
+            k: v for k, v in tr.get(lg, {}).items() if k in names and check(lg, v, names[k]) is None
+        }
+        meta.setdefault("labels_i18n", {})[lg] = kept
+        log(f"{lg}: kept {len(kept)}/{len(names)} region names")
+    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
+    _load.cache_clear()
+    _meta.cache_clear()
+    return meta["labels_i18n"]
+
+
 def translate(names: dict, cache: Path, langs: list[str], batch: int = 64) -> dict:
     from transformers import MarianMTModel, MarianTokenizer
 
@@ -275,7 +306,7 @@ def main() -> None:
     )
     ap.add_argument(
         "--step",
-        choices=["all", "name", "translate", "merge", "continents", "regions"],
+        choices=["all", "name", "translate", "merge", "continents", "regions", "region-translate"],
         default="all",
     )
     a = ap.parse_args()
@@ -287,6 +318,9 @@ def main() -> None:
         name_cells(l2, cache / "names_l2.json", parent=n1, llm=LLM_SMALL)
     if a.step == "regions":
         name_regions(a.langs)
+        return
+    if a.step == "region-translate":
+        translate_regions(a.langs)
         return
     if a.step == "continents":
         name_continents(cache)

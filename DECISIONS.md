@@ -215,3 +215,15 @@ one domain falls into a few of them. Decision: the file report groups by theme (
 each theme by its most confident message from the file (the Wikipedia-derived L1 labels are misleading
 out of domain), and keeps "32 regions" as a toggle. Follow-up: the same default for `sphota analyze`
 on single-domain files, and merging near-duplicate themes.
+
+## D-021 Indian-language coverage: measured, and two languages ruled out
+`python -m sphota.build.indic --scale small` measures the frozen s1 space on FLORES-200 devtest
+for 19 Indian languages against English (`bench/results/indic-small.json`, docs/benchmark.md).
+13 languages work well (87–92% region agreement when both codes are confident, retrieval@1 ≥ 99%);
+Assamese, Sindhi, Sanskrit and Kashmiri are partial (78–83%); Manipuri (Bengali script) and Santali
+(Ol Chiki) fail. Santali is confidently wrong (94% "confident", 97.5% in one region), so confidence
+alone does not protect users there; the docs say so explicitly. Region names were machine-translated
+(OPUS-MT) into te, kn, ml, gu, or, as and ur and passed the label filter. Punjabi and Nepali were
+dropped: opus-mt-en-inc ignores `>>pan<<`/`>>npi<<` and returned mixed Hindi/Bengali/Marathi
+script, which the script check did not fully catch (a single-script check is still a follow-up).
+The new names go on a separate review sheet (`reports/region_names_review_more.csv`).

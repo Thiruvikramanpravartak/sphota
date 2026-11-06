@@ -89,7 +89,7 @@ sphota certify --model sentence-transformers/all-MiniLM-L6-v2
 * **Multilingual by construction.** Languages are aligned *before* quantizing
   (meaning-LDA on parallel data): +35% relative L1 agreement over plain PCA.
 * **Human-readable.** Crockford base32, fixed widths, typo detection (85% of single-symbol
-  typos rejected without a checksum), labels in 11 languages (machine-generated; Hindi/Tamil/Bengali quality is mixed).
+  typos rejected without a checksum), labels in 11 languages (machine-generated; Hindi/Tamil/Bengali quality is mixed); region names also in Telugu, Kannada, Malayalam, Gujarati, Odia, Assamese and Urdu. Measured on 19 Indian languages: 13 work well, Manipuri and Santali do not ([benchmark](docs/benchmark.md)).
 * **A standard, not a model.** RFC-style [spec](docs/spec/), golden tests that pin every code,
   `sphota certify` conformance certificates, adapter registry, migration tooling for `s2`.
 * **Light.** Parse/compare/distance/labels need only numpy; encoding uses ONNX Runtime (no

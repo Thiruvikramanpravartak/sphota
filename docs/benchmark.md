@@ -202,6 +202,43 @@ is within ~1 point of the bar at 1024 cells, cross-model agreement is the bindin
 At 4096 cells the diversified sample reduces the worst collapse (33.8% → 26.8%) but does not fix it.
 See DECISIONS D-018: the gate is only meaningful with ≥ 256 top-level cells.
 
+## Indian languages (FLORES-200 devtest, 1012 sentences, `python -m sphota.build.indic`)
+Each language against its English original, frozen space s1, confidence threshold 0.7
+(`bench/results/indic-small.json`).
+
+| language | region agrees with English | region coverage ≥ 0.7 | agreement when both confident | L1 agrees | retrieval@1 | top-region share |
+|---|---|---|---|---|---|---|
+| English (reference) | | 68.4% | | | | 36.1% (R17) |
+| Hindi (`hi`) | 76.4% | 68.6% | 92.2% | 52.7% | 99.9% | 39.8% (R17) |
+| Bengali (`bn`) | 71.9% | 69.0% | 89.1% | 47.3% | 100.0% | 41.0% (R17) |
+| Marathi (`mr`) | 72.4% | 69.3% | 89.5% | 48.2% | 99.5% | 39.7% (R17) |
+| Telugu (`te`) | 71.3% | 66.5% | 90.1% | 44.7% | 99.6% | 37.5% (R17) |
+| Tamil (`ta`) | 73.1% | 69.4% | 90.4% | 45.0% | 99.3% | 39.3% (R17) |
+| Urdu (`ur`) | 72.0% | 69.3% | 88.3% | 45.1% | 99.5% | 42.1% (R17) |
+| Gujarati (`gu`) | 71.8% | 66.9% | 87.8% | 46.5% | 99.6% | 39.7% (R17) |
+| Kannada (`kn`) | 73.7% | 68.7% | 90.7% | 50.3% | 99.2% | 39.9% (R17) |
+| Odia (`or`) | 72.0% | 70.3% | 86.8% | 45.1% | 99.4% | 40.8% (R17) |
+| Malayalam (`ml`) | 72.4% | 69.6% | 91.1% | 47.8% | 99.7% | 37.6% (R17) |
+| Punjabi (`pa`) | 70.2% | 67.1% | 87.5% | 43.3% | 99.1% | 38.6% (R17) |
+| Assamese (`as`) | 67.4% | 70.9% | 82.7% | 37.0% | 97.9% | 45.1% (R17) |
+| Maithili (`mai`) | 71.0% | 70.0% | 89.2% | 46.2% | 99.8% | 43.5% (R17) |
+| Nepali (`ne`) | 71.2% | 68.8% | 89.7% | 47.0% | 99.2% | 40.8% (R17) |
+| Sindhi (`sd`) | 62.5% | 67.5% | 78.7% | 34.8% | 98.3% | 47.8% (R17) |
+| Sanskrit (`sa`) | 63.2% | 67.0% | 82.2% | 34.1% | 95.7% | 52.3% (R17) |
+| Kashmiri (Arabic) (`ks`) | 61.1% | 69.7% | 77.9% | 30.4% | 91.7% | 49.3% (R17) |
+| Manipuri (Bengali script) (`mni`) | 45.4% | 75.7% | 55.6% | 15.8% | 62.0% | 68.6% (R17) |
+| Santali (Ol Chiki) (`sat`) | 36.1% | 94.2% | 34.9% | 1.0% | 2.6% | 97.5% (R17) |
+
+* **Works well (13 languages):** Hindi, Bengali, Marathi, Telugu, Tamil, Urdu, Gujarati, Kannada, Odia,
+  Malayalam, Punjabi, Maithili, Nepali. When both sides are confident, the region matches English
+  87–92% of the time; the canonical vector finds the English original 99%+ of the time out of 1012.
+* **Partial:** Assamese, Sindhi, Sanskrit, Kashmiri (78–83% confident agreement, 92–98% retrieval).
+* **Not supported:** Manipuri (Bengali script) and Santali (Ol Chiki). Santali is *confidently wrong*:
+  94% of its sentences get region confidence ≥ 0.7, but 97.5% land in one region (R17), and retrieval
+  is 2.6%. Do not use Sphota codes for these languages.
+* Region names are translated (machine, unreviewed) for te, kn, ml, gu, or, as, ur; Punjabi and
+  Nepali names fall back to English (D-021).
+
 ## Limitations
 
 * `small`-scale build: ~78k sentences in 12 languages fit 4096 L1 cells (~19 per cell). Regions for

@@ -15,6 +15,9 @@
 - **Atlas "Analyze a file"** (2026-11-06): drop a CSV/TSV/TXT/JSONL (≤ 3,000 rows), encoded in the
   browser, grouped by theme (first code block) or region, CSV download, bundled multilingual sample.
   Themes beat regions on single-domain data (83% vs 29% purity, D-020).
+- **Indian languages** (2026-11-06, D-021): 19 languages measured on FLORES; 13 work well
+  (87–92% confident region agreement, 99%+ retrieval), 4 partial, Manipuri/Santali fail. Region names
+  added in te, kn, ml, gu, or, as, ur (Atlas selector too); review sheet `reports/region_names_review_more.csv`.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 
