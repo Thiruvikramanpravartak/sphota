@@ -172,7 +172,7 @@ def test_region_labels_multilingual():
     assert region_label("R16", "xx") == region_label("R16")  # falls back to English
 
 
-def test_build_report_theme_names_groups_by_own_text():
+def test_build_report_theme_names_groups_by_own_text(fake_encoder):
     rep = build_report(GOLD, by="theme")
     assert all(r.prefix[0] != "R" for r in rep.roots)
     assert all(r.name in GOLD or any(g.startswith(r.name) for g in GOLD) for r in rep.roots)
