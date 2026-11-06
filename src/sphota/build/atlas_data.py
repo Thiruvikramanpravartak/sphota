@@ -4,13 +4,14 @@
 
     python -m sphota.build.atlas_data
 
-* ``map.json``: L1 cells (code, x, y, size, continent, labels, examples, neighbours),
-  populated L2 cells (code, x, y, labels), continents (name, color, centre).
+* ``map.json``: L1 cells (code, x, y, size, region, labels, examples, neighbours),
+  populated L2 cells (code, x, y, labels), the 32 product regions (id, name, color, centre).
+* ``regions.json``: region centroids + temperature, so the browser can name a sentence's region.
 * ``space.bin``: float32 mu (384), W (384x256), codebooks L1..L4 (row-major), little endian.
 * ``space.json``: shapes, offsets, temperatures, anchor info, permutation constants.
 
-The 2D layout is t-SNE on L1 centroids (cosine), continents are agglomerative (Ward)
-clusters of the centroids. L2 cells are placed around their parent along the first two
+The 2D layout is t-SNE on L1 centroids (cosine). Each L1 cell is coloured by the region
+(``sphota.regions``, R00..R31) of its centroid; a region's label sits at its densest cluster. L2 cells are placed around their parent along the first two
 principal directions of the parent's L2 offsets.
 """
 
@@ -21,7 +22,7 @@ from pathlib import Path
 
 import numpy as np
 
-from sphota.build.common import DATA_DIR, ROOT, log
+from sphota.build.common import ROOT, log
 from sphota.codes import PERM_A, PERM_B, WIDTHS, from_indices
 from sphota.release import load_release
 
@@ -50,11 +51,93 @@ PALETTE = [
     "#d6336c",
     "#c2255c",
     "#5c940d",
+    "#ff8787",
+    "#ffc078",
+    "#8ce99a",
+    "#66d9e8",
+    "#91a7ff",
+    "#e599f7",
+    "#faa2c1",
+    "#c0eb75",
 ]
 
 
-def build(out: Path, n_continents: int = 24) -> None:
-    from sklearn.cluster import AgglomerativeClustering
+def regions_layer(C1: np.ndarray, xy: np.ndarray, counts: np.ndarray) -> tuple[np.ndarray, list]:
+    """Region id per L1 cell, and one map entry per region (label at its densest cluster)."""
+    from sphota.regions import _load, region_of
+
+    _, _, names = _load()
+    reg = np.array([int(region_of(C1[i])[0][1:]) for i in range(len(C1))])
+    out = []
+    for k in range(len(names)):
+        m = np.where(reg == k)[0]
+        if not len(m):
+            continue
+        P, w = xy[m], counts[m] + 1.0
+        d2 = ((P[:, None] - P[None]) ** 2).sum(-1)
+        dens = (np.exp(-d2 / (2 * 0.06**2)) * w[None]).sum(1)
+        cx, cy = P[int(np.argmax(dens))]
+        core = d2[int(np.argmax(dens))] < 0.2**2
+        spread = (
+            float(np.sqrt(((P[core] - [cx, cy]) ** 2).sum(1).mean())) if core.sum() > 1 else 0.05
+        )
+        full = names[str(k)]
+        out.append(
+            {
+                "k": k,
+                "id": f"R{k:02d}",
+                "x": round(float(cx), 4),
+                "y": round(float(cy), 4),
+                "color": PALETTE[k % len(PALETTE)],
+                "name": full.split(" / ")[0],
+                "full": full,
+                "members": len(m),
+                "spread": round(max(spread, 0.04), 4),
+            }
+        )
+    return reg, out
+
+
+def write_regions(out: Path) -> None:
+    """Region centroids for in-browser region lookup (mirrors sphota.regions.region_of)."""
+    from sphota.regions import _load
+
+    C, T, names = _load()
+    (out / "regions.json").write_text(
+        json.dumps(
+            {
+                "temperature": T,
+                "dim": int(C.shape[1]),
+                "centroids": [round(float(v), 5) for v in C.ravel()],
+                "labels": names,
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
+
+
+def add_regions(out: Path) -> None:
+    """Re-colour an existing map.json by region without re-running t-SNE (keeps the layout)."""
+    rel = load_release()
+    d = json.loads((out / "map.json").read_text(encoding="utf-8"))
+    xy = np.array([[c["x"], c["y"]] for c in d["cells"]])
+    counts = np.array([c["n"] for c in d["cells"]], dtype=np.float64)
+    reg, regions = regions_layer(rel.codebooks[0].astype(np.float64), xy, counts)
+    for c in d["cells"]:
+        c.pop("c", None)
+        c["r"] = int(reg[c["i"]])
+    d.pop("continents", None)
+    d["regions"] = regions
+    (out / "map.json").write_text(
+        json.dumps(d, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
+    write_regions(out)
+    log(f"atlas regions: {len(regions)} regions → {out}")
+
+
+def build(out: Path) -> None:
     from sklearn.manifold import TSNE
 
     rel = load_release()
@@ -66,15 +149,10 @@ def build(out: Path, n_continents: int = 24) -> None:
     ).fit_transform(C1n)
     xy -= xy.mean(0)
     xy /= np.abs(xy).max()
-    cont = AgglomerativeClustering(n_clusters=n_continents, linkage="ward").fit_predict(C1n)
     counts = np.load(rel.root / "neighbors.npz")["l1_counts"]
+    reg, regions = regions_layer(C1, xy, counts)
     examples = json.loads((rel.root / "examples.json").read_text(encoding="utf-8"))
     labels = rel.labels
-    cache = DATA_DIR / "small" / "build"
-    cont_names = {}
-    p = cache / "continent_names.json"
-    if p.exists():
-        cont_names = {int(k): v for k, v in json.loads(p.read_text(encoding="utf-8")).items()}
     cells = []
     for i in range(rel.sizes[0]):
         lab = labels.get(str(i), {})
@@ -85,33 +163,12 @@ def build(out: Path, n_continents: int = 24) -> None:
                 "x": round(float(xy[i, 0]), 4),
                 "y": round(float(xy[i, 1]), 4),
                 "n": int(counts[i]),
-                "c": int(cont[i]),
+                "r": int(reg[i]),
                 "l": lab,
                 "ex": examples.get(str(i), [])[:2],
                 "nb": [int(j) for j in rel.l1_neighbors[i][:6]],
             }
         )
-    # continents: centre = mean position of members (weighted), name from cache or top member labels
-    conts = []
-    for k in range(n_continents):
-        m = np.where(cont == k)[0]
-        w = counts[m] + 1
-        cx, cy = (xy[m] * w[:, None]).sum(0) / w.sum()
-        top = [labels.get(str(i), {}).get("en", "") for i in m[np.argsort(-counts[m])][:12]]
-        conts.append(
-            {
-                "k": k,
-                "x": round(float(cx), 4),
-                "y": round(float(cy), 4),
-                "color": PALETTE[k % len(PALETTE)],
-                "name": cont_names.get(k, top[0] if top else f"Region {k}"),
-                "members": len(m),
-                "top": [t for t in top if t][:8],
-            }
-        )
-    (cache / "continent_members.json").write_text(
-        json.dumps({c["k"]: c["top"] for c in conts}, ensure_ascii=False), encoding="utf-8"
-    )
     # L2: place populated, labelled L2 cells around their parent
     l2 = []
     spread = 0.012
@@ -143,7 +200,7 @@ def build(out: Path, n_continents: int = 24) -> None:
     out.mkdir(parents=True, exist_ok=True)
     (out / "map.json").write_text(
         json.dumps(
-            {"space": rel.version, "cells": cells, "continents": conts, "l2": l2},
+            {"space": rel.version, "cells": cells, "regions": regions, "l2": l2},
             ensure_ascii=False,
             separators=(",", ":"),
         ),
@@ -173,8 +230,15 @@ def build(out: Path, n_continents: int = 24) -> None:
         "perm_b": list(PERM_B),
     }
     (out / "space.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
-    log(f"atlas data: {len(cells)} L1, {len(l2)} L2, {n_continents} continents → {out}")
+    write_regions(out)
+    log(f"atlas data: {len(cells)} L1, {len(l2)} L2, {len(regions)} regions → {out}")
 
 
 if __name__ == "__main__":
-    build(ROOT / "atlas" / "public" / "data")
+    import argparse
+
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--regions-only", action="store_true", help="re-colour map.json, keep layout")
+    a = ap.parse_args()
+    out = ROOT / "atlas" / "public" / "data"
+    add_regions(out) if a.regions_only else build(out)

@@ -192,3 +192,14 @@ at 32 cells: coverage 66.5% vs 55.8%, confident translation 88.7% vs 84.2%, cros
 which says nothing about "GPS for meaning". **Amendment (applies to any v2 claim):** the gate must
 be met with **≥ 256 top-level cells**, on all 12 evaluation languages, with the cell count declared
 before the run. Results at 32–64 cells support a *coarse topic* product, not a coordinate system.
+
+## D-019 Atlas shows the 32 product regions, not its own 24 clusters
+
+The Atlas used to colour the map by 24 agglomerative "continents" made only for the map, while the
+product's coarse layer is the 32 regions in `sphota.regions` (R00..R31). The Atlas now colours each
+L1 cell by the region of its centroid, opens on the 32-region overview, and names a typed
+sentence's region in the browser (`atlas/public/data/regions.json`, mirroring `region_of`). The 2D
+layout (t-SNE) is unchanged: `python -m sphota.build.atlas_data --regions-only` re-colours an
+existing `map.json`. Regions are looser on the t-SNE layout than the old clusters (63% vs 75% of
+5 nearest map neighbours share a group), so each region label sits at its densest cluster of cells,
+not its mean position.
