@@ -241,3 +241,12 @@ e5-small fails (cross-model 16.2%, collapse 34.2%). LaBSE at 256 regions passes 
 * D-020 follow-up (2026-11-06): `sphota analyze` now defaults to `--by theme` too (same grouping as
   the Atlas). `build_report(by=...)` keeps `region` as its default for API stability. With
   `--min-count > 1`, theme names fall back to the automatic labels so no raw text is shown.
+
+## D-023 Atlas dependencies upgraded; "exact codes" switch
+transformers.js 3.7.6 → 4.3.2, Vite 6.4.5 → 8.3.6, TypeScript 5.9.3 → 7.0.2 (build and type check
+clean). The browser's default model is the q8 ONNX (~120 MB). Its codes were never identical to
+the Python reference: on the 48-message sample, q8 matched Python's full code 22/48 (v3) and 25/48
+(v4), and the first block 44/48 vs 42/48. The fp32 ONNX in transformers.js 4 matches Python **48/48**
+(`atlas/tests/sample-codes.mjs`). So the upgrade is kept and the Atlas gets an "exact codes" switch
+(fp32, ~470 MB; also `?precision=fp32`); q8 stays the default for speed, and the report says which
+was used. Stored codes should come from the Python library or exact mode.

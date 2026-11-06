@@ -19,6 +19,8 @@
 - **Indian languages** (2026-11-06, D-021): 19 languages measured on FLORES; 13 work well
   (87–92% confident region agreement, 99%+ retrieval), 4 partial, Manipuri/Santali fail. Region names
   added in te, kn, ml, gu, or, as, ur (Atlas selector too); review sheet `reports/region_names_review_more.csv`.
+- **Atlas upgrade** (D-023): transformers.js 4, Vite 8, TypeScript 7; new "exact codes" switch gives
+  browser codes identical to Python (48/48); fixed a negative-radius canvas error on new markers.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 

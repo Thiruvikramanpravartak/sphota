@@ -14,10 +14,10 @@
     "deploy:hf": "npm run build && bash ../scripts/deploy_atlas_hf.sh"
   },
   "dependencies": {
-    "@huggingface/transformers": "3.7.6"
+    "@huggingface/transformers": "4.3.2"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
-    "vite": "6.4.5"
+    "typescript": "7.0.2",
+    "vite": "8.3.6"
   }
 }

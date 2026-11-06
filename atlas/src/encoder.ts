@@ -165,6 +165,16 @@ export class SphotaSpace {
 type Extractor = (text: string, opts: Record<string, unknown>) => Promise<{ data: Float32Array }>;
 let extractorPromise: Promise<Extractor> | null = null;
 
+/** "q8" (default, ~120 MB) or "fp32" (~470 MB, codes identical to the Python reference encoder). */
+export function precision(): "q8" | "fp32" {
+  try {
+    if (new URLSearchParams(location.search).get("precision") === "fp32") return "fp32";
+    return localStorage.getItem("sphota-precision") === "fp32" ? "fp32" : "q8";
+  } catch {
+    return "q8";
+  }
+}
+
 export function loadModel(model: string, onProgress?: (msg: string) => void): Promise<Extractor> {
   if (!extractorPromise) {
     extractorPromise = (async () => {
@@ -172,7 +182,7 @@ export function loadModel(model: string, onProgress?: (msg: string) => void): Pr
       env.allowLocalModels = false;
       const files = new Map<string, number>();
       const ex = await pipeline("feature-extraction", model, {
-        dtype: "q8",
+        dtype: precision(),
         progress_callback: (p: { status: string; file?: string; progress?: number }) => {
           if (p.file && typeof p.progress === "number") {
             files.set(p.file, p.progress);

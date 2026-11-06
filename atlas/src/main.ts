@@ -1,7 +1,7 @@
 // Copyright 2026 The Sphota Authors. SPDX-License-Identifier: Apache-2.0
 // Meaning Atlas: a zoomable map of the Sphota s1 space, coloured by its 32 regions.
 import "./style.css";
-import { SphotaSpace, embed, embedBatch, formatLevels, loadModel, parseCode, type Encoded } from "./encoder";
+import { SphotaSpace, embed, embedBatch, formatLevels, loadModel, parseCode, precision, type Encoded } from "./encoder";
 import { readMessages, scriptOf, summarize, toCsv, type FileRow, type GroupSummary, type GroupBy } from "./analyze";
 
 interface Cell { i: number; code: string; x: number; y: number; n: number; r: number; l: Record<string, string>; ex: string[]; nb: number[] }
@@ -425,7 +425,7 @@ function ring(x: number, y: number, color: string, r: number, w: number) {
   ctx.strokeStyle = color;
   ctx.lineWidth = w;
   ctx.beginPath();
-  ctx.arc(sx, sy, r, 0, Math.PI * 2);
+  ctx.arc(sx, sy, Math.max(0, r), 0, Math.PI * 2);
   ctx.stroke();
 }
 
@@ -452,7 +452,7 @@ function drawMarkers(t: number) {
   }
   markers.forEach((m, i) => {
     const [sx, sy] = toScreen(m.x, m.y);
-    const age = t - m.born;
+    const age = Math.max(0, t - m.born); // rAF time can be slightly older than born
     const live = !reduceMotion && age < MARKER_ANIM_MS;
     // accuracy radius: world units → pixels, never smaller than 14px
     const rad = Math.max(14, m.radius * cam.k);
@@ -782,7 +782,7 @@ async function encodeAndShow() {
         <div class="muted">At 50% confidence: <b>${truncated(m.enc)}</b> · alternates: ${m.enc.l1Candidates.slice(1, 3).map((c) => `<button class="chip" data-cell="${c.index}">${data.cells[c.index].code} ${(c.p * 100).toFixed(0)}%</button>`).join(" ")}</div>
       </div>`).join("") +
       (markers.length === 2 ? `<div class="shared ${sameRegion ? "ok" : ""}">${sameRegion ? `Both land in region <b>${data.regions[markers[0].region.k].id}</b>` : "Different regions"}${shared ? `, and share ${shared} of 4 code levels (<b>${formatLevels(encs[0].levels.slice(0, shared), space.meta)}</b>).` : sameRegion ? ", with different fine codes." : ": see the dashed route between them."}</div>` : "") +
-      `<p class="muted">Encoded entirely in your browser (multilingual-e5-small, int8). The ring is the accuracy radius: wider means less certain.</p>`;
+      `<p class="muted">Encoded entirely in your browser (multilingual-e5-small, ${precision() === "fp32" ? "full precision" : "compressed int8"}). The ring is the accuracy radius: wider means less certain.</p>`;
     bindChips();
     setHash(encs[0].code);
     status.textContent = "";
@@ -952,7 +952,7 @@ function renderReport(columns: string[] = [], column = "") {
       <button type="button" class="chip" id="dl-file">Download results (CSV)</button>
       <button type="button" class="chip" id="clear-file">Clear</button>
     </div>
-    <p class="muted">Encoded in your browser with multilingual-e5-small; nothing was uploaded. ${byCell
+    <p class="muted">Encoded in your browser with multilingual-e5-small (${precision() === "fp32" ? "full precision: codes match the Python library" : "compressed model: the first block almost always matches the Python library, finer blocks can differ; tick “exact codes” for identical codes"}); nothing was uploaded. ${byCell
       ? "A theme is the first block of the code: translations of the same complaint usually share it. Themes are named by your own messages."
       : "Regions are 32 broad, general-knowledge areas; most messages from one domain (e.g. support tickets) fall into a few of them."}</p>
   </div>`;
@@ -1053,6 +1053,16 @@ $<HTMLButtonElement>("sample-file").addEventListener("click", async () => {
   const text = await fetch(`${DATA}/sample-feedback.csv`).then((r) => r.text());
   lastFile = { name: "sample-feedback.csv", text };
   await analyzeFile("sample-feedback.csv", text);
+});
+// exact codes: the fp32 model (~470 MB) gives codes identical to the Python reference encoder;
+// the default q8 model (~120 MB) is faster, and its codes can differ in the finer blocks (D-023)
+const exact = $<HTMLInputElement>("exact");
+exact.checked = precision() === "fp32";
+exact.addEventListener("change", () => {
+  try { localStorage.setItem("sphota-precision", exact.checked ? "fp32" : "q8"); } catch { /* private mode */ }
+  const u = new URL(location.href);
+  u.searchParams.delete("precision");
+  location.href = u.toString();
 });
 let dragDepth = 0;
 window.addEventListener("dragenter", (e) => { if (e.dataTransfer?.types.includes("Files")) { dragDepth++; document.body.classList.add("dropping"); } });
