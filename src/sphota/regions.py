@@ -21,10 +21,15 @@ REGIONS_DIR = Path(__file__).parent / "data" / "regions"
 
 
 @lru_cache(maxsize=1)
+def _meta() -> dict:
+    return dict(json.loads((REGIONS_DIR / "regions.json").read_text(encoding="utf-8")))
+
+
+@lru_cache(maxsize=1)
 def _load() -> tuple[np.ndarray, float, dict[str, str]]:
     with np.load(REGIONS_DIR / "regions.npz", allow_pickle=False) as z:
         C = z["centroids"].astype(np.float64)
-    meta = json.loads((REGIONS_DIR / "regions.json").read_text(encoding="utf-8"))
+    meta = _meta()
     return C, float(meta["temperature"]), dict(meta["labels"])
 
 
@@ -39,8 +44,14 @@ def region_of(y: np.ndarray) -> tuple[str, float]:
     return f"R{int(order[0]):02d}", float(p[0])
 
 
-def region_label(region: str) -> str:
-    return _load()[2].get(str(int(region.lstrip("R"))), region)
+def region_label(region: str, lang: str = "en") -> str:
+    """Region name in ``lang`` (falls back to English)."""
+    key = str(int(region.lstrip("R")))
+    if lang != "en":
+        tr = _meta().get("labels_i18n", {}).get(lang, {}).get(key)
+        if tr:
+            return str(tr)
+    return _load()[2].get(key, region)
 
 
 def all_regions() -> dict[str, str]:

@@ -1,5 +1,22 @@
 # Progress — final summary (v1.0.0rc1, space s1)
 
+## Where we are (2026-11-06, all sessions merged into `main`)
+- **Core build session** (this file's author): v1 s1 space, SDK/CLI, adapters, benchmark, D-017 gate
+  experiments, v1.1 regions layer, repositioning. **Paper session** (PR #2, merged): paper rewritten
+  as a negative-and-positive result; launch drafts on hold. **Atlas session** (PR #3, merged): region
+  layer, guided demo, mobile layout. **Local session** (`ccfbbdd`, D-019): Atlas coloured by the 32
+  product regions, much faster rendering.
+- **Region names** (2026-11-06): the 32 regions are now named by Qwen2.5-1.5B from their top member
+  topics and translated into 10 languages (`c.region_label_in(lang)`), filtered by the label gate;
+  R24 renamed by hand ("Law, Culture and Travel"). Assignment is unchanged.
+- **CI red cross:** jobs on GitHub stop after 2–3 s with no logs (they never start), since ~06:45 UTC
+  on 2026-11-05. Lint, tests, mypy and the Atlas build pass locally on every commit. Most likely the
+  private repo's Actions minutes / spending limit (the earlier macOS matrix counts 10×). Check
+  GitHub → Settings → Billing → Actions.
+- **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
+  32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
+
+
 ## What was built
 - **Standard:** RFC-style spec (`docs/spec/`, parts 1–3, 6–10), frozen space `s1`
   (`src/sphota/data/v1`, SHA-256 manifest), golden tests pinning every code, conformance

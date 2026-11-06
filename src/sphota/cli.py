@@ -84,7 +84,7 @@ else:
                 continue
             con.print(f"[bold cyan]{c}[/]  {c.label_in(lang)}")
             con.print(
-                f"   region [bold]{c.region}[/] {c.region_label}  (conf {c.region_confidence:.2f})"
+                f"   region [bold]{c.region}[/] {c.region_label_in(lang)}  (conf {c.region_confidence:.2f})"
             )
             con.print(f"   {_conf_bar(c.confidence, c.depth)}")
             if alternates:

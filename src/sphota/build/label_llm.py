@@ -144,6 +144,66 @@ def name_continents(cache: Path) -> dict:
     return out
 
 
+def name_regions(langs: list[str]) -> dict:
+    """Name the 32 product regions (sphota.regions) from their most common L1 topics, then
+    translate the names. Region assignment is unchanged; only regions.json labels are rewritten."""
+    import numpy as np
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    from sphota.regions import REGIONS_DIR, _load, _meta, region_of
+    from sphota.release import load_release
+
+    rel = load_release()
+    counts = np.load(rel.root / "neighbors.npz")["l1_counts"]
+    members: dict[int, list[tuple[int, int]]] = {}
+    for i, c in enumerate(rel.codebooks[0]):
+        r = int(region_of(c)[0][1:])
+        members.setdefault(r, []).append((int(counts[i]), i))
+    tok = AutoTokenizer.from_pretrained(LLM, cache_dir=str(HF_CACHE))
+    model = AutoModelForCausalLM.from_pretrained(
+        LLM, cache_dir=str(HF_CACHE), torch_dtype=torch.bfloat16
+    )
+    names: dict[str, str] = {}
+    for r in sorted(members):
+        top = [rel.labels.get(str(i), {}).get("en") for _, i in sorted(members[r], reverse=True)]
+        top = [t for t in top if t and not t.startswith("~")][:12]
+        msg = (
+            "These are names of related topics:\n"
+            + "\n".join("- " + t for t in top)
+            + "\n\nGive one short umbrella topic name (1-3 words, Title Case) that covers most of them, "
+            "like 'Football', 'Biology' or 'European History'. Reply with the name only."
+        )
+        enc = tok(
+            [
+                tok.apply_chat_template(
+                    [{"role": "user", "content": msg}], tokenize=False, add_generation_prompt=True
+                )
+            ],
+            return_tensors="pt",
+        )
+        with torch.no_grad():
+            o = model.generate(**enc, max_new_tokens=8, do_sample=False)
+        names[str(r)] = _clean(tok.decode(o[0, enc.input_ids.shape[1] :], skip_special_tokens=True))
+        log(f"region R{r:02d}: {names[str(r)]}  <- {top[:3]}")
+    i18n = translate(names, DATA_DIR / "small" / "build" / "region_translations.json", langs)
+    from sphota.build.label_filter import check
+
+    labels_i18n = {
+        lg: {k: v for k, v in tr.items() if check(lg, v, names[k]) is None}
+        for lg, tr in i18n.items()
+    }
+    meta_path = REGIONS_DIR / "regions.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["labels"] = names
+    meta["labels_i18n"] = labels_i18n
+    meta["labels_source"] = f"{LLM} from top-12 member L1 names; OPUS-MT translations; label_filter"
+    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
+    _load.cache_clear()
+    _meta.cache_clear()
+    return names
+
+
 def translate(names: dict, cache: Path, langs: list[str], batch: int = 64) -> dict:
     from transformers import MarianMTModel, MarianTokenizer
 
@@ -214,7 +274,9 @@ def main() -> None:
         default=["hi", "ta", "bn", "es", "fr", "de", "pt", "zh", "ar", "ru"],
     )
     ap.add_argument(
-        "--step", choices=["all", "name", "translate", "merge", "continents"], default="all"
+        "--step",
+        choices=["all", "name", "translate", "merge", "continents", "regions"],
+        default="all",
     )
     a = ap.parse_args()
     cache = DATA_DIR / a.scale / "build"
@@ -223,6 +285,9 @@ def main() -> None:
         n1 = name_cells(l1, cache / "names_l1.json")
         l2 = json.loads((cache / "cells_l2.json").read_text(encoding="utf-8"))
         name_cells(l2, cache / "names_l2.json", parent=n1, llm=LLM_SMALL)
+    if a.step == "regions":
+        name_regions(a.langs)
+        return
     if a.step == "continents":
         name_continents(cache)
         return

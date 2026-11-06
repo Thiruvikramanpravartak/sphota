@@ -161,3 +161,12 @@ def test_regions(fake_encoder):
     rep = build_report(GOLD)
     assert all(r.prefix.startswith("R") for r in rep.roots)
     assert all(r.prefix[0] != "R" for r in build_report(GOLD, by="l1").roots)
+
+
+def test_region_labels_multilingual():
+    from sphota.regions import all_regions, region_label
+
+    names = all_regions()
+    assert len(names) == 32 and all(" / " not in n for n in names.values())
+    assert region_label("R16", "es") != region_label("R16")  # translated
+    assert region_label("R16", "xx") == region_label("R16")  # falls back to English

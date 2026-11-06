@@ -141,6 +141,11 @@ class Sphota(str):
 
         return region_label(self.region)
 
+    def region_label_in(self, lang: str) -> str:
+        from sphota.regions import region_label
+
+        return region_label(self.region, lang)
+
     # ---- labels
     @property
     def label(self) -> str:
