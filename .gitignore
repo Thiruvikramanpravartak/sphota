@@ -19,3 +19,4 @@ htmlcov/
 
 examples/*.html
 experiments/v2-tiny-*/
+bench/results/v2-gate-tiny-*.json

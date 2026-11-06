@@ -13,6 +13,9 @@
   on 2026-11-05. Lint, tests, mypy and the Atlas build pass locally on every commit. Most likely the
   private repo's Actions minutes / spending limit (the earlier macOS matrix counts 10×). Check
   GitHub → Settings → Billing → Actions.
+- **GPU run, free route:** `notebooks/kaggle_gpu_gate.ipynb` (medium scale, ~2–4 h on Kaggle's free GPU).
+  The pipeline now uses CUDA + fp16 when a GPU is present; the report refuses to call a < 256-region
+  run a gate result (D-018).
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 

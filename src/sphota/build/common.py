@@ -54,6 +54,15 @@ SCALES: dict[str, dict] = {
         "tatoeba_per_lang": 1000,
         "k": (4096, 256, 256, 256),
     },
+    # medium: one free Kaggle GPU session (~2-4 h on a T4 / P100), 12 languages, ~450k sentences
+    "medium": {
+        "n_langs": 12,
+        "wiki_en": 120_000,
+        "wiki_per_lang": 30_000,
+        "tatoeba_per_lang": 1000,
+        "k": (4096, 256, 256, 256),
+        "max_per_lang": 30_000,
+    },
     # full: GPU scale-up recipe (millions of sentences)
     "full": {
         "n_langs": 20,
@@ -61,6 +70,7 @@ SCALES: dict[str, dict] = {
         "wiki_per_lang": 200_000,
         "tatoeba_per_lang": 5000,
         "k": (4096, 256, 256, 256),
+        "max_per_lang": 100_000,
     },
 }
 

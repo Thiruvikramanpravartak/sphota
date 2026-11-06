@@ -43,12 +43,22 @@ def load(model: str):
         from sentence_transformers import SentenceTransformer
 
         torch.set_num_threads(int(os.environ.get("SPHOTA_THREADS", "4")))
-        _MODELS[model] = SentenceTransformer(model, cache_folder=str(HF_CACHE), device="cpu")
+        if torch.cuda.is_available():  # GPU runs (Kaggle / rented): fp16 for speed
+            _MODELS[model] = SentenceTransformer(
+                model,
+                cache_folder=str(HF_CACHE),
+                device="cuda",
+                model_kwargs={"torch_dtype": torch.float16},
+            )
+        else:
+            _MODELS[model] = SentenceTransformer(model, cache_folder=str(HF_CACHE), device="cpu")
     return _MODELS[model]
 
 
-def encode(model: str, texts: list[str], batch_size: int = 64) -> np.ndarray:
+def encode(model: str, texts: list[str], batch_size: int | None = None) -> np.ndarray:
     m = load(model)
+    if batch_size is None:
+        batch_size = 256 if str(getattr(m, "device", "cpu")).startswith("cuda") else 64
     pre = PREFIX.get(model, "")
     # sort by length for fast padding, then restore order
     order = np.argsort([len(t) for t in texts])

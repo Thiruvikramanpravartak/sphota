@@ -1,5 +1,11 @@
 # Space v2 on a GPU (decision run)
 
+**Free route (recommended first): Kaggle.** Upload `notebooks/kaggle_gpu_gate.ipynb` to Kaggle
+(*Create → New notebook → File → Import notebook*), turn on a GPU accelerator and Internet, add a
+`GITHUB_TOKEN` secret while the repo is private, and *Run all*. It runs the `medium` scale
+(12 languages, ~450k sentences) in about 2–4 hours and prints the D-017/D-018 PASS/FAIL table.
+Cost ₹0.
+
 One script builds a v2 candidate space and answers the D-017 question (PASS/FAIL per criterion):
 
 ```bash

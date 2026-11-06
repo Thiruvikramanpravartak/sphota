@@ -323,7 +323,9 @@ def v2mini(
 
     langs, dev, test, wiki, tat = load(scale)
     E = embeddings(scale, model=anchor)
-    keep = diversify(wiki, E["wiki"])
+    from sphota.build.common import SCALES
+
+    keep = diversify(wiki, E["wiki"], max_per_lang=SCALES[scale].get("max_per_lang", 8000))
     fit_ids = np.arange(SPLIT_MEANING)
     cal_ids = np.arange(SPLIT_MEANING, len(dev))
     tr, ca = tatoeba_split(len(tat))
@@ -431,9 +433,14 @@ def print_report(res: dict) -> None:
         val = "n/a" if v["value"] is None else f"{100 * v['value']:.1f}%"
         print(f"  {names[k]:<34} {val:>7}  {'PASS' if v['pass'] else 'FAIL'}")
     allp = all(v["pass"] for v in r["verdict"].values())
-    print(
-        f"  OVERALL: {'PASS - launch as GPS for meaning' if allp else 'FAIL - pivot positioning (D-017)'}"
-    )
+    if r["K1"] < 256:
+        print(
+            f"  OVERALL: NOT A VALID GATE RESULT - only {r['K1']} regions (D-018 requires >= 256)"
+        )
+    else:
+        print(
+            f"  OVERALL: {'PASS - fine codes hold across languages and models' if allp else 'FAIL - keep the regions + migration positioning (D-017)'}"
+        )
 
 
 def main() -> None:
