@@ -235,6 +235,77 @@ def translate_regions(langs: list[str]) -> dict:
     return meta["labels_i18n"]
 
 
+# back-translation models (to English) for the region-name check (D-025)
+BACK = {
+    "hi": "Helsinki-NLP/opus-mt-hi-en",
+    "bn": "Helsinki-NLP/opus-mt-bn-en",
+    "ta": "Helsinki-NLP/opus-mt-dra-en",
+    "te": "Helsinki-NLP/opus-mt-dra-en",
+    "kn": "Helsinki-NLP/opus-mt-dra-en",
+    "ml": "Helsinki-NLP/opus-mt-dra-en",
+    "mr": "Helsinki-NLP/opus-mt-inc-en",
+    "gu": "Helsinki-NLP/opus-mt-inc-en",
+    "or": "Helsinki-NLP/opus-mt-inc-en",
+    "as": "Helsinki-NLP/opus-mt-inc-en",
+    "ur": "Helsinki-NLP/opus-mt-ur-en",
+    "es": "Helsinki-NLP/opus-mt-es-en",
+    "fr": "Helsinki-NLP/opus-mt-fr-en",
+    "de": "Helsinki-NLP/opus-mt-de-en",
+    "pt": "Helsinki-NLP/opus-mt-ROMANCE-en",
+    "zh": "Helsinki-NLP/opus-mt-zh-en",
+    "ar": "Helsinki-NLP/opus-mt-ar-en",
+    "ru": "Helsinki-NLP/opus-mt-ru-en",
+}
+
+
+def check_regions(max_rank: int = 2) -> dict:
+    """Drop translated region names that do not point back to their own region (D-025).
+
+    A name passes if, among the 32 English region names, its own English name is within the top
+    ``max_rank`` by anchor-model similarity, either for the translated name itself or for its
+    back-translation into English. Dropped names fall back to English. Returns the dropped names.
+    """
+    from transformers import MarianMTModel, MarianTokenizer
+
+    from sphota.encoders import default_encoder
+    from sphota.regions import REGIONS_DIR, _load, _meta
+
+    meta_path = REGIONS_DIR / "regions.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    keys = list(meta["labels"])
+    enc = default_encoder()
+    E = enc.encode([meta["labels"][k] for k in keys])
+    dropped: dict = {}
+    loaded: dict = {}
+    for lg, names in meta.get("labels_i18n", {}).items():
+        if lg not in BACK or not names:
+            continue
+        if BACK[lg] not in loaded:
+            loaded[BACK[lg]] = (
+                MarianTokenizer.from_pretrained(BACK[lg], cache_dir=str(HF_CACHE)),
+                MarianMTModel.from_pretrained(BACK[lg], cache_dir=str(HF_CACHE)),
+            )
+        tok, model = loaded[BACK[lg]]
+        ks = [k for k in names if k in keys]
+        texts = [names[k] for k in ks]
+        b = tok(texts, return_tensors="pt", padding=True, truncation=True)
+        back = tok.batch_decode(
+            model.generate(**b, max_new_tokens=32, num_beams=2), skip_special_tokens=True
+        )
+        V, B = enc.encode(texts), enc.encode(back)
+        for k, v, bv, bt in zip(ks, V, B, back):
+            i = keys.index(k)
+            rank = min(int((E @ v > E[i] @ v).sum()), int((E @ bv > E[i] @ bv).sum())) + 1
+            if rank > max_rank:
+                dropped.setdefault(lg, {})[k] = {"name": names.pop(k), "back": bt, "rank": rank}
+        log(f"{lg}: kept {len(names)}, dropped {len(dropped.get(lg, {}))}")
+    meta["labels_check"] = f"back-translation rank check, top-{max_rank} of {len(keys)} (D-025)"
+    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
+    _load.cache_clear()
+    _meta.cache_clear()
+    return dropped
+
+
 def translate(names: dict, cache: Path, langs: list[str], batch: int = 64) -> dict:
     from transformers import MarianMTModel, MarianTokenizer
 
@@ -306,7 +377,16 @@ def main() -> None:
     )
     ap.add_argument(
         "--step",
-        choices=["all", "name", "translate", "merge", "continents", "regions", "region-translate"],
+        choices=[
+            "all",
+            "name",
+            "translate",
+            "merge",
+            "continents",
+            "regions",
+            "region-translate",
+            "region-check",
+        ],
         default="all",
     )
     a = ap.parse_args()
@@ -318,6 +398,12 @@ def main() -> None:
         name_cells(l2, cache / "names_l2.json", parent=n1, llm=LLM_SMALL)
     if a.step == "regions":
         name_regions(a.langs)
+        return
+    if a.step == "region-check":
+        dropped = check_regions()
+        out = DATA_DIR / a.scale / "build" / "region_check_dropped.json"
+        out.write_text(json.dumps(dropped, ensure_ascii=False, indent=1), encoding="utf-8")
+        log(f"dropped names → {out}")
         return
     if a.step == "region-translate":
         translate_regions(a.langs)

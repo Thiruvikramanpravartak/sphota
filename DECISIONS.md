@@ -261,3 +261,14 @@ confidence alone does not fix it. Decision: `sphota encode` no longer prints cel
 `label_confident` field in `to_dict()`; the Atlas sentence panel shows the label only at ≥ 0.7,
 marked "nearest general topic". `c.label` itself is unchanged (API stability). For people-facing
 names, use themes named by the user's own texts (D-020) or regions.
+
+## D-025 Automatic back-translation check for region names
+Machine-translated region names included nonsense that the script/length filter cannot see
+(Telugu "Filmography" → "హైటెక్‌గ్రౌంటీ", back-translated "[Picture on page 17]"; Bengali
+"Automotive Innovations" → "Unique Violence"; Arabic "Filmography" → "أولاً-", "Firstly-").
+Raw anchor-model similarity does not separate good from bad names (all 0.7–0.95), so the check is
+a ranking test: among the 32 English region names, the translated name or its OPUS-MT
+back-translation must point to its own region within the top 2 (`python -m
+sphota.build.label_llm --step region-check`). 30 of ~550 names failed (11 languages; most in Urdu
+6, Odia 4, Hindi 3) and were removed, so those regions show in English. The review sheets mark
+them for native speakers. Region assignment and English names are unchanged.
