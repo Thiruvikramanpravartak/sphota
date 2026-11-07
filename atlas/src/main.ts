@@ -777,7 +777,9 @@ async function encodeAndShow() {
         <div class="code">${m.enc.code}</div>
         <div class="q">“${esc(m.enc.text)}”</div>
         <div class="crumbs">${regionTag(m.region.k)} <span class="muted">(${(m.region.p * 100).toFixed(0)}%)</span></div>
-        <div class="crumbs">${esc(stripTilde(label(data.cells[m.enc.levels[0]].l)))}${l2Label(m.enc)}</div>
+        <div class="crumbs">${m.enc.conf[0] >= 0.7
+          ? `${esc(stripTilde(label(data.cells[m.enc.levels[0]].l)))}${l2Label(m.enc)} <span class="muted">(nearest general topic)</span>`
+          : `<span class="muted">No topic label: first-level confidence ${m.enc.conf[0].toFixed(2)} is below 0.7, so the cell's general topic would likely mislead.</span>`}</div>
         ${confBars(m.enc)}
         <div class="muted">At 50% confidence: <b>${truncated(m.enc)}</b> · alternates: ${m.enc.l1Candidates.slice(1, 3).map((c) => `<button class="chip" data-cell="${c.index}">${data.cells[c.index].code} ${(c.p * 100).toFixed(0)}%</button>`).join(" ")}</div>
       </div>`).join("") +

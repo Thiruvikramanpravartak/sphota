@@ -52,3 +52,10 @@ def test_fingerprint_compare_diff_cli(fake_encoder, tmp_path):
     assert run("fingerprint", str(a), "--json").exit_code == 0
     assert run("compare", str(a), str(b)).exit_code == 0
     assert run("diff", str(a), str(b)).exit_code == 0
+
+
+def test_encode_hides_cell_labels_by_default(fake_encoder):
+    out = run("encode", "The CEO resigned").output
+    assert "region" in out and "topic" not in out
+    out = run("encode", "--labels", "The CEO resigned").output
+    assert "topic" in out

@@ -61,6 +61,9 @@ def label(code: Code | str, lang: str = DEFAULT_LANG) -> str:
 # ------------------------------------------------------------------ result object
 
 
+LABEL_MIN_CONFIDENCE = 0.7  # below this, cell labels are not shown by the CLI / Atlas
+
+
 class Sphota(str):
     """A Sphota code. It *is* a string (``'7F3A-C2-91-0B'``) with extra, lazy attributes.
 
@@ -155,6 +158,16 @@ class Sphota(str):
     def label_in(self, lang: str) -> str:
         return label(self.code, lang)
 
+    def confident_label(
+        self, lang: str = "en", min_confidence: float = LABEL_MIN_CONFIDENCE
+    ) -> str | None:
+        """The cell's topic label, or ``None`` when the first-level confidence is below
+        ``min_confidence``. Labels describe the cell's general (Wikipedia) topics, so a label on a
+        low-confidence code is usually misleading; show it only when this returns a value."""
+        if not self.confidence or self.confidence[0] < min_confidence:
+            return None
+        return label(self.code.prefix(1), lang) or None
+
     # ---- geometry
     @property
     def vector(self) -> np.ndarray:
@@ -222,6 +235,7 @@ class Sphota(str):
         return {
             "code": str(self),
             "label": self.label,
+            "label_confident": bool(self.confidence) and self.confidence[0] >= LABEL_MIN_CONFIDENCE,
             "confidence": [round(x, 4) for x in self.confidence],
             "region": self.region,
             "region_label": self.region_label,

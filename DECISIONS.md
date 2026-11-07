@@ -250,3 +250,14 @@ the Python reference: on the 48-message sample, q8 matched Python's full code 22
 (`atlas/tests/sample-codes.mjs`). So the upgrade is kept and the Atlas gets an "exact codes" switch
 (fp32, ~470 MB; also `?precision=fp32`); q8 stays the default for speed, and the report says which
 was used. Stored codes should come from the Python library or exact mode.
+
+## D-024 Cell topic labels are hidden by default for single texts
+On everyday text the L1 cell labels (named from Wikipedia topics) mislead: "मेरा ऑर्डर अभी तक नहीं
+आया" → "Kali Yuga Tenets and Authors"; "Lionel Messi scored twice in the final" → "Golf
+Championships" (L1 confidence 0.79). Hiding labels below L1 confidence 0.7 shows them on only 7 of
+the 48 sample messages, and those 7 are still wrong ("payment failed" → "Lottery vs Gambling"), so
+confidence alone does not fix it. Decision: `sphota encode` no longer prints cell labels unless
+`--labels` is passed (and then only at L1 confidence ≥ 0.7); new `Sphota.confident_label()` and a
+`label_confident` field in `to_dict()`; the Atlas sentence panel shows the label only at ≥ 0.7,
+marked "nearest general topic". `c.label` itself is unchanged (API stability). For people-facing
+names, use themes named by the user's own texts (D-020) or regions.

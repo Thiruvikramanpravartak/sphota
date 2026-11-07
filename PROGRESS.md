@@ -21,6 +21,9 @@
   added in te, kn, ml, gu, or, as, ur (Atlas selector too); review sheet `reports/region_names_review_more.csv`.
 - **Atlas upgrade** (D-023): transformers.js 4, Vite 8, TypeScript 7; new "exact codes" switch gives
   browser codes identical to Python (48/48); fixed a negative-radius canvas error on new markers.
+- **Early-user readiness** (2026-11-07): fresh install from GitHub verified (~25 s + one-time model
+  download). Cell labels hidden by default for single texts (D-024); README install points at GitHub
+  until the PyPI release, with the download size and "analyze a file" as the first thing to try.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 

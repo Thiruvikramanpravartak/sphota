@@ -42,8 +42,22 @@ adapters that bring other models into it.
 ## Quick start (60 seconds, CPU, no config)
 
 ```bash
-pip install "sphota[encode,cli]"
+pip install "sphota[encode,cli] @ git+https://github.com/Thiruvikramanpravartak/sphota.git"
 ```
+
+(Until the first PyPI release; afterwards `pip install "sphota[encode,cli]"`.) The first encode
+downloads the model once (~470 MB; `SPHOTA_ENCODER=int8` for ~120 MB), then everything runs
+offline on CPU.
+
+**Best first thing to try:** group a file of messages (support tickets, reviews, survey answers)
+by theme, in any mix of languages:
+
+```bash
+sphota analyze messages.csv -o report.html     # needs a text/message column; opens in any browser
+```
+
+Each theme is named after one of your own messages, and the same complaint in different languages
+usually lands in the same theme. No upload, no API key.
 
 ```python
 >>> from sphota import encode
@@ -58,8 +72,9 @@ Sphota('JYZA-7M-X0-A8')
 Sphota('JYZA-7M')                      # keep only what we're sure about
 ```
 
-The encoder (multilingual-e5-small, ONNX) downloads once and is cached; then everything runs
-offline. Codes are plain strings: put them in SQL, URLs, logs, spreadsheets.
+Codes are plain strings: put them in SQL, URLs, logs, spreadsheets. `c.label` is the general
+(Wikipedia-derived) topic of the code's cell; on everyday text it is often off, so check
+`c.confident_label()` (None when unsure) and prefer regions or your own examples for display.
 
 ```bash
 sphota encode "सीईओ ने इस्तीफा दे दिया" --alternates     # any language

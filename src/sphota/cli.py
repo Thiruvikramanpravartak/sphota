@@ -58,6 +58,12 @@ else:
         as_json: bool = typer.Option(False, "--json", help="JSON lines output."),
         alternates: bool = typer.Option(False, "--alternates", "-a", help="Show alternates."),
         top_k: int = typer.Option(0, "--top-k", help="Show the k most probable full codes."),
+        labels: bool = typer.Option(
+            False,
+            "--labels",
+            help="Also show the cell's general topic name (when confident). Off by default: names "
+            "come from Wikipedia topics and often do not describe everyday text.",
+        ),
     ) -> None:
         """Encode text into Sphota codes.  [dim]sphota encode "The CEO resigned"[/]"""
         from sphota.api import encode_batch
@@ -82,10 +88,17 @@ else:
                     ]
                 print(json.dumps(d, ensure_ascii=False))
                 continue
-            con.print(f"[bold cyan]{c}[/]  {c.label_in(lang)}")
+            con.print(f"[bold cyan]{c}[/]")
             con.print(
                 f"   region [bold]{c.region}[/] {c.region_label_in(lang)}  (conf {c.region_confidence:.2f})"
             )
+            if labels:
+                topic = c.confident_label(lang)
+                con.print(
+                    f"   topic  {topic}  [dim](general topic of this cell, from Wikipedia)[/]"
+                    if topic
+                    else f"   topic  [dim]none: first-level confidence {c.confidence[0]:.2f} < 0.7[/]"
+                )
             con.print(f"   {_conf_bar(c.confidence, c.depth)}")
             if alternates:
                 for a, p in c.alternates:

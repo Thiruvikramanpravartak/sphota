@@ -13,7 +13,7 @@ when you switch embedding models. Finer levels are precision within a model.
 
 ![Meaning Atlas](assets/atlas.png)
 
-* **[Quick start](quickstart.md)**: `pip install sphota`, one line of Python, 60 seconds.
+* **[Quick start](quickstart.md)**: install, one line of Python, 60 seconds.
 * **[Concepts](concepts.md)**: levels, confidence (GPS accuracy), alternates, labels.
 * **[Use cases](usecases.md)**: never re-index, topic analytics, cross-lingual search, caching, routing.
 * **[Benchmarks](benchmark.md)**: every number, measured on held-out data, with limitations.

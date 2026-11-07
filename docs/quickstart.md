@@ -1,8 +1,10 @@
 # Quick start (60 seconds)
 
 ```bash
-pip install "sphota[encode,cli]"
+pip install "sphota[encode,cli] @ git+https://github.com/Thiruvikramanpravartak/sphota.git"
 ```
+
+(Until the first PyPI release; afterwards `pip install "sphota[encode,cli]"`.)
 
 ```python
 >>> from sphota import encode
