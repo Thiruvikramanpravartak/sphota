@@ -181,3 +181,10 @@ def test_build_report_theme_names_groups_by_own_text(fake_encoder):
     assert all(r.name is None for r in hidden.roots)  # no raw text when suppressing
     with pytest.raises(ValueError):
         build_report(GOLD, by="nope")
+
+
+def test_report_escapes_hostile_text(fake_encoder):
+    evil = "<script>alert(1)</script><img src=x onerror=alert(2)>"
+    html = render_html(build_report([evil, *GOLD], by="theme"))
+    assert "<script>alert" not in html and "<img src=x" not in html
+    assert "&lt;script&gt;" in html

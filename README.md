@@ -12,6 +12,7 @@ that stays the same across languages and embedding models most of the time.
 ![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue)
 ![Space](https://img.shields.io/badge/space-s1%20(frozen)-brightgreen)
 ![CPU](https://img.shields.io/badge/runs%20on-CPU%20%7C%20browser-orange)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Thiruvikramanpravartak/sphota/badge)](https://scorecard.dev/viewer/?uri=github.com/Thiruvikramanpravartak/sphota)
 
 <img src="docs/assets/atlas.png" alt="The Meaning Atlas: a dark map of glowing topic regions with a sentence located on it" width="860">
 
@@ -191,6 +192,12 @@ Design decisions and the experiments behind them (including negative results) ar
 
 ## Roadmap
 
+**North star: a GPS for meaning.** One frozen, open address for any text, in any language, from
+any embedding model, at fine resolution. Today that holds only at the coarse levels (regions,
+themes); the GPU gate (D-022) showed the bottleneck is agreement *between models*, not languages
+or data size. Research on that bottleneck continues in the open (`bench/results/adapter-study-*.json`,
+D-028), and a future space `s2` will be proposed only if it passes the pre-registered bar.
+
 **Research: universal fine-grained coordinates.** Decision gate D-017 (+ D-018: ≥ 256 regions):
 coverage ≥ 60%, confident translation agreement ≥ 80%, cross-model ≥ 60%, no language collapse.
 Result (GPU, medium scale, D-022): **FAIL**. Best: bge-m3 at 256 regions, 67.2% / 88.0% / 50.2% / 0.1%;
@@ -202,6 +209,13 @@ cross-model agreement is the obstacle. Rerun: `scripts/gpu_build_v2.sh`, `docs/g
 2. More certified adapters; real-world (non-FLORES) evaluation sets.
 3. Better label quality (human review drive for Hindi, Tamil and other languages).
 4. Native SQL similarity (pgvector bridge) and more vector-DB integrations.
+
+## Security
+
+Models are pinned to exact commits and hash-checked before loading; releases are built in an
+isolated job, checked file-by-file against the git source and published with provenance
+attestations (no stored tokens); the Atlas loads no third-party code. Details and how to verify a
+release: [SECURITY.md](SECURITY.md). Report vulnerabilities privately via the Security tab.
 
 ## Citing
 
