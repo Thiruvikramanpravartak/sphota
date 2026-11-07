@@ -54,6 +54,9 @@ else:
         model: str | None = typer.Option(
             None, "--model", "-m", help="Encode via another model's adapter."
         ),
+        adapters: str | None = typer.Option(
+            None, "--adapters", help="Adapter set for --model: v1 (default) or v1.1 (nonlinear)."
+        ),
         lang: str = typer.Option("en", "--lang", help="Label language."),
         as_json: bool = typer.Option(False, "--json", help="JSON lines output."),
         alternates: bool = typer.Option(False, "--alternates", "-a", help="Show alternates."),
@@ -76,6 +79,7 @@ else:
                 max_level=max_level,
                 stable=stable,
                 model=model,
+                adapters=adapters,
             )
         except Exception as e:
             _fail(e)

@@ -9,12 +9,22 @@ Adapter file format (spec: docs/spec/07-adapters-registry.md): a ``.npz`` with
 * ``meta`` 0-d unicode array holding a JSON object (model id, prefix, space version, ...).
 
 Optional (``kind == "mlp"``): ``A2`` (D, D), ``b2`` (D,) for one residual layer
-``y = h + relu(h) @ A2 + b2`` where ``h = x @ A + b``. Loaded with ``allow_pickle=False``.
+``y = h + relu(h) @ A2 + b2`` where ``h = x @ A + b``.
+
+Optional (``kind == "mlp2"``, adapter set v1.1, D-028): ``W1`` (d_model, H), ``c1`` (H,),
+``W2`` (H, D), ``c2`` (D,) for a residual network on the input:
+``y = x @ A + b + gelu(x @ W1 + c1) @ W2 + c2`` (tanh-approximated GELU, numpy only).
+Arrays may be stored as float16; they are used as float32. Loaded with ``allow_pickle=False``.
+
+Adapter sets: ``v1`` (default, the frozen registry inside the release) and ``v1.1`` (nonlinear,
+opt-in: ``adapters="v1.1"`` or ``SPHOTA_ADAPTERS=v1.1``), which roughly doubles same-cell agreement
+with the anchor (D-028).
 """
 
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -37,6 +47,10 @@ class Adapter:
     meta: dict[str, Any] = field(default_factory=dict)
     A2: np.ndarray | None = None
     b2: np.ndarray | None = None
+    W1: np.ndarray | None = None
+    c1: np.ndarray | None = None
+    W2: np.ndarray | None = None
+    c2: np.ndarray | None = None
 
     @property
     def prefix(self) -> str:
@@ -57,6 +71,10 @@ class Adapter:
         H = X @ self.A + self.b
         if self.A2 is not None and self.b2 is not None:
             H = H + np.maximum(H, 0) @ self.A2 + self.b2
+        if self.W1 is not None and self.c1 is not None and self.W2 is not None:
+            Z = X @ self.W1 + self.c1
+            Z = 0.5 * Z * (1.0 + np.tanh(0.7978845608028654 * (Z + 0.044715 * Z**3)))
+            H = H + Z @ self.W2 + (self.c2 if self.c2 is not None else 0.0)
         return H.astype(np.float32)
 
     def save(self, path: str | Path) -> Path:
@@ -70,6 +88,10 @@ class Adapter:
         if self.A2 is not None and self.b2 is not None:
             arrays["A2"] = self.A2.astype(np.float32)
             arrays["b2"] = self.b2.astype(np.float32)
+        for k in ("W1", "c1", "W2", "c2"):
+            v = getattr(self, k)
+            if v is not None:
+                arrays[k] = v  # stored as given (the v1.1 set uses float16)
         with open(path, "wb") as f:
             savez: Any = np.savez  # numpy's stubs reject **kwargs of arrays
             savez(f, **arrays)
@@ -84,14 +106,41 @@ def load_adapter(path: str | Path, sha256: str | None = None) -> Adapter:
         raise AdapterError(f"checksum mismatch for adapter {path}; refusing to load it")
     z = load_npz(path)
     meta = json.loads(str(z["meta"]))
+    f32 = {k: z[k].astype(np.float32) for k in ("W1", "c1", "W2", "c2") if k in z}
     return Adapter(
-        model=meta.pop("model"), A=z["A"], b=z["b"], meta=meta, A2=z.get("A2"), b2=z.get("b2")
+        model=meta.pop("model"),
+        A=z["A"].astype(np.float32),
+        b=z["b"].astype(np.float32),
+        meta=meta,
+        A2=z.get("A2"),
+        b2=z.get("b2"),
+        **f32,
     )
 
 
-def registry(release_root: Path | None = None) -> dict[str, Any]:
-    rel = load_release(str(release_root) if release_root else None)
-    p = rel.root / "adapters" / "registry.json"
+ADAPTER_SETS = ("v1", "v1.1")
+
+
+def _set_name(adapters: str | None) -> str:
+    name = adapters or os.environ.get("SPHOTA_ADAPTERS") or "v1"
+    if name not in ADAPTER_SETS:
+        raise AdapterError(f"unknown adapter set {name!r}; use one of {', '.join(ADAPTER_SETS)}")
+    return name
+
+
+def _set_dir(name: str) -> Path:
+    if name == "v1":
+        return load_release().root / "adapters"
+    return Path(__file__).parent / "data" / "adapters" / name
+
+
+def registry(release_root: Path | None = None, adapters: str | None = None) -> dict[str, Any]:
+    """Adapter registry of a set (``v1``: frozen, inside the release; ``v1.1``: nonlinear)."""
+    name = _set_name(adapters)
+    if release_root is not None and name == "v1":
+        p = load_release(str(release_root)).root / "adapters" / "registry.json"
+    else:
+        p = _set_dir(name) / "registry.json"
     if not p.exists():
         return {"adapters": {}}
     return dict(json.loads(p.read_text(encoding="utf-8")))
@@ -112,12 +161,20 @@ def registry_entry(model: str) -> dict[str, Any] | None:
     return None
 
 
+def get_adapter(model: str, adapters: str | None = None) -> Adapter:
+    """Registry adapter for ``model`` (HF id, short name, or path to an ``.npz``).
+
+    ``adapters`` picks the set: ``"v1"`` (default, frozen linear) or ``"v1.1"`` (nonlinear,
+    higher agreement with the anchor); ``SPHOTA_ADAPTERS`` sets the default.
+    """
+    return _get_adapter(model, _set_name(adapters))
+
+
 @lru_cache(maxsize=32)
-def get_adapter(model: str) -> Adapter:
-    """Registry adapter for ``model`` (HF id, short name, or path to an ``.npz``)."""
+def _get_adapter(model: str, set_name: str) -> Adapter:
     if model.endswith(".npz") and Path(model).exists():
         return load_adapter(model)
-    reg = registry()["adapters"]
+    reg = registry(adapters=set_name)["adapters"]
     key = model
     if key not in reg:
         by_short = {v.get("short"): k for k, v in reg.items()}
@@ -128,8 +185,7 @@ def get_adapter(model: str) -> Adapter:
             f"Train one with: sphota train-adapter --model {model}"
         )
     entry = reg[key]
-    rel = load_release()
     try:
-        return load_adapter(rel.root / "adapters" / entry["file"], sha256=entry["sha256"])
+        return load_adapter(_set_dir(set_name) / entry["file"], sha256=entry["sha256"])
     except ReleaseError as e:  # pragma: no cover
         raise AdapterError(str(e)) from e

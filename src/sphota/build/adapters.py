@@ -210,7 +210,7 @@ def run(scale: str, models: list[str], out_dir: Path, mlp: bool = False) -> dict
     return results
 
 
-def calibrate_temperature_scale(rel, X: np.ndarray, Y: np.ndarray) -> float:
+def calibrate_temperature_scale(rel, X: np.ndarray, Y: np.ndarray, fit=None) -> float:
     """Fit the adapter on 85% of the pairs; choose the temperature scale that maximizes the
     likelihood of the anchor's L1/L2 symbols on the held-out 15% (same procedure as the
     space's own calibration, D-007)."""
@@ -218,7 +218,7 @@ def calibrate_temperature_scale(rel, X: np.ndarray, Y: np.ndarray) -> float:
 
     n = len(X)
     cut = int(0.85 * n)
-    ad = fit_adapter("tmp", X[:cut], Y[:cut])
+    ad = (fit or (lambda a, b: fit_adapter("tmp", a, b)))(X[:cut], Y[:cut])
     Yh, Ya = ad(X[cut:]), Y[cut:]
     target = quantize(rel, Ya, levels=2).indices
     best, best_ll = 1.0, -np.inf

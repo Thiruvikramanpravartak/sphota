@@ -19,9 +19,12 @@ other container format (pickle, `.pt`, `.bin`). Arrays:
 | `b` | float32 | (D,) | bias |
 | `meta` | unicode, 0-d | () | JSON object, see 1.2 |
 | `A2`, `b2` | float32 | (D, D), (D,) | optional residual layer (`kind: "mlp"`) |
+| `W1`, `c1` | float16 or float32 | (d_model, H), (H,) | optional input network (`kind: "mlp2"`) |
+| `W2`, `c2` | float16 or float32 | (H, D), (D,) | optional input network (`kind: "mlp2"`) |
 
-Forward pass: `x̂ = x/‖x‖`, `h = x̂·A + b`; if `A2` present: `y = h + relu(h)·A2 + b2`, else
-`y = h`.
+Forward pass: `x̂ = x/‖x‖`, `h = x̂·A + b`; if `A2` present: `y = h + relu(h)·A2 + b2`; if `W1`
+present (`kind: "mlp2"`): `y = h + gelu(x̂·W1 + c1)·W2 + c2` with the tanh approximation
+`gelu(z) = ½z(1 + tanh(√(2/π)(z + 0.044715 z³)))`, computed in float32; otherwise `y = h`.
 
 ### 1.2 `meta` fields
 
@@ -60,6 +63,11 @@ Forward pass: `x̂ = x/‖x‖`, `h = x̂·A + b`; if `A2` present: `y = h + rel
 ```
 
 * Implementations MUST verify `sha256` before loading an adapter.
+* **Adapter sets.** A registry belongs to a set. `v1` is frozen with the release (linear
+  adapters). `v1.1` (`sphota/data/adapters/v1.1/`, informative, D-028) holds `mlp2` adapters
+  for the same models, certified against the same Part 8 procedure. Sets map into the same
+  canonical space; codes from different sets for the same model may differ, so stored codes
+  SHOULD record the set (`model@set`). Implementations default to `v1`.
 * Only models whose weights are under an OSI-approved (or comparably open) license are
   admitted to the default registry. Adapters for other models (e.g. CC-BY-NC weights or
   proprietary APIs) MAY be trained by users with `sphota train-adapter`; they are not

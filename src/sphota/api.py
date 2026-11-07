@@ -288,7 +288,7 @@ def _to_codes(
 _ENCODERS: dict[str, Any] = {}
 
 
-def _encoder_for(model: str | None):
+def _encoder_for(model: str | None, adapters: str | None = None):
     """(encoder, adapter) for ``model``; adapter is None for the anchor.
 
     Adapter models run through ONNX Runtime when the registry lists an ONNX export (no torch
@@ -301,7 +301,7 @@ def _encoder_for(model: str | None):
         return default_encoder(), None
     from sphota.adapters import get_adapter, registry_entry
 
-    ad = get_adapter(model)
+    ad = get_adapter(model, adapters)
     if ad.model not in _ENCODERS:
         onnx = (registry_entry(model) or {}).get("onnx")
         enc = None
@@ -359,6 +359,7 @@ def encode_batch(
     max_level: int = 4,
     stable: bool = False,
     model: str | None = None,
+    adapters: str | None = None,
 ) -> list[Sphota]:
     """Encode many texts (batched, cached). See :func:`encode` for parameters."""
     texts = list(texts)
@@ -368,7 +369,7 @@ def encode_batch(
         raise TypeError("encode_batch expects strings; for vectors use from_vector(vec, model=...)")
     _warn_unsupported(texts)
     rel = load_release()
-    enc, ad = _encoder_for(model)
+    enc, ad = _encoder_for(model, adapters)
     X = enc.encode(texts)
     Y = project(rel, X) if ad is None else ad(X)
     ts = float(ad.meta.get("temperature_scale", 1.0)) if ad is not None else 1.0
@@ -382,6 +383,7 @@ def encode(
     max_level: int = 4,
     stable: bool = False,
     model: str | None = None,
+    adapters: str | None = None,
 ) -> Sphota:
     """Encode text (any language) into a Sphota code.
 
@@ -394,13 +396,20 @@ def encode(
             perturbations (fewer flips across models/paraphrases).
         model: encode with another model through its certified adapter
             (e.g. ``"sentence-transformers/all-MiniLM-L6-v2"``). Default: the v1 anchor.
+        adapters: adapter set for ``model``: ``"v1"`` (default, frozen, linear) or ``"v1.1"``
+            (nonlinear; about twice the same-cell agreement with the anchor, D-028).
     """
     if not isinstance(text, str):
         raise TypeError(
             "encode expects a string; for many texts use encode_batch, for vectors use from_vector"
         )
     return encode_batch(
-        [text], min_confidence=min_confidence, max_level=max_level, stable=stable, model=model
+        [text],
+        min_confidence=min_confidence,
+        max_level=max_level,
+        stable=stable,
+        model=model,
+        adapters=adapters,
     )[0]
 
 
@@ -411,8 +420,10 @@ def from_vector(
     min_confidence: float | None = None,
     max_level: int = 4,
     stable: bool = False,
+    adapters: str | None = None,
 ) -> Sphota | list[Sphota]:
-    """Code(s) for precomputed embedding(s). ``model`` names the model that produced them.
+    """Code(s) for precomputed embedding(s). ``model`` names the model that produced them;
+    ``adapters`` picks the adapter set (``"v1"`` default, ``"v1.1"`` nonlinear).
 
     A 1-d vector returns one :class:`Sphota`; a 2-d array returns a list.
     """
@@ -426,7 +437,7 @@ def from_vector(
     else:
         from sphota.adapters import get_adapter
 
-        ad = get_adapter(model)
+        ad = get_adapter(model, adapters)
         Y = ad(X)
         ts = float(ad.meta.get("temperature_scale", 1.0))
     out = _to_codes(Y, [None] * len(Y), min_confidence, max_level, stable, rel, ts)
