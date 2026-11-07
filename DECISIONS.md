@@ -298,3 +298,15 @@ Runtime (a dev build) from cdn.jsdelivr.net at run time; it is now served from t
 removed (the page promised nothing is sent anywhere); browser model pinned to a commit; CSV export
 neutralizes spreadsheet formulas. Kaggle notebook no longer puts a GitHub token in the clone URL.
 History scanned for credentials: none.
+
+## D-028 Adapter study: nonlinear adapters double cross-model agreement
+The GPU gate failed on cross-model agreement (D-022). Holding the space, texts and test set fixed
+and changing only the adapter (5 models, held-out FLORES devtest): ridge (shipped) averages 16.0% /
+32.6% / 65.6% same-cell agreement at 4096 cells / 256 cells / 32 regions; a residual MLP (ridge +
+one 1024-unit GELU layer, MSE) averages 34.1% / 56.1% / 71.7%. Code-aware losses (cross-entropy
+towards the anchor's cell at L1, or L1 + regions) did not beat MSE on average: they gain a little
+at L1 for multilingual models but give up coarse agreement. Ridge does not improve with more
+pairs (2.5k → 40k); the MLP keeps improving (pmMiniLM L1 27.0% → 32.8%). Conclusion: a large part
+of the "models disagree" failure was the linear adapter, not the models. The 256-cell level is
+now 3.9 points from the gate's 60% bar with the e5 anchor on CPU-scale data. Next: ship MLP
+adapters (opt-in, without touching the frozen v1 registry), then a larger paired-data run.

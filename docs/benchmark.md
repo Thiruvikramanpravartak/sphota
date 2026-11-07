@@ -262,6 +262,50 @@ translation agreement (bge-m3 88.0% at 256 regions), but cross-model agreement s
 bar (best 50.2%) and falls with every 4× refinement. Files: `bench/results/v2-gate-medium-*.json`,
 build manifests in `bench/results/v2-medium-manifests/`.
 
+## Adapter study: the cross-model bottleneck (D-028)
+Same frozen s1 space and training texts, only the adapter changes. Agreement = the other model's
+text, mapped through the adapter, lands in the same cell as the anchor's code for the same text
+(held-out FLORES-200 devtest; all 12 languages for multilingual models, English otherwise).
+`python -m sphota.build.adapter_study --scale small` → `bench/results/adapter-study-small.json`.
+
+| model | adapter | cell (4096) | 256 cells | 32 regions |
+|---|---|---|---|---|
+| all-MiniLM-L6-v2 | ridge | 16.6% | 33.6% | 64.8% |
+| all-MiniLM-L6-v2 | mlp | 35.8% | 57.5% | 70.5% |
+| all-MiniLM-L6-v2 | mlp+hier | 35.2% | 51.0% | 64.4% |
+| bge-small-en-v1.5 | ridge | 13.8% | 31.1% | 66.5% |
+| bge-small-en-v1.5 | mlp | 36.6% | 62.1% | 76.0% |
+| bge-small-en-v1.5 | mlp+hier | 37.1% | 54.5% | 69.9% |
+| gte-small | ridge | 5.7% | 16.7% | 64.2% |
+| gte-small | mlp | 33.3% | 57.5% | 71.2% |
+| gte-small | mlp+hier | 34.0% | 48.7% | 65.4% |
+| paraphrase-multilingual-MiniLM-L12-v2 | ridge | 24.5% | 42.5% | 67.3% |
+| paraphrase-multilingual-MiniLM-L12-v2 | mlp | 32.8% | 50.4% | 69.8% |
+| paraphrase-multilingual-MiniLM-L12-v2 | mlp+hier | 33.0% | 46.6% | 69.0% |
+| LaBSE | ridge | 19.4% | 39.2% | 65.3% |
+| LaBSE | mlp | 31.9% | 52.9% | 71.1% |
+| LaBSE | mlp+hier | 35.1% | 52.9% | 71.4% |
+| **average (5 models)** | ridge | 16.0% | 32.6% | 65.6% |
+| **average (5 models)** | **mlp** | **34.1%** | **56.1%** | **71.7%** |
+
+A residual MLP (one 1024-unit hidden layer on top of the ridge map) roughly **doubles fine-level
+agreement** (16.0% → 34.1% at 4096 cells) and lifts the gate's 256-cell level from 32.6% to 56.1%
+(bar: 60%). Training the adapter directly on the anchor's codes (cross-entropy at L1, or at L1 +
+regions) did not beat plain MSE on average. Rotation-only (Procrustes) is far worse than ridge.
+
+Data scaling (L1, 4096 cells, all languages):
+
+| training pairs | all-MiniLM-L6-v2 ridge | mlp+hier | paraphrase-multilingual-MiniLM-L12-v2 ridge | mlp+hier |
+|---|---|---|---|---|
+| 2,500 | 4.7% | 7.0% | 23.9% | 27.0% |
+| 5,000 | 5.0% | 8.2% | 23.9% | 27.3% |
+| 10,000 | 5.1% | 9.9% | 24.3% | 29.4% |
+| 20,000 | 5.3% | 10.9% | 24.6% | 31.7% |
+| 40,000 | 5.2% | 11.9% | 24.5% | 32.8% |
+
+Ridge is flat with more data; the MLP is still improving at 40k pairs, so more paired text (a GPU
+run) should push cross-model agreement further.
+
 ## Limitations
 
 * `small`-scale build: ~78k sentences in 12 languages fit 4096 L1 cells (~19 per cell). Regions for

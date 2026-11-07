@@ -24,6 +24,11 @@
 - **Early-user readiness** (2026-11-07): fresh install from GitHub verified (~25 s + one-time model
   download). Cell labels hidden by default for single texts (D-024); README install points at GitHub
   until the PyPI release, with the download size and "analyze a file" as the first thing to try.
+- **Adapter study (D-028):** nonlinear adapters double cross-model agreement at 4096 cells
+  (16.0% → 34.1%) and reach 56.1% at 256 cells (gate bar 60%); still improving with data.
+- **Security (D-026, D-027):** pinned + hash-verified models, pinned CI actions, isolated release
+  with wheel-content check and attestations, CodeQL/Scorecard/zizmor/pip-audit/npm audit, Atlas
+  without third-party code.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 
