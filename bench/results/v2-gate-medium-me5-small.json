@@ -1,0 +1,214 @@
+{
+ "results": [
+  {
+   "K1": 256,
+   "T": 23.046500340669983,
+   "coverage": 0.4634,
+   "coverage_per_lang": {
+    "en": 0.5682,
+    "hi": 0.5336,
+    "ta": 0.5563,
+    "es": 0.4437,
+    "fr": 0.4308,
+    "de": 0.5287,
+    "zh": 0.4565,
+    "ar": 0.4091,
+    "ru": 0.5296,
+    "ja": 0.4526,
+    "pt": 0.1107,
+    "bn": 0.5415
+   },
+   "translation_all": 0.5993,
+   "translation_confident": 0.744,
+   "confident_en_share": 0.5682,
+   "translation_top2": 0.7498,
+   "collapse_max": 0.4091,
+   "collapse_worst_lang": "pt",
+   "collapse_per_lang": {
+    "hi": 0.0,
+    "ta": 0.0,
+    "es": 0.0,
+    "fr": 0.0,
+    "de": 0.0,
+    "zh": 0.0,
+    "ar": 0.0,
+    "ru": 0.0,
+    "ja": 0.0,
+    "pt": 0.4091,
+    "bn": 0.0
+   },
+   "used_cells_frac": 1.0,
+   "cross_model": 0.313,
+   "cross_model_per_model": {
+    "all-MiniLM-L6-v2": 0.3014,
+    "bge-small-en-v1.5": 0.3083,
+    "gte-small": 0.2243,
+    "paraphrase-multilingual-MiniLM-L12-v2": 0.4071,
+    "LaBSE": 0.3241
+   },
+   "sample": {
+    "wiki_sentences": 279666,
+    "of": 450000
+   },
+   "verdict": {
+    "1_coverage": {
+     "value": 0.4634,
+     "pass": false
+    },
+    "2_translation_confident": {
+     "value": 0.744,
+     "pass": false
+    },
+    "3_cross_model": {
+     "value": 0.313,
+     "pass": false
+    },
+    "4_collapse_max": {
+     "value": 0.4091,
+     "pass": false
+    }
+   }
+  },
+  {
+   "K1": 1024,
+   "T": 24.071100747040113,
+   "coverage": 0.393,
+   "coverage_per_lang": {
+    "en": 0.5069,
+    "hi": 0.4931,
+    "ta": 0.4723,
+    "es": 0.3785,
+    "fr": 0.3597,
+    "de": 0.4792,
+    "zh": 0.3725,
+    "ar": 0.3152,
+    "ru": 0.4486,
+    "ja": 0.3636,
+    "pt": 0.084,
+    "bn": 0.4417
+   },
+   "translation_all": 0.5741,
+   "translation_confident": 0.7158,
+   "confident_en_share": 0.5069,
+   "translation_top2": 0.7207,
+   "collapse_max": 0.3162,
+   "collapse_worst_lang": "pt",
+   "collapse_per_lang": {
+    "hi": 0.0,
+    "ta": 0.0,
+    "es": 0.001,
+    "fr": 0.0,
+    "de": 0.0,
+    "zh": 0.003,
+    "ar": 0.0,
+    "ru": 0.0,
+    "ja": 0.002,
+    "pt": 0.3162,
+    "bn": 0.0
+   },
+   "used_cells_frac": 1.0,
+   "cross_model": 0.2466,
+   "cross_model_per_model": {
+    "all-MiniLM-L6-v2": 0.2342,
+    "bge-small-en-v1.5": 0.2431,
+    "gte-small": 0.1176,
+    "paraphrase-multilingual-MiniLM-L12-v2": 0.3508,
+    "LaBSE": 0.2875
+   },
+   "sample": {
+    "wiki_sentences": 279666,
+    "of": 450000
+   },
+   "verdict": {
+    "1_coverage": {
+     "value": 0.393,
+     "pass": false
+    },
+    "2_translation_confident": {
+     "value": 0.7158,
+     "pass": false
+    },
+    "3_cross_model": {
+     "value": 0.2466,
+     "pass": false
+    },
+    "4_collapse_max": {
+     "value": 0.3162,
+     "pass": false
+    }
+   }
+  },
+  {
+   "K1": 4096,
+   "T": 25.92461934361908,
+   "coverage": 0.267,
+   "coverage_per_lang": {
+    "en": 0.3725,
+    "hi": 0.3389,
+    "ta": 0.3053,
+    "es": 0.248,
+    "fr": 0.2283,
+    "de": 0.3211,
+    "zh": 0.2292,
+    "ar": 0.2085,
+    "ru": 0.3192,
+    "ja": 0.2579,
+    "pt": 0.0632,
+    "bn": 0.3123
+   },
+   "translation_all": 0.4802,
+   "translation_confident": 0.6595,
+   "confident_en_share": 0.3725,
+   "translation_top2": 0.6364,
+   "collapse_max": 0.3419,
+   "collapse_worst_lang": "pt",
+   "collapse_per_lang": {
+    "hi": 0.0,
+    "ta": 0.0,
+    "es": 0.002,
+    "fr": 0.0,
+    "de": 0.001,
+    "zh": 0.0049,
+    "ar": 0.002,
+    "ru": 0.002,
+    "ja": 0.0049,
+    "pt": 0.3419,
+    "bn": 0.0
+   },
+   "used_cells_frac": 1.0,
+   "cross_model": 0.1615,
+   "cross_model_per_model": {
+    "all-MiniLM-L6-v2": 0.1403,
+    "bge-small-en-v1.5": 0.1453,
+    "gte-small": 0.0702,
+    "paraphrase-multilingual-MiniLM-L12-v2": 0.2569,
+    "LaBSE": 0.1947
+   },
+   "sample": {
+    "wiki_sentences": 279666,
+    "of": 450000
+   },
+   "verdict": {
+    "1_coverage": {
+     "value": 0.267,
+     "pass": false
+    },
+    "2_translation_confident": {
+     "value": 0.6595,
+     "pass": false
+    },
+    "3_cross_model": {
+     "value": 0.1615,
+     "pass": false
+    },
+    "4_collapse_max": {
+     "value": 0.3419,
+     "pass": false
+    }
+   }
+  }
+ ],
+ "kept_K1": 4096,
+ "labels_kept": 3642,
+ "labels_review": 1875
+}

@@ -230,17 +230,17 @@ with letters from a second non-Latin script, and `encode` warns on Ol Chiki / Me
 (codes unchanged, frozen behaviour).
 The new names go on a separate review sheet (`reports/region_names_review_more.csv`).
 
-## D-022 GPU gate, interim result (medium scale, Kaggle T4)
-Interim numbers from the owner's Kaggle run (`bench/results/kaggle-medium-interim.json`):
-e5-small fails (cross-model 16.2%, collapse 34.2%). LaBSE at 256 regions passes three of four bars
-(coverage 69.4%, confident translation 83.5%, collapse 0.2%) and fails cross-model at 40.1%; at
-1024 regions coverage drops to 55.2% and cross-model to 29.4%. More data fixed translation (77.2%
-→ 83.5% at 256 vs the CPU run) but not cross-model agreement, as D-018 predicted. Unless bge-m3
-(still running) clears 60% cross-model at ≥ 256 regions, the gate fails and the v1.1 positioning
-(regions + themes + stored-vector migration) is permanent for v1. No change to the frozen space.
-* D-020 follow-up (2026-11-06): `sphota analyze` now defaults to `--by theme` too (same grouping as
-  the Atlas). `build_report(by=...)` keeps `region` as its default for API stability. With
-  `--min-count > 1`, theme names fall back to the automatic labels so no raw text is shown.
+## D-022 GPU gate result (medium scale, Kaggle T4): FAIL. Positioning is final for v1
+Full run (`bench/results/v2-gate-medium-*.json`, table in docs/benchmark.md): no anchor passes all
+four D-017 bars at ≥ 256 regions. Best: bge-m3 at 256 regions, 3/4 (coverage 67.2%, confident
+translation 88.0%, collapse 0.1%) with cross-model agreement 50.2% vs 60%; LaBSE at 256, 3/4 with
+40.1%; e5-small fails everything (collapse 34–41% even with the diversified sample). Cross-model
+agreement falls with every 4× refinement for every anchor (bge-m3: 50 → 38 → 25%). Decision, as
+pre-registered: Sphota v1 stays "readable multilingual meaning codes for topic analytics, routing,
+caching and model migration" (32 regions + themes + stored canonical vectors); fine codes are
+within-model precision. No `s2` space is planned on this evidence; the frozen s1 space is unchanged.
+What could change it: nonlinear or jointly-trained adapters (cross-model, not anchor, is the
+bottleneck); out of scope for v1.
 
 ## D-023 Atlas dependencies upgraded; "exact codes" switch
 transformers.js 3.7.6 → 4.3.2, Vite 6.4.5 → 8.3.6, TypeScript 5.9.3 → 7.0.2 (build and type check

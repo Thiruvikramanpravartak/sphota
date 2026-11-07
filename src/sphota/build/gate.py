@@ -403,7 +403,7 @@ def v2mini(
     )
     meta = {
         "status": "EXPERIMENTAL — not a frozen space; do not use for stored codes",
-        "built_from": "v1 anchor embeddings (small scale), diversified Wikipedia sample",
+        "built_from": f"{scale} scale, diversified per-language Wikipedia sample",
         "anchor": anchor,
         "sizes": [int(k), 256],
         "temperature_l1": T,

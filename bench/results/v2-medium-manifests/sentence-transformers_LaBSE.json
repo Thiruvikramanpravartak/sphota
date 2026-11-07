@@ -1,0 +1,73 @@
+{
+  "status": "EXPERIMENTAL \u2014 not a frozen space; do not use for stored codes",
+  "built_from": "v1 anchor embeddings (small scale), diversified Wikipedia sample",
+  "anchor": "sentence-transformers/LaBSE",
+  "sizes": [
+    256,
+    256
+  ],
+  "temperature_l1": 27.238099219248102,
+  "label_filter": {
+    "kept_cells": 251,
+    "review_cells": 211
+  },
+  "gate": [
+    {
+      "1_coverage": {
+        "value": 0.6938,
+        "pass": true
+      },
+      "2_translation_confident": {
+        "value": 0.8351,
+        "pass": true
+      },
+      "3_cross_model": {
+        "value": 0.4007,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.002,
+        "pass": true
+      },
+      "K1": 256
+    },
+    {
+      "1_coverage": {
+        "value": 0.5521,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.8387,
+        "pass": true
+      },
+      "3_cross_model": {
+        "value": 0.2935,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.001,
+        "pass": true
+      },
+      "K1": 1024
+    },
+    {
+      "1_coverage": {
+        "value": 0.4687,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.7842,
+        "pass": false
+      },
+      "3_cross_model": {
+        "value": 0.1769,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.004,
+        "pass": true
+      },
+      "K1": 4096
+    }
+  ]
+}

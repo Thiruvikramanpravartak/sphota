@@ -16,7 +16,9 @@ release (4096 top-level cells, multilingual-e5-small anchor) fails all four crit
 34%). Agreement is bought with coarseness: each 4× finer top level costs roughly 10–25
 points on the gate metrics, and every near-pass uses 32–64 cells. The anchor matters (LaBSE
 beats e5-small by 11 points of coverage and 4.5 points of confident translation agreement at
-the same granularity) but not enough to change the conclusion on CPU. We also document a
+the same granularity) but not enough to change the conclusion: a GPU run at ~450k sentences with
+LaBSE and bge-m3 anchors removes language collapse and reaches 88% confident translation agreement
+at 256 cells, yet cross-model agreement peaks at 50% (bar: 60%). We also document a
 *language-collapse* failure: at ≥ 256 cells, k-means forms cells that are mostly one language
 (up to 55% of Portuguese test sentences), which a diversified sample only partly fixes. What
 does work: (1) *coarse regions* (32–64 cells) where translations agree 78–89% of the time
@@ -188,9 +190,7 @@ the translation bar. It is worse on cross-model agreement with the reduced panel
 60.3%), plausibly because the panel's other models are closer to e5's geometry. The anchor is
 therefore a first-order factor, comparable in size to one 4× granularity step, but it does not
 change the conclusion: a better anchor buys roughly one step of resolution, not the six steps
-from 32 to 4096 cells. bge-m3 (65% cross-lingual L1 agreement through its adapter) has not
-been tested as an anchor; that is the one bounded GPU experiment we consider worth running,
-under the amended bar.
+from 32 to 4096 cells. We tested bge-m3 and LaBSE as anchors on a GPU in §5.5.
 
 ### 5.4 Language collapse
 
@@ -215,6 +215,28 @@ Two findings generalize:
 
 Language collapse is invisible in average cross-lingual agreement and should be reported as a
 separate metric by any multilingual quantization work.
+
+### 5.5 GPU run: stronger anchors at medium scale
+
+One bounded run (Kaggle T4, 12 languages, ~450k sentences, diversified per-language sample),
+evaluated on held-out FLORES-200 devtest against the pre-registered bar:
+
+| anchor | L1 regions | coverage ≥ 60% | translation (confident) ≥ 80% | cross-model ≥ 60% | collapse ≤ 5% | passes |
+|---|---|---|---|---|---|---|
+| multilingual-e5-small | 256 | 46.3% FAIL | 74.4% FAIL | 31.3% FAIL | 40.9% FAIL | 0/4 |
+| multilingual-e5-small | 1024 | 39.3% FAIL | 71.6% FAIL | 24.7% FAIL | 31.6% FAIL | 0/4 |
+| multilingual-e5-small | 4096 | 26.7% FAIL | 66.0% FAIL | 16.2% FAIL | 34.2% FAIL | 0/4 |
+| LaBSE | 256 | 69.4% PASS | 83.5% PASS | 40.1% FAIL | 0.2% PASS | 3/4 |
+| LaBSE | 1024 | 55.2% FAIL | 83.9% PASS | 29.3% FAIL | 0.1% PASS | 2/4 |
+| LaBSE | 4096 | 46.9% FAIL | 78.4% FAIL | 17.7% FAIL | 0.4% PASS | 1/4 |
+| **bge-m3** | **256** | 67.2% PASS | 88.0% PASS | **50.2% FAIL** | 0.1% PASS | 3/4 |
+| bge-m3 | 1024 | 62.8% PASS | 82.6% PASS | 38.0% FAIL | 0.1% PASS | 3/4 |
+| bge-m3 | 4096 | 54.5% FAIL | 78.6% FAIL | 25.3% FAIL | 0.2% PASS | 1/4 |
+
+The stronger anchors remove language collapse (≤ 0.4% vs 34–41% for e5-small) and lift confident
+translation agreement to 88.0% (bge-m3, 256 cells). Cross-model agreement does not follow: 50.2%
+at best, falling 50 → 38 → 25% with each 4× refinement. **The gate fails**, as we predicted. The
+bottleneck is not the anchor or the data volume but the linear adapters between models.
 
 ## 6. Why fine-grained universal codes fail
 
@@ -256,9 +278,9 @@ lowering cross-lingual agreement; we kept it off.
 
 ## 8. Limitations
 
-All experiments are CPU, `small` scale (≤ 80k fitting sentences, 12 languages, FLORES-200
-devtest for evaluation). A full-scale GPU build with bge-m3 might move results by about one
-granularity step; we expect, but have not shown, that it would still fail at ≥ 256 cells. The
+Most experiments are CPU, `small` scale (≤ 80k fitting sentences, 12 languages, FLORES-200
+devtest for evaluation); one GPU run reached `medium` scale (~450k sentences, §5.5) and confirmed
+the failure at ≥ 256 cells. We did not try nonlinear or jointly trained adapters. The
 cross-model panel for the anchor comparison is reduced. Labels for cells are machine-generated
 and filtered, not natively reviewed. FLORES sentences are short, formal and topically narrow;
 real traffic is likely harder.
@@ -278,7 +300,9 @@ language-collapse metric, and fix the bar before running.
 ## Reproducibility
 
 Gate definitions: `DECISIONS.md` D-017/D-018. Results: `bench/results/`. Experimental v2 build:
-`experiments/v2-mini/`. GPU rerun: `bash scripts/gpu_build_v2.sh --scale full --sizes "256 1024 4096"`.
+`experiments/v2-mini/`. GPU run (§5.5): `notebooks/kaggle_gpu_gate.ipynb`, or
+`bash scripts/gpu_build_v2.sh --scale medium --sizes "256 1024 4096"`; results
+`bench/results/v2-gate-medium-*.json`.
 Code, artifacts and data recipes are Apache-2.0.
 
 ## References

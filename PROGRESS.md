@@ -10,9 +10,9 @@
   topics and translated into 10 languages (`c.region_label_in(lang)`), filtered by the label gate;
   R24 renamed by hand ("Law, Culture and Travel"). Assignment is unchanged.
 - **CI:** fixed (repo made public; Actions minutes were the cause). All 11 jobs green on dispatch.
-- **GPU run (interim, D-022):** e5-small FAIL. LaBSE @256 regions passes 3/4 (coverage 69.4%,
-  translation 83.5%, collapse 0.2%) but cross-model is 40.1% (bar 60%); @1024 passes 2/4. bge-m3
-  still running. Cross-model agreement is the blocker, as predicted. Positioning stays v1.1.
+- **GPU run: done, FAIL (D-022).** Kaggle T4, medium scale, 3 anchors × 256/1024/4096 regions. Best:
+  bge-m3 @256 passes 3/4 (coverage 67.2%, translation 88.0%, collapse 0.1%) but cross-model is 50.2%
+  (bar 60%). The v1.1 positioning is now final; no `s2`.
 - **Atlas "Analyze a file"** (2026-11-06): drop a CSV/TSV/TXT/JSONL (≤ 3,000 rows), encoded in the
   browser, grouped by theme (first code block) or region, CSV download, bundled multilingual sample.
   Themes beat regions on single-domain data (83% vs 29% purity, D-020).
@@ -93,7 +93,7 @@ near-pass uses only 32–64 top-level cells, which D-018 rules out as evidence f
 (amended bar: ≥ 256 cells). Files: `bench/results/l1-sweep.json`, `anchor-check.json`,
 `v2-mini-gate.json`, `v2-mini-4096-gate.json`; experimental build `experiments/v2-mini/`.
 
-## Recommendation
+## Recommendation (superseded: the GPU run was done and failed, D-022)
 - **A GPU run is worth one bounded attempt (≈ US$5–10, 2–4 h on an L4/A10)**, because the anchor
   matters: LaBSE already beats e5-small on coverage (+11 pt) and confident translation (+4.5 pt) at
   the same granularity, and bge-m3 (the strongest multilingual model, 65% cross-lingual L1 agreement
@@ -121,7 +121,7 @@ near-pass uses only 32–64 top-level cells, which D-018 rules out as evidence f
   caching and model migration"; universal fine-grained GPS moved to Roadmap/research.
 - CI cost cut: push/PR = lint + Linux/3.12 fast tests; full matrix on tags / manual dispatch.
 
-## Final recommendation
+## Final recommendation (before the GPU run; outcome in D-022)
 **GPU run: yes, one bounded attempt, with LaBSE and bge-m3 anchors at 1024 regions.** A strong
 aligned anchor already passes coverage and collapse at ≥ 256 regions on CPU-scale data and misses
 translation agreement by under 1 point at 1024. Cross-model agreement (51%) is the real obstacle: the

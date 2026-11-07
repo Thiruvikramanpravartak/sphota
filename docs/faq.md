@@ -13,7 +13,9 @@ alternates/neighbours handle boundaries. The measured numbers are in [Benchmarks
 **Why is the anchor such a small model?**
 So the reference encoder runs everywhere: Python on a laptop CPU, a phone, and the browser
 (the Meaning Atlas encodes in-page). Bigger models (bge-m3, LaBSE) map in through adapters.
-A GPU `full`-scale build may choose a larger anchor for a future space version (`s2`).
+We tested bigger anchors on a GPU (D-022): bge-m3 and LaBSE fix language collapse and improve
+translation agreement, but codes still do not hold across models at fine resolution, so there is
+no `s2` on that evidence.
 
 **Will codes change when I upgrade the library?**
 No. Space s1 is frozen; golden tests in CI pin the codes. A future `s2` will ship with a

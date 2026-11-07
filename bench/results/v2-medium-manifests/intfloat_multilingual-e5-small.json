@@ -1,0 +1,73 @@
+{
+  "status": "EXPERIMENTAL \u2014 not a frozen space; do not use for stored codes",
+  "built_from": "v1 anchor embeddings (small scale), diversified Wikipedia sample",
+  "anchor": "intfloat/multilingual-e5-small",
+  "sizes": [
+    4096,
+    256
+  ],
+  "temperature_l1": 25.92461934361908,
+  "label_filter": {
+    "kept_cells": 3642,
+    "review_cells": 1875
+  },
+  "gate": [
+    {
+      "1_coverage": {
+        "value": 0.4634,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.744,
+        "pass": false
+      },
+      "3_cross_model": {
+        "value": 0.313,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.4091,
+        "pass": false
+      },
+      "K1": 256
+    },
+    {
+      "1_coverage": {
+        "value": 0.393,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.7158,
+        "pass": false
+      },
+      "3_cross_model": {
+        "value": 0.2466,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.3162,
+        "pass": false
+      },
+      "K1": 1024
+    },
+    {
+      "1_coverage": {
+        "value": 0.267,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.6595,
+        "pass": false
+      },
+      "3_cross_model": {
+        "value": 0.1615,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.3419,
+        "pass": false
+      },
+      "K1": 4096
+    }
+  ]
+}

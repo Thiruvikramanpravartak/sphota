@@ -1,0 +1,73 @@
+{
+  "status": "EXPERIMENTAL \u2014 not a frozen space; do not use for stored codes",
+  "built_from": "v1 anchor embeddings (small scale), diversified Wikipedia sample",
+  "anchor": "BAAI/bge-m3",
+  "sizes": [
+    1024,
+    256
+  ],
+  "temperature_l1": 33.69638888599568,
+  "label_filter": {
+    "kept_cells": 1001,
+    "review_cells": 641
+  },
+  "gate": [
+    {
+      "1_coverage": {
+        "value": 0.6719,
+        "pass": true
+      },
+      "2_translation_confident": {
+        "value": 0.8798,
+        "pass": true
+      },
+      "3_cross_model": {
+        "value": 0.5022,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.001,
+        "pass": true
+      },
+      "K1": 256
+    },
+    {
+      "1_coverage": {
+        "value": 0.6276,
+        "pass": true
+      },
+      "2_translation_confident": {
+        "value": 0.8262,
+        "pass": true
+      },
+      "3_cross_model": {
+        "value": 0.3796,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.001,
+        "pass": true
+      },
+      "K1": 1024
+    },
+    {
+      "1_coverage": {
+        "value": 0.5453,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.7859,
+        "pass": false
+      },
+      "3_cross_model": {
+        "value": 0.2532,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.002,
+        "pass": true
+      },
+      "K1": 4096
+    }
+  ]
+}

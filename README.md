@@ -131,7 +131,9 @@ Speed: 160 sentences/s (fp32 ONNX, 4 vCPU), 310/s int8; 10k vectors/s quantizati
 falls with depth; very short sentences in some languages get low confidence. Exact code identity
 *across models* is modest (6–23% at L1); certification guarantees neighbourhood-level
 interoperability (spec Part 8). This repository ships a `small`-scale build (≈78k sentences,
-12 languages); a GPU `full`-scale build is the next step. Labels are machine-generated.
+12 languages). A GPU run with stronger anchors (LaBSE, bge-m3) did not make fine codes hold across
+models (best 50% vs a 60% bar, D-022), so fine codes are within-model precision. Labels are
+machine-generated.
 
 ## How it works
 
@@ -176,13 +178,13 @@ Design decisions and the experiments behind them (including negative results) ar
 
 **Research: universal fine-grained coordinates.** Decision gate D-017 (+ D-018: ≥ 256 regions):
 coverage ≥ 60%, confident translation agreement ≥ 80%, cross-model ≥ 60%, no language collapse.
-Best so far (CPU, LaBSE anchor, 1024 regions): 79.6% / 79.1% / 50.7% / 0% → FAIL on two criteria.
-A GPU run with bge-m3 / LaBSE anchors is scripted (`scripts/gpu_build_v2.sh`, `docs/gpu-run.md`).
+Result (GPU, medium scale, D-022): **FAIL**. Best: bge-m3 at 256 regions, 67.2% / 88.0% / 50.2% / 0.1%;
+cross-model agreement is the obstacle. Rerun: `scripts/gpu_build_v2.sh`, `docs/gpu-run.md`.
 
 
-1. **`full`-scale build on a GPU** (millions of sentences, 100+ languages) as space `s2`, with an
-   `s1 → s2` migration table.
-2. Larger anchor candidates (bge-m3 / LaBSE class) evaluated for `s2`; more certified adapters.
+1. Cross-model agreement: nonlinear / jointly trained adapters (the measured bottleneck, D-022)
+   before any `s2` space.
+2. More certified adapters; real-world (non-FLORES) evaluation sets.
 3. Better label quality (human review drive for Hindi, Tamil and other languages).
 4. Native SQL similarity (pgvector bridge) and more vector-DB integrations.
 

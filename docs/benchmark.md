@@ -241,14 +241,26 @@ Each language against its English original, frozen space s1, confidence threshol
 * Region names are translated (machine, unreviewed) for te, kn, ml, gu, or, as, ur; Punjabi and
   Nepali names fall back to English (D-021).
 
-## GPU gate, medium scale (interim, Kaggle T4, D-022)
-| anchor | L1 regions | coverage ≥ 60% | translation (confident) ≥ 80% | cross-model ≥ 60% | collapse ≤ 5% |
-|---|---|---|---|---|---|
-| e5-small | (kept) | | | 16.2% FAIL | 34.2% FAIL |
-| LaBSE | 256 | 69.4% PASS | 83.5% PASS | 40.1% FAIL | 0.2% PASS |
-| LaBSE | 1024 | 55.2% FAIL | 83.9% PASS | 29.4% FAIL | 0.1% PASS |
+## GPU gate, medium scale (final, D-022)
+Kaggle T4, `scripts/gpu_build_v2.sh --scale medium` (12 languages, ~450k sentences), held-out
+FLORES-200 devtest; the bar was fixed in advance (D-017, ≥ 256 regions per D-018).
 
-LaBSE at 4096 and the bge-m3 anchor were still running; `bench/results/kaggle-medium-interim.json`.
+| anchor | L1 regions | coverage ≥ 60% | translation (confident) ≥ 80% | cross-model ≥ 60% | collapse ≤ 5% | passes |
+|---|---|---|---|---|---|---|
+| multilingual-e5-small | 256 | 46.3% FAIL | 74.4% FAIL | 31.3% FAIL | 40.9% FAIL | 0/4 |
+| multilingual-e5-small | 1024 | 39.3% FAIL | 71.6% FAIL | 24.7% FAIL | 31.6% FAIL | 0/4 |
+| multilingual-e5-small | 4096 | 26.7% FAIL | 66.0% FAIL | 16.2% FAIL | 34.2% FAIL | 0/4 |
+| LaBSE | 256 | 69.4% PASS | 83.5% PASS | 40.1% FAIL | 0.2% PASS | 3/4 |
+| LaBSE | 1024 | 55.2% FAIL | 83.9% PASS | 29.3% FAIL | 0.1% PASS | 2/4 |
+| LaBSE | 4096 | 46.9% FAIL | 78.4% FAIL | 17.7% FAIL | 0.4% PASS | 1/4 |
+| **bge-m3** | **256** | 67.2% PASS | 88.0% PASS | **50.2% FAIL** | 0.1% PASS | 3/4 |
+| bge-m3 | 1024 | 62.8% PASS | 82.6% PASS | 38.0% FAIL | 0.1% PASS | 3/4 |
+| bge-m3 | 4096 | 54.5% FAIL | 78.6% FAIL | 25.3% FAIL | 0.2% PASS | 1/4 |
+
+**No configuration passes.** Stronger anchors fix language collapse (e5-small 34–41% → ≤ 0.4%) and
+translation agreement (bge-m3 88.0% at 256 regions), but cross-model agreement stays far below the
+bar (best 50.2%) and falls with every 4× refinement. Files: `bench/results/v2-gate-medium-*.json`,
+build manifests in `bench/results/v2-medium-manifests/`.
 
 ## Limitations
 
