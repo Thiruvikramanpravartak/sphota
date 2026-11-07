@@ -25,6 +25,17 @@ HF_SPACE=<user>/sphota-atlas bash scripts/publish.sh atlas-hf
 HF_DATASET=<user>/sphota-wiki-s1 bash scripts/publish.sh dataset
 ```
 
+## Repository security settings (owner, one time)
+
+* Settings → Rules → Rulesets → new branch ruleset for `main`: require a pull request (or at
+  least block force pushes and deletion), require status checks `lint`, `security`, `fast`,
+  and "Require review from Code Owners" (see `.github/CODEOWNERS`).
+* A tag ruleset for `v*`: only you may create, update or delete version tags.
+* Settings → Environments → `pypi`: required reviewer = you; deployment tags `v*` only.
+* Settings → Code security: enable private vulnerability reporting, Dependabot alerts and
+  security updates, secret scanning with push protection, and CodeQL (the workflow is included).
+* Your account: two-factor authentication with a passkey or security key, on GitHub and PyPI.
+
 ## Checklist
 
 CI green on all OSes (Actions → CI → Run workflow); `pytest -m slow` green; `CHANGELOG.md`

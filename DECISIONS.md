@@ -282,3 +282,19 @@ the SHA-256 of each file; `hf_file` downloads at that commit and refuses any fil
 differs (also inside offline bundles). sentence-transformers models load at a pinned revision with
 `trust_remote_code=False`. Verified files are remembered (path, size, mtime) so the 1.3 s hash of
 the fp32 model is paid once. Unknown (user-chosen) models are not pinned.
+
+## D-027 Release, CI and Atlas security hardening (before the first public release)
+Built against the 2026 LiteLLM incidents (stolen PyPI token via a poisoned CI action; hijacked
+pipeline shipping a `.pth` startup hook). CI: every action pinned to a commit SHA (versions ≥ 14
+days old; CodeQL held at v4.39.1 for that reason), workflow-level `permissions: {}` or
+`contents: read`, `persist-credentials: false`, no caches in jobs that run on tags (zizmor
+cache-poisoning findings), zizmor + pip-audit + npm audit + a wheel-content check on every push,
+CodeQL and Scorecard workflows, Dependabot with a 14-day cooldown, CODEOWNERS for CI/data. Release:
+separate test / build / publish jobs; hash-pinned build tools (`uv pip compile --exclude-newer`);
+`scripts/check_wheel.py` (wheel == git-tracked files, no `.pth`); trusted publishing with PEP 740
+attestations behind a reviewer-gated environment. Atlas: transformers.js 4 imported the ONNX
+Runtime (a dev build) from cdn.jsdelivr.net at run time; it is now served from the site
+(`vite.config.ts`), enforced by a CSP that only allows the site and Hugging Face; Google Fonts
+removed (the page promised nothing is sent anywhere); browser model pinned to a commit; CSV export
+neutralizes spreadsheet formulas. Kaggle notebook no longer puts a GitHub token in the clone URL.
+History scanned for credentials: none.

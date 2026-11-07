@@ -1,7 +1,9 @@
 name: CI
 
-# Cost control: every push / PR runs lint + Linux fast tests only. The full OS matrix, model
-# tests, Atlas and docs builds run on version tags or when started manually (workflow_dispatch).
+# Cost control: every push / PR runs lint, security checks and Linux fast tests. The full OS
+# matrix, model tests, Atlas and docs builds run on version tags or when started manually.
+# Security: actions pinned to commit SHAs (Dependabot updates them after a 14-day cooldown),
+# read-only token, no credentials left in the checkout, no secrets used anywhere in CI.
 on:
   push:
     branches: [main, "build/**", "claude/**"]
@@ -16,19 +18,45 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: { python-version: "3.12" }
       - run: pip install ruff==0.17.3 mypy numpy
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy
 
+  security:
+    # dependency CVEs (Python + npm), workflow security lint, and a wheel-content check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "22", package-manager-cache: false }
+      - run: pip install --require-hashes --no-deps -r .github/requirements/audit.txt -r .github/requirements/zizmor.txt -r .github/requirements/release.txt
+      - name: Workflow security lint (zizmor)
+        run: zizmor --offline --min-severity medium .github/workflows
+      - name: Python dependency audit
+        run: |
+          python -m venv /tmp/env && /tmp/env/bin/pip install -q ".[encode,cli]"
+          /tmp/env/bin/pip freeze --exclude sphota > /tmp/installed.txt
+          pip-audit --strict --progress-spinner off --no-deps --disable-pip -r /tmp/installed.txt
+      - name: npm audit (Atlas)
+        working-directory: atlas
+        run: npm ci --ignore-scripts && npm audit --audit-level=moderate
+      - name: Wheel contains only git-tracked files, no .pth hooks
+        run: python -m build --no-isolation --wheel --outdir dist . && python scripts/check_wheel.py dist/*.whl
+
   fast:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: { python-version: "3.12" }
       - run: pip install -e ".[cli]" pytest
       - run: pytest -m "not slow"
@@ -43,24 +71,22 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.10", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: { python-version: "${{ matrix.python }}" }
       - run: pip install -e ".[cli]" pytest pytest-cov
       - run: pytest -m "not slow" --cov=sphota --cov-report=term-missing
 
   test-encode:
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    # ONNX encoder end-to-end (downloads the small anchor model once, cached)
+    # ONNX encoder end-to-end (downloads the pinned anchor model once, hash-verified)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: { python-version: "3.12" }
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/huggingface
-          key: hf-${{ hashFiles('src/sphota/data/v1/manifest.json') }}
       - run: pip install -e ".[encode,cli]" pytest
       - run: pytest -m slow -k "not torch"
       - name: Run examples
@@ -72,18 +98,20 @@ jobs:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: atlas } }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "22" }
-      - run: npm ci
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "22", package-manager-cache: false }
+      - run: npm ci --ignore-scripts
       - run: npm run build
 
   docs:
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: { python-version: "3.12" }
       - run: pip install mkdocs-material
       - run: NO_MKDOCS_2_WARNING=1 mkdocs build --strict

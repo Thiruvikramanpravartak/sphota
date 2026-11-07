@@ -810,7 +810,12 @@ function sharedLevels(a: number[], b: number[]) {
 
 function fromHash() {
   if (!data || !space) return;
-  const h = decodeURIComponent(location.hash.slice(1));
+  let h = "";
+  try {
+    h = decodeURIComponent(location.hash.slice(1));
+  } catch {
+    return; // malformed share link
+  }
   if (!h || h === "demo") return;
   if (h.startsWith("q=")) {
     $<HTMLInputElement>("q").value = h.slice(2);

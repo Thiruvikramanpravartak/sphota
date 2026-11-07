@@ -169,7 +169,13 @@ export function summarize(rows: FileRow[], by: GroupBy = "cell", minConfident = 
   return out.sort((a, b) => b.count - a.count);
 }
 
-const q = (s: string) => (/[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
+// Spreadsheet formula injection (OWASP): a message like "=HYPERLINK(...)" must not run when the CSV
+// is opened in Excel/Sheets, so cells starting with = + - @ tab or CR get a leading apostrophe.
+const defuse = (s: string) => (/^[=+\-@\t\r]/.test(s) ? "'" + s : s);
+const q = (raw: string) => {
+  const s = defuse(raw);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
 
 /** Results as CSV: the original text plus theme (first code block), region and full code. */
 export function toCsv(rows: FileRow[], regionName: (k: number) => string): string {

@@ -165,6 +165,11 @@ export class SphotaSpace {
 type Extractor = (text: string, opts: Record<string, unknown>) => Promise<{ data: Float32Array }>;
 let extractorPromise: Promise<Extractor> | null = null;
 
+// Pinned Hub commits (supply chain, D-026): the browser always fetches the same model files.
+const MODEL_REVISION: Record<string, string> = {
+  "Xenova/multilingual-e5-small": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
+};
+
 /** "q8" (default, ~120 MB) or "fp32" (~470 MB, codes identical to the Python reference encoder). */
 export function precision(): "q8" | "fp32" {
   try {
@@ -180,9 +185,13 @@ export function loadModel(model: string, onProgress?: (msg: string) => void): Pr
     extractorPromise = (async () => {
       const { pipeline, env } = await import("@huggingface/transformers");
       env.allowLocalModels = false;
+      // ONNX Runtime code + wasm come from this site, never a CDN (see vite.config.ts)
+      const wasm = env.backends.onnx.wasm as { wasmPaths?: unknown; proxy?: boolean } | undefined;
+      if (wasm) wasm.wasmPaths = new URL(`${import.meta.env.BASE_URL}ort/`, location.href).href;
       const files = new Map<string, number>();
       const ex = await pipeline("feature-extraction", model, {
         dtype: precision(),
+        revision: MODEL_REVISION[model] ?? "main",
         progress_callback: (p: { status: string; file?: string; progress?: number }) => {
           if (p.file && typeof p.progress === "number") {
             files.set(p.file, p.progress);

@@ -1,0 +1,7 @@
+# Changes to CI/release, the frozen space, model pins and security docs need the owner's review
+# (enable "Require review from Code Owners" in the main branch ruleset).
+/.github/                  @Thiruvikramanpravartak
+/scripts/                  @Thiruvikramanpravartak
+/src/sphota/data/          @Thiruvikramanpravartak
+/pyproject.toml            @Thiruvikramanpravartak
+/SECURITY.md               @Thiruvikramanpravartak
