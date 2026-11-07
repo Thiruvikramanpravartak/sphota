@@ -1,0 +1,93 @@
+{
+ "scale": "small",
+ "anchor": "intfloat/multilingual-e5-small",
+ "space": "s1",
+ "models": {
+  "sentence-transformers/all-MiniLM-L6-v2": {
+   "procrustes": {
+    "l1_4096": {
+     "en": 0.0613,
+     "all": 0.0613
+    },
+    "cells_256": {
+     "en": 0.0771,
+     "all": 0.0771
+    },
+    "regions_32": {
+     "en": 0.5573,
+     "all": 0.5573
+    },
+    "train_s": 0.8
+   },
+   "ridge": {
+    "l1_4096": {
+     "en": 0.166,
+     "all": 0.166
+    },
+    "cells_256": {
+     "en": 0.336,
+     "all": 0.336
+    },
+    "regions_32": {
+     "en": 0.6482,
+     "all": 0.6482
+    },
+    "train_s": 0.4
+   },
+   "mlp": {
+    "l1_4096": {
+     "en": 0.2658,
+     "all": 0.2658
+    },
+    "cells_256": {
+     "en": 0.4773,
+     "all": 0.4773
+    },
+    "regions_32": {
+     "en": 0.67,
+     "all": 0.67
+    },
+    "train_s": 11.3
+   },
+   "mlp+code": {
+    "l1_4096": {
+     "en": 0.2925,
+     "all": 0.2925
+    },
+    "cells_256": {
+     "en": 0.4644,
+     "all": 0.4644
+    },
+    "regions_32": {
+     "en": 0.5741,
+     "all": 0.5741
+    },
+    "train_s": 18.0
+   }
+  }
+ },
+ "scaling": {
+  "sentence-transformers/all-MiniLM-L6-v2": {
+   "2500": {
+    "ridge": 0.0473,
+    "mlp+code": 0.0647
+   },
+   "5000": {
+    "ridge": 0.0501,
+    "mlp+code": 0.07
+   },
+   "10000": {
+    "ridge": 0.051,
+    "mlp+code": 0.0772
+   },
+   "20000": {
+    "ridge": 0.0527,
+    "mlp+code": 0.092
+   },
+   "40000": {
+    "ridge": 0.0516,
+    "mlp+code": 0.1035
+   }
+  }
+ }
+}
