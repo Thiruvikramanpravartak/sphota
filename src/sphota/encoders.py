@@ -8,10 +8,16 @@
 Models are downloaded on first use into the Hugging Face cache and work offline afterwards.
 ``SPHOTA_OFFLINE=1`` forbids downloads; ``SPHOTA_BUNDLE`` points to an offline bundle made by
 ``sphota bundle``.
+
+Supply chain (D-026): every model the library downloads is pinned to a Hub commit and each file's
+SHA-256 is checked before it is loaded (``sphota/data/models.json``). A mismatch is refused.
 """
 
 from __future__ import annotations
 
+import functools
+import hashlib
+import json
 import os
 from collections import OrderedDict
 from pathlib import Path
@@ -40,12 +46,78 @@ def _bundle_dir() -> Path | None:
     return Path(b) if b else None
 
 
+@functools.lru_cache(maxsize=1)
+def _pins() -> dict:
+    return json.loads((Path(__file__).parent / "data" / "models.json").read_text(encoding="utf-8"))
+
+
+def pinned_revision(repo: str, kind: str = "onnx") -> str | None:
+    """The Hub commit a known model is pinned to (``None`` for models we do not pin)."""
+    entry = _pins().get(kind, {}).get(repo)
+    if entry is None:
+        return None
+    return entry if isinstance(entry, str) else entry.get("revision")
+
+
+def _verified_cache() -> Path:
+    base = os.environ.get("SPHOTA_CACHE_DIR") or os.path.join(
+        os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache"), "sphota"
+    )
+    return Path(base) / "verified.json"
+
+
+def _sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def verify_file(path: Path, expected: str, label: str) -> None:
+    """Check a downloaded file against its pinned SHA-256; refuse it on mismatch.
+
+    Files already verified (same real path, size and modification time) are not re-hashed.
+    """
+    real = os.path.realpath(path)
+    st = os.stat(real)
+    key = f"{real}|{st.st_size}|{st.st_mtime_ns}"
+    cache = _verified_cache()
+    try:
+        seen = json.loads(cache.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        seen = {}
+    if seen.get(key) == expected:
+        return
+    got = _sha256(Path(real))
+    if got != expected:
+        raise EncoderError(
+            f"refusing to load {label}: its SHA-256 is {got[:16]}…, expected {expected[:16]}…. "
+            f"The file may be corrupted or tampered with. Delete it ({real}) and retry; if it "
+            "happens again, report it (see SECURITY.md)."
+        )
+    seen[key] = expected
+    try:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps(seen), encoding="utf-8")
+    except OSError:  # read-only home: verify again next time
+        pass
+
+
 def hf_file(repo: str, filename: str, revision: str | None = None) -> Path:
-    """Resolve a file from an offline bundle or the HF Hub cache (downloading if allowed)."""
+    """Resolve a file from an offline bundle or the HF Hub cache (downloading if allowed).
+
+    Pinned models (``data/models.json``) are fetched at their pinned commit and SHA-256-checked.
+    """
+    pin = _pins().get("onnx", {}).get(repo, {})
+    expected = pin.get("sha256", {}).get(filename)
+    revision = revision or pin.get("revision")
     b = _bundle_dir()
     if b is not None:
         p = b / "models" / repo.replace("/", "__") / filename
         if p.exists():
+            if expected:
+                verify_file(p, expected, f"{repo}/{filename}")
             return p
     try:
         from huggingface_hub import hf_hub_download
@@ -56,7 +128,7 @@ def hf_file(repo: str, filename: str, revision: str | None = None) -> Path:
     if offline():
         os.environ.setdefault("HF_HUB_OFFLINE", "1")
     try:
-        return Path(hf_hub_download(repo, filename, revision=revision, local_files_only=offline()))
+        path = Path(hf_hub_download(repo, filename, revision=revision, local_files_only=offline()))
     except Exception as e:
         if offline():
             raise EncoderError(
@@ -67,6 +139,9 @@ def hf_file(repo: str, filename: str, revision: str | None = None) -> Path:
             f"could not download {repo}/{filename}: {e}. Check your connection or proxy; "
             "once downloaded the model is cached and works offline."
         ) from e
+    if expected:
+        verify_file(path, expected, f"{repo}/{filename}")
+    return path
 
 
 class _LRU:
@@ -195,7 +270,13 @@ class TorchEncoder(_CachedEncoder):
         self.name = model
         self.prefix = prefix
         self.batch_size = batch_size
-        self.m = SentenceTransformer(model, device=device)
+        # pinned commit for known models; never run code shipped inside a model repo
+        self.m = SentenceTransformer(
+            model,
+            device=device,
+            revision=pinned_revision(model, "torch"),
+            trust_remote_code=False,
+        )
         self.dim = int(self.m.get_sentence_embedding_dimension() or 0)
 
     def _encode(self, texts: list[str]) -> np.ndarray:

@@ -42,16 +42,22 @@ def load(model: str):
         import torch
         from sentence_transformers import SentenceTransformer
 
+        from sphota.encoders import pinned_revision
+
         torch.set_num_threads(int(os.environ.get("SPHOTA_THREADS", "4")))
+        safe = {"revision": pinned_revision(model, "torch"), "trust_remote_code": False}
         if torch.cuda.is_available():  # GPU runs (Kaggle / rented): fp16 for speed
             _MODELS[model] = SentenceTransformer(
                 model,
                 cache_folder=str(HF_CACHE),
                 device="cuda",
                 model_kwargs={"torch_dtype": torch.float16},
+                **safe,
             )
         else:
-            _MODELS[model] = SentenceTransformer(model, cache_folder=str(HF_CACHE), device="cpu")
+            _MODELS[model] = SentenceTransformer(
+                model, cache_folder=str(HF_CACHE), device="cpu", **safe
+            )
     return _MODELS[model]
 
 
@@ -85,13 +91,13 @@ def cached(model: str, name: str, texts: list[str], scale: str, chunk: int = 204
     d.mkdir(parents=True, exist_ok=True)
     final = d / f"{name}-{h}.npy"
     if final.exists():
-        return np.load(final)
+        return np.load(final, allow_pickle=False)
     parts = []
     t0 = time.time()
     for s in range(0, len(texts), chunk):
         p = d / f".{name}-{h}.part{s // chunk:05d}.npy"
         if p.exists():
-            parts.append(np.load(p))
+            parts.append(np.load(p, allow_pickle=False))
             continue
         e = encode(model, texts[s : s + chunk])
         np.save(p, e)

@@ -1,0 +1,49 @@
+{
+ "_comment": "Pinned model revisions and file SHA-256 (supply-chain hardening, D-026). Files are verified after download; a mismatch is refused.",
+ "onnx": {
+  "intfloat/multilingual-e5-small": {
+   "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+   "sha256": {
+    "onnx/model.onnx": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+    "onnx/model_qint8_avx512_vnni.onnx": "dd476dd0c2514e9b9be83aeb3853fac0763e0bdf4a71645407587d77c48a2d88",
+    "tokenizer.json": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39"
+   }
+  },
+  "Xenova/all-MiniLM-L6-v2": {
+   "revision": "751bff37182d3f1213fa05d7196b954e230abad9",
+   "sha256": {
+    "onnx/model.onnx": "759c3cd2b7fe7e93933ad23c4c9181b7396442a2ed746ec7c1d46192c469c46e",
+    "tokenizer.json": "da0e79933b9ed51798a3ae27893d3c5fa4a201126cef75586296df9b4d2c62a0"
+   }
+  },
+  "Xenova/bge-small-en-v1.5": {
+   "revision": "ea104dacec62c0de699686887e3f920caeb4f3e3",
+   "sha256": {
+    "onnx/model.onnx": "828e1496d7fabb79cfa4dcd84fa38625c0d3d21da474a00f08db0f559940cf35",
+    "tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+   }
+  },
+  "Xenova/paraphrase-multilingual-MiniLM-L12-v2": {
+   "revision": "2c4055b12046f11709e9df2c122e59ffbdc2f900",
+   "sha256": {
+    "onnx/model.onnx": "185ae63f47e17a7e8d30d0e6a3cde6a6e4b79bc5b81666ecffc279a6856ca113",
+    "tokenizer.json": "b60b6b43406a48bf3638526314f3d232d97058bc93472ff2de930d43686fa441"
+   }
+  },
+  "Xenova/gte-small": {
+   "revision": "5927d1727bb12db490052a1b33265ad78058de08",
+   "sha256": {
+    "onnx/model.onnx": "398a29991324e0b383afa13375d681ced3079c83e097fb1ebd9290d7498523b3",
+    "tokenizer.json": "da0e79933b9ed51798a3ae27893d3c5fa4a201126cef75586296df9b4d2c62a0"
+   }
+  }
+ },
+ "torch": {
+  "sentence-transformers/all-MiniLM-L6-v2": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+  "sentence-transformers/LaBSE": "836121a0533e5664b21c7aacc5d22951f2b8b25b",
+  "BAAI/bge-small-en-v1.5": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+  "thenlper/gte-small": "17e1f347d17fe144873b1201da91788898c639cd",
+  "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+  "intfloat/multilingual-e5-small": "614241f622f53c4eeff9890bdc4f31cfecc418b3"
+ }
+}

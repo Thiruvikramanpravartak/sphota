@@ -150,7 +150,7 @@ def build(out: Path) -> None:
     ).fit_transform(C1n)
     xy -= xy.mean(0)
     xy /= np.abs(xy).max()
-    counts = np.load(rel.root / "neighbors.npz")["l1_counts"]
+    counts = np.load(rel.root / "neighbors.npz", allow_pickle=False)["l1_counts"]
     reg, regions = regions_layer(C1, xy, counts)
     examples = json.loads((rel.root / "examples.json").read_text(encoding="utf-8"))
     labels = rel.labels

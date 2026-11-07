@@ -164,7 +164,7 @@ def name_regions(langs: list[str]) -> dict:
     from sphota.release import load_release
 
     rel = load_release()
-    counts = np.load(rel.root / "neighbors.npz")["l1_counts"]
+    counts = np.load(rel.root / "neighbors.npz", allow_pickle=False)["l1_counts"]
     members: dict[int, list[tuple[int, int]]] = {}
     for i, c in enumerate(rel.codebooks[0]):
         r = int(region_of(c)[0][1:])

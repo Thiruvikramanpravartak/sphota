@@ -56,9 +56,12 @@ def verify_bundle(path: str | Path) -> list[str]:
     path = Path(path)
     meta = json.loads((path / "bundle.json").read_text(encoding="utf-8"))
     bad = []
+    root = path.resolve()
     for name, digest in meta["files"].items():
         p = path / name
-        if not p.exists():
+        if not p.resolve().is_relative_to(root):
+            bad.append(f"path outside the bundle {name}")
+        elif not p.exists():
             bad.append(f"missing {name}")
         elif sha256_file(p) != digest:
             bad.append(f"checksum mismatch {name}")

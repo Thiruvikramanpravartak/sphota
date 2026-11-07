@@ -272,3 +272,13 @@ back-translation must point to its own region within the top 2 (`python -m
 sphota.build.label_llm --step region-check`). 30 of ~550 names failed (11 languages; most in Urdu
 6, Odia 4, Hindi 3) and were removed, so those regions show in English. The review sheets mark
 them for native speakers. Region assignment and English names are unchanged.
+
+## D-026 Supply-chain hardening: pinned, hash-verified models
+The library downloaded models from the Hugging Face Hub at whatever revision was current. A
+compromised or simply updated model repo would silently change codes (breaking the frozen
+standard) or serve a malicious file. Now `sphota/data/models.json` pins every model the library
+downloads to a Hub commit (e5-small at 614241f6…, the commit the s1 release was built from) with
+the SHA-256 of each file; `hf_file` downloads at that commit and refuses any file whose hash
+differs (also inside offline bundles). sentence-transformers models load at a pinned revision with
+`trust_remote_code=False`. Verified files are remembered (path, size, mtime) so the 1.3 s hash of
+the fp32 model is paid once. Unknown (user-chosen) models are not pinned.
