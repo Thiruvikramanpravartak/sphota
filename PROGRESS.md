@@ -29,6 +29,8 @@
 - **Security (D-026, D-027):** pinned + hash-verified models, pinned CI actions, isolated release
   with wheel-content check and attestations, CodeQL/Scorecard/zizmor/pip-audit/npm audit, Atlas
   without third-party code.
+- **v1.1 adapters shipped (opt-in, D-029):** `adapters="v1.1"`; English same-cell agreement with the
+  anchor roughly doubles for all five models; certification and migration recall unchanged.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 

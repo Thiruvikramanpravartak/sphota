@@ -1,0 +1,312 @@
+{
+ "sentence-transformers/all-MiniLM-L6-v2": {
+  "v1.1": {
+   "agreement_same_text_en": [
+    0.3577,
+    0.1176,
+    0.0405,
+    0.0109
+   ],
+   "agreement_same_text": [
+    0.0854,
+    0.0221,
+    0.006,
+    0.0012
+   ],
+   "l1_top3_en": 0.5287,
+   "l1_neighborhood_en": 0.5988,
+   "l1_top3_all": 0.1594,
+   "agreement_cross_lingual": [
+    0.0591,
+    0.0181,
+    0.006,
+    0.0029
+   ],
+   "fidelity_en": 0.5828,
+   "fidelity_all": 0.3333,
+   "n_per_lang": 1012,
+   "grade": "certified",
+   "retrieval_r10_en": 0.999
+  },
+  "v1": {
+   "agreement_same_text_en": [
+    0.166,
+    0.0306,
+    0.0059,
+    0.0
+   ],
+   "agreement_same_text": [
+    0.0516,
+    0.0117,
+    0.0022,
+    0.0002
+   ],
+   "l1_top3_en": 0.2777,
+   "l1_neighborhood_en": 0.6156,
+   "l1_top3_all": 0.1058,
+   "agreement_cross_lingual": [
+    0.1808,
+    0.087,
+    0.052,
+    0.0266
+   ],
+   "fidelity_en": 0.5482,
+   "fidelity_all": 0.3008,
+   "grade": "certified",
+   "n_per_lang": 1012
+  },
+  "retrieval_r10_en": {
+   "v1": 0.9990118577075099,
+   "v1.1": 0.9990118577075099
+  },
+  "seconds": 84
+ },
+ "BAAI/bge-small-en-v1.5": {
+  "v1.1": {
+   "agreement_same_text_en": [
+    0.3656,
+    0.1433,
+    0.0494,
+    0.0148
+   ],
+   "agreement_same_text": [
+    0.0979,
+    0.0302,
+    0.007,
+    0.0018
+   ],
+   "l1_top3_en": 0.5919,
+   "l1_neighborhood_en": 0.6413,
+   "l1_top3_all": 0.1803,
+   "agreement_cross_lingual": [
+    0.0812,
+    0.0257,
+    0.0081,
+    0.0029
+   ],
+   "fidelity_en": 0.6113,
+   "fidelity_all": 0.3402,
+   "n_per_lang": 1012,
+   "grade": "certified",
+   "retrieval_r10_en": 1.0
+  },
+  "v1": {
+   "agreement_same_text_en": [
+    0.1383,
+    0.0237,
+    0.004,
+    0.0
+   ],
+   "agreement_same_text": [
+    0.0487,
+    0.0109,
+    0.0025,
+    0.0004
+   ],
+   "l1_top3_en": 0.2411,
+   "l1_neighborhood_en": 0.6324,
+   "l1_top3_all": 0.1004,
+   "agreement_cross_lingual": [
+    0.2214,
+    0.0999,
+    0.0609,
+    0.0295
+   ],
+   "fidelity_en": 0.5678,
+   "fidelity_all": 0.3117,
+   "grade": "certified",
+   "n_per_lang": 1012
+  },
+  "retrieval_r10_en": {
+   "v1": 1.0,
+   "v1.1": 1.0
+  },
+  "seconds": 68
+ },
+ "thenlper/gte-small": {
+  "v1.1": {
+   "agreement_same_text_en": [
+    0.333,
+    0.1038,
+    0.0326,
+    0.0109
+   ],
+   "agreement_same_text": [
+    0.0955,
+    0.0257,
+    0.0052,
+    0.0016
+   ],
+   "l1_top3_en": 0.5287,
+   "l1_neighborhood_en": 0.582,
+   "l1_top3_all": 0.1702,
+   "agreement_cross_lingual": [
+    0.0844,
+    0.0253,
+    0.01,
+    0.0031
+   ],
+   "fidelity_en": 0.5896,
+   "fidelity_all": 0.3178,
+   "n_per_lang": 1012,
+   "grade": "certified",
+   "retrieval_r10_en": 1.0
+  },
+  "v1": {
+   "agreement_same_text_en": [
+    0.0573,
+    0.0049,
+    0.001,
+    0.0
+   ],
+   "agreement_same_text": [
+    0.0335,
+    0.0066,
+    0.0017,
+    0.0003
+   ],
+   "l1_top3_en": 0.1265,
+   "l1_neighborhood_en": 0.6383,
+   "l1_top3_all": 0.0753,
+   "agreement_cross_lingual": [
+    0.304,
+    0.1706,
+    0.1337,
+    0.079
+   ],
+   "fidelity_en": 0.5481,
+   "fidelity_all": 0.304,
+   "grade": "certified",
+   "n_per_lang": 1012
+  },
+  "retrieval_r10_en": {
+   "v1": 0.9980237154150198,
+   "v1.1": 1.0
+  },
+  "seconds": 66
+ },
+ "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": {
+  "v1.1": {
+   "agreement_same_text_en": [
+    0.3538,
+    0.1117,
+    0.0346,
+    0.0069
+   ],
+   "agreement_same_text": [
+    0.3281,
+    0.1264,
+    0.0376,
+    0.0125
+   ],
+   "l1_top3_en": 0.5455,
+   "l1_neighborhood_en": 0.6423,
+   "l1_top3_all": 0.5102,
+   "agreement_cross_lingual": [
+    0.5257,
+    0.3451,
+    0.2442,
+    0.1629
+   ],
+   "fidelity_en": 0.6186,
+   "fidelity_all": 0.5592,
+   "n_per_lang": 1012,
+   "grade": "certified-multilingual",
+   "retrieval_r10_en": 1.0
+  },
+  "v1": {
+   "agreement_same_text_en": [
+    0.2332,
+    0.0583,
+    0.0178,
+    0.001
+   ],
+   "agreement_same_text": [
+    0.2446,
+    0.0819,
+    0.0227,
+    0.0063
+   ],
+   "l1_top3_en": 0.3666,
+   "l1_neighborhood_en": 0.6206,
+   "l1_top3_all": 0.3916,
+   "agreement_cross_lingual": [
+    0.5482,
+    0.3811,
+    0.2941,
+    0.2138
+   ],
+   "fidelity_en": 0.5798,
+   "fidelity_all": 0.52,
+   "grade": "certified-multilingual",
+   "n_per_lang": 1012
+  },
+  "retrieval_r10_en": {
+   "v1": 1.0,
+   "v1.1": 1.0
+  },
+  "seconds": 66
+ },
+ "sentence-transformers/LaBSE": {
+  "v1.1": {
+   "agreement_same_text_en": [
+    0.3281,
+    0.1423,
+    0.0435,
+    0.0109
+   ],
+   "agreement_same_text": [
+    0.3188,
+    0.1245,
+    0.0427,
+    0.0152
+   ],
+   "l1_top3_en": 0.5237,
+   "l1_neighborhood_en": 0.58,
+   "l1_top3_all": 0.5203,
+   "agreement_cross_lingual": [
+    0.5881,
+    0.367,
+    0.2389,
+    0.1467
+   ],
+   "fidelity_en": 0.6257,
+   "fidelity_all": 0.6135,
+   "n_per_lang": 1012,
+   "grade": "certified-multilingual",
+   "retrieval_r10_en": 1.0
+  },
+  "v1": {
+   "agreement_same_text_en": [
+    0.1917,
+    0.0603,
+    0.0188,
+    0.002
+   ],
+   "agreement_same_text": [
+    0.1938,
+    0.0632,
+    0.0185,
+    0.0042
+   ],
+   "l1_top3_en": 0.3211,
+   "l1_neighborhood_en": 0.5692,
+   "l1_top3_all": 0.3333,
+   "agreement_cross_lingual": [
+    0.5632,
+    0.3784,
+    0.2621,
+    0.1824
+   ],
+   "fidelity_en": 0.6024,
+   "fidelity_all": 0.5949,
+   "grade": "certified-multilingual",
+   "n_per_lang": 1012
+  },
+  "retrieval_r10_en": {
+   "v1": 1.0,
+   "v1.1": 1.0
+  },
+  "seconds": 43
+ }
+}

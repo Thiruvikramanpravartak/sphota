@@ -310,3 +310,12 @@ pairs (2.5k → 40k); the MLP keeps improving (pmMiniLM L1 27.0% → 32.8%). Con
 of the "models disagree" failure was the linear adapter, not the models. The 256-cell level is
 now 3.9 points from the gate's 60% bar with the e5 anchor on CPU-scale data. Next: ship MLP
 adapters (opt-in, without touching the frozen v1 registry), then a larger paired-data run.
+
+## D-029 Ship the nonlinear adapters as an opt-in set (v1.1), not as a replacement
+`build/adapters_v11.py` trains ridge + residual GELU(tanh) adapters for the five registry models and
+certifies the shipped numpy forward pass (float16 hidden weights): English same-cell agreement
+13.8–23.3% → 32.8–36.6%, all certified (two certified-multilingual), migration recall@10
+unchanged (~100%), 9.7 MB total. They live in `sphota/data/adapters/v1.1/` so the frozen v1
+registry is untouched (owner rule). Default stays `v1`: switching would change stored codes for
+anyone who encoded through an adapter. Making v1.1 the default is an owner decision for the next
+minor version.

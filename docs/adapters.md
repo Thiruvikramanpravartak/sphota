@@ -35,6 +35,34 @@ full-scale adapter.
 Full certificates (exact and neighbourhood agreement, fidelity) are in the
 [benchmark](benchmark.md) and the [leaderboard](https://github.com/thiruvikramanpravartak/sphota/blob/main/bench/leaderboard/index.html).
 
+## Nonlinear adapters (set v1.1, opt-in)
+
+The same five models also have **v1.1** adapters: the linear map plus a small residual network
+(one 1024-unit hidden layer), trained on the same pairs (D-028). They roughly double how often the
+other model's code lands in the anchor's own cell, keep migration recall at ~100%, and pass the
+same certification. Shipped as numpy-only `.npz` (≈ 9.7 MB in total, float16 hidden weights).
+
+```python
+encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2", adapters="v1.1")
+```
+
+```bash
+sphota encode -m minilm-l6 --adapters v1.1 "The CEO resigned"
+SPHOTA_ADAPTERS=v1.1 python my_app.py        # make v1.1 the default for a process
+```
+
+| model | same cell, English: v1 → v1.1 | same cell, 12 languages: v1 → v1.1 | recall@10 (migration) | grade |
+|---|---|---|---|---|
+| all-MiniLM-L6-v2 | 16.6% → **35.8%** | 5.2% → 8.5% | 99.9% → 99.9% | certified |
+| bge-small-en-v1.5 | 13.8% → **36.6%** | 4.9% → 9.8% | 100.0% → 100.0% | certified |
+| gte-small | 5.7% → **33.3%** | 3.4% → 9.6% | 99.8% → 100.0% | certified |
+| paraphrase-multilingual-MiniLM-L12-v2 | 23.3% → **35.4%** | 24.5% → 32.8% | 100.0% → 100.0% | certified-multilingual |
+| LaBSE | 19.2% → **32.8%** | 19.4% → 31.9% | 100.0% → 100.0% | certified-multilingual |
+
+The default stays `v1` (frozen) so stored codes never change silently; codes from the two sets
+can differ for the same model, so record which set produced a stored code. Rebuild:
+`python -m sphota.build.adapters_v11 --scale small`.
+
 ## What certification means
 
 Certification in s1 guarantees **neighbourhood-level interoperability**: the model places most

@@ -15,6 +15,11 @@ The *space version* (`s1`) is independent of the library version and is frozen.
 - `Sphota.confident_label()`; `label_confident` in `to_dict()`.
 - Benchmarks: 19 Indian languages (FLORES); GPU decision gate at medium scale (failed, D-022).
 - GitHub workflows for PyPI trusted publishing and GitHub Pages (manual).
+- Adapter set **v1.1** (opt-in: `adapters="v1.1"`, `--adapters v1.1`, `SPHOTA_ADAPTERS`):
+  nonlinear adapters for all five registry models, about twice the same-cell agreement with the
+  anchor (D-028); new adapter kind `mlp2` in spec part 7.
+- Supply-chain hardening: pinned, hash-verified model downloads; pinned CI actions; isolated,
+  attested releases with a wheel-content check; Atlas serves all code itself under a strict CSP.
 ### Changed
 - Positioning: "readable, multilingual meaning codes for topic analytics, routing, caching and
   model migration" (no longer "GPS for meaning").

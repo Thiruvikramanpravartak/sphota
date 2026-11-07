@@ -1,0 +1,216 @@
+{
+  "space": "s1",
+  "set": "v1.1",
+  "adapters": {
+    "sentence-transformers/all-MiniLM-L6-v2": {
+      "short": "minilm-l6",
+      "file": "minilm-l6.npz",
+      "sha256": "b20ab160b478d82edddf675a45ab4f25b64146aadc9155fb326fc5dda1f4551b",
+      "kind": "mlp2",
+      "model_license": "apache-2.0",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "pooling": "mean",
+        "max_length": 256
+      },
+      "temperature_scale": 1.1225,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3577,
+          0.1176,
+          0.0405,
+          0.0109
+        ],
+        "agreement_same_text": [
+          0.0854,
+          0.0221,
+          0.006,
+          0.0012
+        ],
+        "l1_top3_en": 0.5287,
+        "l1_neighborhood_en": 0.5988,
+        "l1_top3_all": 0.1594,
+        "agreement_cross_lingual": [
+          0.0591,
+          0.0181,
+          0.006,
+          0.0029
+        ],
+        "fidelity_en": 0.5828,
+        "fidelity_all": 0.3333,
+        "n_per_lang": 1012,
+        "grade": "certified",
+        "retrieval_r10_en": 0.999
+      }
+    },
+    "BAAI/bge-small-en-v1.5": {
+      "short": "bge-small-en",
+      "file": "bge-small-en.npz",
+      "sha256": "bf1ee00aa189bc0749f1843484a648ea8cd48e39494b20ac811a072bed0df5b3",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/bge-small-en-v1.5",
+        "pooling": "cls",
+        "max_length": 512
+      },
+      "temperature_scale": 1.1225,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3656,
+          0.1433,
+          0.0494,
+          0.0148
+        ],
+        "agreement_same_text": [
+          0.0979,
+          0.0302,
+          0.007,
+          0.0018
+        ],
+        "l1_top3_en": 0.5919,
+        "l1_neighborhood_en": 0.6413,
+        "l1_top3_all": 0.1803,
+        "agreement_cross_lingual": [
+          0.0812,
+          0.0257,
+          0.0081,
+          0.0029
+        ],
+        "fidelity_en": 0.6113,
+        "fidelity_all": 0.3402,
+        "n_per_lang": 1012,
+        "grade": "certified",
+        "retrieval_r10_en": 1.0
+      }
+    },
+    "thenlper/gte-small": {
+      "short": "gte-small",
+      "file": "gte-small.npz",
+      "sha256": "45da2f404110970c151d5b63c3068a31a80fe3ea823f8c23876b99e383947aa4",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/gte-small",
+        "pooling": "mean",
+        "max_length": 512
+      },
+      "temperature_scale": 1.1225,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.333,
+          0.1038,
+          0.0326,
+          0.0109
+        ],
+        "agreement_same_text": [
+          0.0955,
+          0.0257,
+          0.0052,
+          0.0016
+        ],
+        "l1_top3_en": 0.5287,
+        "l1_neighborhood_en": 0.582,
+        "l1_top3_all": 0.1702,
+        "agreement_cross_lingual": [
+          0.0844,
+          0.0253,
+          0.01,
+          0.0031
+        ],
+        "fidelity_en": 0.5896,
+        "fidelity_all": 0.3178,
+        "n_per_lang": 1012,
+        "grade": "certified",
+        "retrieval_r10_en": 1.0
+      }
+    },
+    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": {
+      "short": "pm-minilm-l12",
+      "file": "pm-minilm-l12.npz",
+      "sha256": "f2e51f5ce9b2c2e56543f7b178bd3d01add976fd929280ff3b425ad122ba96a5",
+      "kind": "mlp2",
+      "model_license": "apache-2.0",
+      "multilingual": true,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+        "pooling": "mean",
+        "max_length": 128
+      },
+      "temperature_scale": 0.7937,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3538,
+          0.1117,
+          0.0346,
+          0.0069
+        ],
+        "agreement_same_text": [
+          0.3281,
+          0.1264,
+          0.0376,
+          0.0125
+        ],
+        "l1_top3_en": 0.5455,
+        "l1_neighborhood_en": 0.6423,
+        "l1_top3_all": 0.5102,
+        "agreement_cross_lingual": [
+          0.5257,
+          0.3451,
+          0.2442,
+          0.1629
+        ],
+        "fidelity_en": 0.6186,
+        "fidelity_all": 0.5592,
+        "n_per_lang": 1012,
+        "grade": "certified-multilingual",
+        "retrieval_r10_en": 1.0
+      }
+    },
+    "sentence-transformers/LaBSE": {
+      "short": "labse",
+      "file": "labse.npz",
+      "sha256": "6794e541e824b0798b5eb32db8d36a22612c7e6e98c7e0fbf0a3509e4d2cce44",
+      "kind": "mlp2",
+      "model_license": "apache-2.0",
+      "multilingual": true,
+      "prefix": "",
+      "temperature_scale": 0.63,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3281,
+          0.1423,
+          0.0435,
+          0.0109
+        ],
+        "agreement_same_text": [
+          0.3188,
+          0.1245,
+          0.0427,
+          0.0152
+        ],
+        "l1_top3_en": 0.5237,
+        "l1_neighborhood_en": 0.58,
+        "l1_top3_all": 0.5203,
+        "agreement_cross_lingual": [
+          0.5881,
+          0.367,
+          0.2389,
+          0.1467
+        ],
+        "fidelity_en": 0.6257,
+        "fidelity_all": 0.6135,
+        "n_per_lang": 1012,
+        "grade": "certified-multilingual",
+        "retrieval_r10_en": 1.0
+      }
+    }
+  }
+}
