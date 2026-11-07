@@ -1,5 +1,6 @@
 site_name: Sphota
 site_description: "Readable, multilingual meaning codes for topic analytics, routing, caching and model migration."
+site_url: https://thiruvikramanpravartak.github.io/sphota/docs/
 repo_url: https://github.com/thiruvikramanpravartak/sphota
 edit_uri: edit/main/docs/
 theme:
@@ -24,6 +25,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Quick start: quickstart.md
+  - Try it on your messages: try-it.md
   - Concepts: concepts.md
   - API reference: api.md
   - CLI: cli.md

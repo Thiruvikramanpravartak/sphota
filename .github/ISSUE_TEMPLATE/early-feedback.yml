@@ -1,0 +1,40 @@
+name: Early user feedback
+description: You tried Sphota on your own messages. Tell us what worked and what did not.
+title: "Feedback: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for trying Sphota. Please do not paste private or personal data; describe it instead."
+  - type: dropdown
+    id: how
+    attributes:
+      label: What did you use?
+      options: ["Meaning Atlas (browser): Analyze a file", "sphota analyze (command line)", "Python library", "Other"]
+    validations: { required: true }
+  - type: input
+    id: data
+    attributes:
+      label: What kind of text, and which languages?
+      placeholder: "e.g. 2,000 support tickets, Hindi + English (some Hinglish)"
+    validations: { required: true }
+  - type: dropdown
+    id: themes
+    attributes:
+      label: Did the themes make sense?
+      options: ["Mostly yes", "Some did, some did not", "Mostly no"]
+    validations: { required: true }
+  - type: dropdown
+    id: languages
+    attributes:
+      label: Did the same issue in different languages land in the same theme?
+      options: ["Mostly yes", "Sometimes", "Mostly no", "Only one language in my data"]
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What looked wrong or confusing?
+      description: Examples help most (rewrite them if they are private).
+  - type: textarea
+    id: next
+    attributes:
+      label: What would you need before using it for real work?

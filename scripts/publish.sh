@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Publish everything. NOT run automatically; the repository is private until the owner decides.
+# Manual publishing from a laptop. Preferred: the GitHub workflows (see RELEASING.md).
 #
 #   bash scripts/publish.sh pypi        # build + upload the Python package (needs UV_PUBLISH_TOKEN)
 #   bash scripts/publish.sh atlas-pages # Meaning Atlas → GitHub Pages

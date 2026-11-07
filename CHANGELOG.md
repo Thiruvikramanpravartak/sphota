@@ -5,6 +5,23 @@ All notable changes to this project are documented here. The format follows
 The *space version* (`s1`) is independent of the library version and is frozen.
 
 ## [Unreleased]
+### Added
+- 32 cross-language regions (`c.region`, `c.region_label_in(lang)`), names in 18 languages,
+  checked by script, offensiveness and back-translation filters.
+- `sphota analyze --by theme` (default): groups named by the file's own most confident texts.
+- Meaning Atlas: "Analyze a file" (CSV/TSV/TXT/JSONL, in the browser), CSV export, "exact codes"
+  switch (fp32 model, identical to Python), 7 more label languages.
+- `sphota.unsupported_script()` and a warning when encoding Ol Chiki / Meetei Mayek text.
+- `Sphota.confident_label()`; `label_confident` in `to_dict()`.
+- Benchmarks: 19 Indian languages (FLORES); GPU decision gate at medium scale (failed, D-022).
+- GitHub workflows for PyPI trusted publishing and GitHub Pages (manual).
+### Changed
+- Positioning: "readable, multilingual meaning codes for topic analytics, routing, caching and
+  model migration" (no longer "GPS for meaning").
+- `sphota encode` no longer prints cell topic labels unless `--labels` is given (D-024).
+- Atlas: transformers.js 4, Vite 8, TypeScript 7.
+### Fixed
+- Atlas: negative canvas radius on freshly placed markers.
 
 ## [1.0.0rc1]
 ### Added

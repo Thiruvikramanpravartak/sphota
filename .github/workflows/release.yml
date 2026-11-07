@@ -1,0 +1,36 @@
+# Publish the Python package to PyPI when a version tag is pushed (git tag v1.0.0 && git push --tags).
+# Uses PyPI trusted publishing: no token is stored anywhere. One-time setup on pypi.org →
+# Account → Publishing → "Add a pending publisher": project sphota, owner Thiruvikramanpravartak,
+# repository sphota, workflow release.yml, environment pypi.
+name: Release to PyPI
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install build -e ".[cli]" pytest
+      - name: Tag matches the package version
+        run: |
+          v=$(python -c "import sphota; print(sphota.__version__)")
+          test "v$v" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != package v$v"; exit 1; }
+      - run: pytest -m "not slow" -q
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        with: { name: dist, path: dist/ }
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: dist, path: dist/ }
+      - uses: pypa/gh-action-pypi-publish@release/v1
