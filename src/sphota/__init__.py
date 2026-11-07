@@ -1,9 +1,10 @@
 # Copyright 2026 The Sphota Authors
 # SPDX-License-Identifier: Apache-2.0
-"""Sphota (स्फोट): GPS for meaning.
+"""Sphota (स्फोट): readable, multilingual meaning codes.
 
-An open, frozen, human-readable coordinate system for meaning. Any text, in any language,
-embedded by any supported model, maps to the same short hierarchical code.
+Any text, in any language, maps to a short, frozen, hierarchical code plus one of 32 broad
+regions, for topic analytics, routing, caching and model migration. The coarse levels agree
+across languages most of the time; finer levels are precision within one model.
 
 >>> from sphota import encode                # doctest: +SKIP
 >>> c = encode("The CEO resigned")            # doctest: +SKIP

@@ -1,5 +1,5 @@
 site_name: Sphota
-site_description: "GPS for meaning: open, frozen, human-readable coordinates for text in any language."
+site_description: "Readable, multilingual meaning codes for topic analytics, routing, caching and model migration."
 repo_url: https://github.com/thiruvikramanpravartak/sphota
 edit_uri: edit/main/docs/
 theme:

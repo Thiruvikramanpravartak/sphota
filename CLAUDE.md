@@ -1,7 +1,9 @@
 # CLAUDE.md: working notes for agents and maintainers
 
-Sphota is "GPS for meaning": a frozen, open, hierarchical code (`7F3A-C2-91-0B`) for any
-text in any language, reachable from many embedding models through adapters.
+Sphota: readable, multilingual meaning codes for topic analytics, routing, caching and model
+migration. A frozen, open, hierarchical code (`7F3A-C2-91-0B`) plus 32 regions for any text in any
+language, reachable from many embedding models through adapters. Fine codes are within-model
+precision (the GPU gate failed, D-022); do not pitch it as "GPS for meaning" (D-015).
 
 Working memory lives in the repo: **PLAN.md** (milestones), **PROGRESS.md** (status and
 measured numbers), **DECISIONS.md** (every non-obvious choice). Re-read them when resuming.

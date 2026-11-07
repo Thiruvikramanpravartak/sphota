@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "sphota"
 dynamic = ["version"]
-description = "GPS for meaning: an open, frozen, human-readable coordinate system for meaning across languages and embedding models."
+description = "Readable, multilingual meaning codes for topic analytics, routing, caching and model migration."
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]

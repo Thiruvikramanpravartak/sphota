@@ -22,7 +22,7 @@ else:
         add_completion=False,
         no_args_is_help=True,
         rich_markup_mode="rich",
-        help="Sphota: GPS for meaning. Encode any text, in any language, into a stable code.",
+        help="Sphota: readable multilingual meaning codes. Encode text in any language, group files by theme.",
     )
     con = Console()
     err = Console(stderr=True)

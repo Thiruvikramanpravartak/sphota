@@ -7,7 +7,7 @@ sdk: static
 app_file: index.html
 pinned: false
 license: apache-2.0
-short_description: GPS for meaning. Encode any sentence in your browser.
+short_description: Readable multilingual meaning codes, in your browser.
 ---
 
 # Sphota · Meaning Atlas
