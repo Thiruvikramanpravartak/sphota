@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2026 The Sphota Authors
 # SPDX-License-Identifier: Apache-2.0
-"""Regenerate the paper's result tables from ``bench/results/*.json`` (D-031: every number in the
+"""Regenerate the paper's (and docs/benchmark.md's) result tables from ``bench/results/*.json`` (D-031: every number in the
 paper comes from a script). Tables live between markers in docs/paper/sphota.md:
 
     <!-- table:NAME -->
@@ -22,6 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "bench" / "results"
 PAPER = ROOT / "docs" / "paper" / "sphota.md"
+TARGETS = [PAPER, ROOT / "docs" / "benchmark.md"]
 
 
 def pct(x: float | None, d: int = 1) -> str:
@@ -233,9 +234,16 @@ def render(text: str) -> str:
 
 
 if __name__ == "__main__":
-    src = PAPER.read_text(encoding="utf-8")
-    out = render(src)
+    stale = []
+    for path in TARGETS:
+        src = path.read_text(encoding="utf-8")
+        out = render(src)
+        if out != src:
+            stale.append(path.name)
+            if "--check" not in sys.argv:
+                path.write_text(out, encoding="utf-8")
     if "--check" in sys.argv:
-        sys.exit(0 if out == src else 1)
-    PAPER.write_text(out, encoding="utf-8")
-    print(f"tables refreshed in {PAPER}")
+        if stale:
+            print(f"tables out of date in {stale}: run python scripts/paper_tables.py")
+        sys.exit(1 if stale else 0)
+    print(f"tables refreshed in {', '.join(p.name for p in TARGETS)}")

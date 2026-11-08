@@ -26,6 +26,8 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy
+      - name: Paper and benchmark tables match bench/results
+        run: python scripts/paper_tables.py --check
 
   security:
     # dependency CVEs (Python + npm), workflow security lint, and a wheel-content check

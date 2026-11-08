@@ -306,6 +306,73 @@ Data scaling (L1, 4096 cells, all languages):
 Ridge is flat with more data; the MLP is still improving at 40k pairs, so more paired text (a GPU
 run) should push cross-model agreement further.
 
+## Six domains on public data (D-032)
+`python -m sphota.build.domains --scale small` → `bench/results/domains-small.json`. License-clean
+datasets far from the Wikipedia/FLORES fitting data (licenses: paper Appendix B). Sphota's frozen
+groupings versus k-means fitted on each dataset (V-measure, purity):
+
+<!-- table:domains -->
+| Domain | Lang. | n | Labels | Sphota themes: V / purity (groups) | k-means, same #groups: V / purity | Sphota regions: V | k-means 32: V | k-means true k: V | TF-IDF: V |
+|---|---|---|---|---|---|---|---|---|---|
+| Conversational (MASSIVE) | en | 2,974 | 59 | 0.530 / 51% (485) | 0.650 / 77% | 0.291 | 0.618 | 0.660 | 0.493 |
+| Conversational (MASSIVE) | hi | 2,974 | 59 | 0.469 / 43% (407) | 0.617 / 70% | 0.237 | 0.515 | 0.583 | 0.363 |
+| Conversational (MASSIVE) | ta | 2,974 | 59 | 0.401 / 35% (312) | 0.576 / 62% | 0.194 | 0.417 | 0.468 | 0.367 |
+| Customer support (Banking77) | en | 3,080 | 77 | 0.428 / 23% (166) | 0.738 / 67% | 0.161 | 0.593 | 0.706 | 0.591 |
+| Technical Q&A (Stack Exchange) | en | 5,000 | 20 | 0.422 / 54% (578) | 0.513 / 78% | 0.210 | 0.607 | 0.570 | 0.132 |
+| Science (arXiv titles) | en | 5,000 | 12 | 0.210 / 46% (235) | 0.272 / 64% | 0.110 | 0.309 | 0.302 | 0.063 |
+| Product reviews (IndicReviews) | hi | 1,000 | 15 | 0.404 / 63% (196) | 0.478 / 78% | 0.246 | 0.463 | 0.448 | 0.159 |
+| Product reviews (IndicReviews) | ta | 1,000 | 15 | 0.378 / 60% (204) | 0.441 / 72% | 0.247 | 0.382 | 0.368 | 0.168 |
+| Product reviews (IndicReviews) | bn | 1,000 | 15 | 0.412 / 64% (211) | 0.465 / 76% | 0.266 | 0.433 | 0.414 | 0.152 |
+<!-- /table -->
+
+Cross-lingual agreement on real parallel text (pivot: English for MASSIVE, Hindi for IndicReviews):
+
+<!-- table:xling -->
+| Data (pivot) | Language | Same theme | Same region |
+|---|---|---|---|
+| MASSIVE (English) | hi | 36.0% | 47.2% |
+| MASSIVE (English) | ta | 25.1% | 38.5% |
+| MASSIVE (English) | te | 25.2% | 35.9% |
+| MASSIVE (English) | kn | 27.3% | 38.4% |
+| MASSIVE (English) | ml | 31.5% | 43.4% |
+| MASSIVE (English) | bn | 28.3% | 37.8% |
+| MASSIVE (English) | ur | 29.4% | 42.4% |
+| MASSIVE (English) | es | 45.6% | 56.1% |
+| MASSIVE (English) | fr | 44.9% | 54.1% |
+| MASSIVE (English) | de | 41.5% | 52.5% |
+| MASSIVE (English) | zh-CN | 31.9% | 50.1% |
+| MASSIVE (English) | ar | 30.7% | 44.4% |
+| MASSIVE (English) | ru | 42.0% | 51.8% |
+| IndicReviews (Hindi) | bn | 46.0% | 70.5% |
+| IndicReviews (Hindi) | mr | 45.9% | 71.8% |
+| IndicReviews (Hindi) | te | 44.1% | 69.4% |
+| IndicReviews (Hindi) | ta | 38.9% | 68.7% |
+| IndicReviews (Hindi) | ur | 46.0% | 72.0% |
+| IndicReviews (Hindi) | gu | 46.1% | 69.6% |
+| IndicReviews (Hindi) | kn | 44.5% | 70.8% |
+| IndicReviews (Hindi) | or | 42.2% | 68.6% |
+| IndicReviews (Hindi) | ml | 45.9% | 72.8% |
+| IndicReviews (Hindi) | pa | 45.4% | 70.3% |
+| IndicReviews (Hindi) | as | 35.8% | 63.1% |
+| IndicReviews (Hindi) | bd | 9.6% | 47.5% |
+<!-- /table -->
+
+Code (CodeSearchNet, docstrings stripped from the code):
+
+<!-- table:code -->
+| Language | n | Doc and code: same theme | same region | Retrieval R@1 / R@10, raw anchor | canonical space |
+|---|---|---|---|---|---|
+| python | 1000 | 54.5% | 87.3% | 71.0% / 93.8% | 68.8% / 93.0% |
+| java | 1000 | 50.2% | 95.7% | 56.5% / 89.6% | 53.0% / 84.9% |
+| javascript | 1000 | 35.8% | 76.7% | 51.5% / 75.2% | 50.5% / 76.1% |
+| go | 1000 | 50.5% | 89.2% | 68.9% / 92.8% | 67.8% / 92.4% |
+| php | 1000 | 33.5% | 84.9% | 61.1% / 88.6% | 58.5% / 85.4% |
+| ruby | 1000 | 40.3% | 83.0% | 59.7% / 85.9% | 57.6% / 83.7% |
+<!-- /table -->
+
+Short informal commands agree across languages far less often than FLORES sentences (36–56% same
+region vs ~72%); frozen themes trail per-dataset clustering most on narrow domains (banking).
+
 ## Limitations
 
 * `small`-scale build: ~78k sentences in 12 languages fit 4096 L1 cells (~19 per cell). Regions for

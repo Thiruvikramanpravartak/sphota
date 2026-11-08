@@ -35,6 +35,29 @@ blockquote { margin: 4pt 14pt; color: #333; } li { margin: 1pt 0; }
 """
 
 
+UNICODE_TEX = {
+    "→": r"$\rightarrow$",
+    "↔": r"$\leftrightarrow$",
+    "·": r"$\cdot$",
+    "§": r"\S{}",
+    "≥": r"$\geq$",
+    "≤": r"$\leq$",
+    "×": r"$\times$",
+    "−": "-",
+    "μ": r"$\mu$",
+    "₁": r"$_1$",
+    "₂": r"$_2$",
+    "⁻⁸": r"$^{-8}$",
+    "²": r"$^2$",
+    "–": "--",
+    "—": "---",
+    "’": "'",
+    "“": "``",
+    "”": "''",
+    "…": r"\ldots{}",
+}
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     css = OUT / "paper.css"
@@ -69,6 +92,15 @@ def main() -> int:
         ],
         check=True,
     )
+    # arXiv compiles with pdflatex: map the few Unicode symbols we use to LaTeX
+    tex = OUT / "sphota.tex"
+    t = tex.read_text(encoding="utf-8")
+    for k, v in UNICODE_TEX.items():
+        t = t.replace(k, v)
+    left = sorted({ch for ch in t if ord(ch) > 127})
+    if left:
+        print(f"warning: non-ASCII characters left in the LaTeX: {left}")
+    tex.write_text(t, encoding="utf-8")
     js = """
 const { chromium } = require('playwright');
 (async () => {

@@ -335,3 +335,19 @@ number in the paper must be reproducible by a script in this repository with its
 `bench/results/`; negative results are reported, not dropped; no private or personal data enters
 the repository; the paper and docs use the D-015 positioning, with "GPS for meaning" as the stated
 long-term research goal.
+
+## D-032 Six-domain evaluation: what holds outside FLORES
+`python -m sphota.build.domains --scale small` (`bench/results/domains-small.json`, license-clean
+data, D-031). (1) Grouping: Sphota's frozen themes (first code block) reach V-measure 0.21–0.53,
+below k-means fitted on each dataset at the same number of groups (0.27–0.74); the gap is small for
+science (−0.06), reviews (−0.05 to −0.07) and technical Q&A (−0.09), larger for short commands
+(−0.12 to −0.18) and largest for the narrow banking domain (−0.31). Themes beat TF-IDF clustering on
+technical, science and reviews by 0.25–0.29 V, tie on conversational English and lose on banking.
+(2) Cross-lingual on real text is harder than FLORES: MASSIVE commands share the English region
+36–56% of the time (theme 25–46%); IndicReviews sentences share the Hindi region 63–73% (Bodo,
+unsupported, 47.5%). (3) Cross-model on real text: v1.1 adapters raise same-theme agreement
+17.2% → 31.6% (en) and 15.1% → 28.4% (hi). (4) Code: docstring and code share a region 77–96% and a
+theme 34–55%; docstring→code recall@10 75–94% with raw anchor vectors, 76–93% after the canonical
+projection. Product consequence: themes are a good zero-setup, stable-ID view; for best grouping
+within one file, a per-file refinement step is the next feature to build. Claims in docs must cite
+the real-data numbers, not only FLORES.

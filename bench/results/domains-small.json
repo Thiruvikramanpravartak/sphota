@@ -1,0 +1,555 @@
+{
+ "scale": "small",
+ "space": "s1",
+ "anchor": "intfloat/multilingual-e5-small",
+ "domains": {
+  "conversational": {
+   "dataset": "mteb/amazon_massive_intent",
+   "license": "CC-BY-4.0",
+   "grouping": {
+    "en": {
+     "n": 2974,
+     "labels": 59,
+     "sphota_themes": {
+      "v_measure": 0.5302,
+      "purity": 0.5101,
+      "groups": 485
+     },
+     "sphota_regions": {
+      "v_measure": 0.2915,
+      "purity": 0.2125,
+      "groups": 29
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.6602,
+      "purity": 0.6268,
+      "groups": 59
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.6498,
+      "purity": 0.7707,
+      "groups": 485
+     },
+     "kmeans_32": {
+      "v_measure": 0.6184,
+      "purity": 0.5222,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.4928,
+      "purity": 0.4371,
+      "groups": 59
+     }
+    },
+    "hi": {
+     "n": 2974,
+     "labels": 59,
+     "sphota_themes": {
+      "v_measure": 0.4694,
+      "purity": 0.4257,
+      "groups": 407
+     },
+     "sphota_regions": {
+      "v_measure": 0.2374,
+      "purity": 0.1779,
+      "groups": 29
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.5826,
+      "purity": 0.5393,
+      "groups": 59
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.6174,
+      "purity": 0.6954,
+      "groups": 407
+     },
+     "kmeans_32": {
+      "v_measure": 0.5147,
+      "purity": 0.4314,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.3635,
+      "purity": 0.2962,
+      "groups": 59
+     }
+    },
+    "ta": {
+     "n": 2974,
+     "labels": 59,
+     "sphota_themes": {
+      "v_measure": 0.4006,
+      "purity": 0.3473,
+      "groups": 312
+     },
+     "sphota_regions": {
+      "v_measure": 0.1939,
+      "purity": 0.157,
+      "groups": 27
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.4678,
+      "purity": 0.425,
+      "groups": 59
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.5759,
+      "purity": 0.6174,
+      "groups": 312
+     },
+     "kmeans_32": {
+      "v_measure": 0.4174,
+      "purity": 0.3521,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.3667,
+      "purity": 0.2878,
+      "groups": 59
+     }
+    }
+   },
+   "cross_lingual_vs_en": {
+    "hi": {
+     "same_theme": 0.3598,
+     "same_region": 0.4724
+    },
+    "ta": {
+     "same_theme": 0.2515,
+     "same_region": 0.385
+    },
+    "te": {
+     "same_theme": 0.2522,
+     "same_region": 0.3591
+    },
+    "kn": {
+     "same_theme": 0.2727,
+     "same_region": 0.3837
+    },
+    "ml": {
+     "same_theme": 0.3154,
+     "same_region": 0.4344
+    },
+    "bn": {
+     "same_theme": 0.2828,
+     "same_region": 0.3776
+    },
+    "ur": {
+     "same_theme": 0.2939,
+     "same_region": 0.4243
+    },
+    "es": {
+     "same_theme": 0.456,
+     "same_region": 0.5609
+    },
+    "fr": {
+     "same_theme": 0.4489,
+     "same_region": 0.541
+    },
+    "de": {
+     "same_theme": 0.4146,
+     "same_region": 0.5249
+    },
+    "zh-CN": {
+     "same_theme": 0.3191,
+     "same_region": 0.5007
+    },
+    "ar": {
+     "same_theme": 0.3073,
+     "same_region": 0.4438
+    },
+    "ru": {
+     "same_theme": 0.42,
+     "same_region": 0.5185
+    }
+   },
+   "cross_model_pmMiniLM": {
+    "en_v1": {
+     "same_theme": 0.1722,
+     "same_region": 0.5114
+    },
+    "en_v1.1": {
+     "same_theme": 0.3157,
+     "same_region": 0.5639
+    },
+    "hi_v1": {
+     "same_theme": 0.1513,
+     "same_region": 0.4368
+    },
+    "hi_v1.1": {
+     "same_theme": 0.2835,
+     "same_region": 0.5195
+    }
+   },
+   "seconds": 150
+  },
+  "customer_support": {
+   "dataset": "PolyAI/banking77",
+   "license": "CC-BY-4.0",
+   "grouping": {
+    "en": {
+     "n": 3080,
+     "labels": 77,
+     "sphota_themes": {
+      "v_measure": 0.4277,
+      "purity": 0.2308,
+      "groups": 166
+     },
+     "sphota_regions": {
+      "v_measure": 0.1609,
+      "purity": 0.0643,
+      "groups": 17
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.7058,
+      "purity": 0.5282,
+      "groups": 77
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.7379,
+      "purity": 0.6744,
+      "groups": 166
+     },
+     "kmeans_32": {
+      "v_measure": 0.5932,
+      "purity": 0.2951,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.5914,
+      "purity": 0.3968,
+      "groups": 77
+     }
+    }
+   },
+   "seconds": 11
+  },
+  "technical_qa": {
+   "dataset": "mteb/stackexchange-clustering",
+   "license": "CC-BY-SA (Stack Exchange)",
+   "grouping": {
+    "en": {
+     "n": 5000,
+     "labels": 20,
+     "sphota_themes": {
+      "v_measure": 0.4221,
+      "purity": 0.544,
+      "groups": 578
+     },
+     "sphota_regions": {
+      "v_measure": 0.2098,
+      "purity": 0.262,
+      "groups": 28
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.5699,
+      "purity": 0.6196,
+      "groups": 20
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.5127,
+      "purity": 0.7828,
+      "groups": 578
+     },
+     "kmeans_32": {
+      "v_measure": 0.6069,
+      "purity": 0.6894,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.1322,
+      "purity": 0.2138,
+      "groups": 20
+     }
+    }
+   },
+   "seconds": 23
+  },
+  "science": {
+   "dataset": "mteb/arxiv-clustering-s2s",
+   "license": "CC0-1.0",
+   "grouping": {
+    "en": {
+     "n": 5000,
+     "labels": 12,
+     "sphota_themes": {
+      "v_measure": 0.21,
+      "purity": 0.4552,
+      "groups": 235
+     },
+     "sphota_regions": {
+      "v_measure": 0.1097,
+      "purity": 0.3182,
+      "groups": 20
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.3019,
+      "purity": 0.581,
+      "groups": 12
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.2719,
+      "purity": 0.636,
+      "groups": 235
+     },
+     "kmeans_32": {
+      "v_measure": 0.3092,
+      "purity": 0.619,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.0629,
+      "purity": 0.3308,
+      "groups": 12
+     }
+    }
+   },
+   "seconds": 26
+  },
+  "reviews_indic": {
+   "dataset": "mteb/IndicReviewsClusteringP2P",
+   "license": "CC0-1.0",
+   "grouping": {
+    "hi": {
+     "n": 1000,
+     "labels": 15,
+     "sphota_themes": {
+      "v_measure": 0.4037,
+      "purity": 0.626,
+      "groups": 196
+     },
+     "sphota_regions": {
+      "v_measure": 0.2461,
+      "purity": 0.372,
+      "groups": 18
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.4479,
+      "purity": 0.63,
+      "groups": 15
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.4781,
+      "purity": 0.779,
+      "groups": 196
+     },
+     "kmeans_32": {
+      "v_measure": 0.4634,
+      "purity": 0.676,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.1591,
+      "purity": 0.357,
+      "groups": 15
+     }
+    },
+    "ta": {
+     "n": 1000,
+     "labels": 15,
+     "sphota_themes": {
+      "v_measure": 0.3784,
+      "purity": 0.601,
+      "groups": 204
+     },
+     "sphota_regions": {
+      "v_measure": 0.2475,
+      "purity": 0.36,
+      "groups": 18
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.3682,
+      "purity": 0.544,
+      "groups": 15
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.4411,
+      "purity": 0.722,
+      "groups": 204
+     },
+     "kmeans_32": {
+      "v_measure": 0.3822,
+      "purity": 0.574,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.1678,
+      "purity": 0.372,
+      "groups": 15
+     }
+    },
+    "bn": {
+     "n": 1000,
+     "labels": 15,
+     "sphota_themes": {
+      "v_measure": 0.4117,
+      "purity": 0.643,
+      "groups": 211
+     },
+     "sphota_regions": {
+      "v_measure": 0.2655,
+      "purity": 0.378,
+      "groups": 17
+     },
+     "kmeans_k_true": {
+      "v_measure": 0.4144,
+      "purity": 0.602,
+      "groups": 15
+     },
+     "kmeans_same_as_themes": {
+      "v_measure": 0.4646,
+      "purity": 0.76,
+      "groups": 211
+     },
+     "kmeans_32": {
+      "v_measure": 0.4331,
+      "purity": 0.636,
+      "groups": 32
+     },
+     "tfidf_kmeans_k_true": {
+      "v_measure": 0.1522,
+      "purity": 0.331,
+      "groups": 15
+     }
+    }
+   },
+   "cross_lingual_vs_hi": {
+    "bn": {
+     "same_theme": 0.46,
+     "same_region": 0.705
+    },
+    "mr": {
+     "same_theme": 0.459,
+     "same_region": 0.718
+    },
+    "te": {
+     "same_theme": 0.441,
+     "same_region": 0.694
+    },
+    "ta": {
+     "same_theme": 0.389,
+     "same_region": 0.687
+    },
+    "ur": {
+     "same_theme": 0.46,
+     "same_region": 0.72
+    },
+    "gu": {
+     "same_theme": 0.461,
+     "same_region": 0.696
+    },
+    "kn": {
+     "same_theme": 0.445,
+     "same_region": 0.708
+    },
+    "or": {
+     "same_theme": 0.422,
+     "same_region": 0.686
+    },
+    "ml": {
+     "same_theme": 0.459,
+     "same_region": 0.728
+    },
+    "pa": {
+     "same_theme": 0.454,
+     "same_region": 0.703
+    },
+    "as": {
+     "same_theme": 0.358,
+     "same_region": 0.631
+    },
+    "bd": {
+     "same_theme": 0.096,
+     "same_region": 0.475
+    }
+   },
+   "seconds": 126
+  },
+  "code": {
+   "dataset": "mteb/CodeSearchNetRetrieval",
+   "license": "MIT",
+   "per_language": {
+    "python": {
+     "n": 1000,
+     "same_theme": 0.545,
+     "same_region": 0.873,
+     "retrieval_raw_anchor": {
+      "r@1": 0.71,
+      "r@10": 0.938
+     },
+     "retrieval_canonical": {
+      "r@1": 0.688,
+      "r@10": 0.93
+     }
+    },
+    "java": {
+     "n": 1000,
+     "same_theme": 0.502,
+     "same_region": 0.957,
+     "retrieval_raw_anchor": {
+      "r@1": 0.565,
+      "r@10": 0.896
+     },
+     "retrieval_canonical": {
+      "r@1": 0.53,
+      "r@10": 0.849
+     }
+    },
+    "javascript": {
+     "n": 1000,
+     "same_theme": 0.358,
+     "same_region": 0.767,
+     "retrieval_raw_anchor": {
+      "r@1": 0.515,
+      "r@10": 0.752
+     },
+     "retrieval_canonical": {
+      "r@1": 0.505,
+      "r@10": 0.761
+     }
+    },
+    "go": {
+     "n": 1000,
+     "same_theme": 0.505,
+     "same_region": 0.892,
+     "retrieval_raw_anchor": {
+      "r@1": 0.689,
+      "r@10": 0.928
+     },
+     "retrieval_canonical": {
+      "r@1": 0.678,
+      "r@10": 0.924
+     }
+    },
+    "php": {
+     "n": 1000,
+     "same_theme": 0.335,
+     "same_region": 0.849,
+     "retrieval_raw_anchor": {
+      "r@1": 0.611,
+      "r@10": 0.886
+     },
+     "retrieval_canonical": {
+      "r@1": 0.585,
+      "r@10": 0.854
+     }
+    },
+    "ruby": {
+     "n": 1000,
+     "same_theme": 0.403,
+     "same_region": 0.83,
+     "retrieval_raw_anchor": {
+      "r@1": 0.597,
+      "r@10": 0.859
+     },
+     "retrieval_canonical": {
+      "r@1": 0.576,
+      "r@10": 0.837
+     }
+    }
+   },
+   "seconds": 357
+  }
+ }
+}

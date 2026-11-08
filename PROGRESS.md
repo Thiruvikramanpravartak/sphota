@@ -31,6 +31,11 @@
   without third-party code.
 - **v1.1 adapters, now the default (D-029, D-030):** English same-cell agreement with the
   anchor roughly doubles for all five models; certification and migration recall unchanged.
+- **Six-domain evaluation (D-032):** MASSIVE, Banking77, Stack Exchange, arXiv, IndicReviews,
+  CodeSearchNet. Themes competitive on science/technical/reviews; short commands agree across
+  languages only 36–56% (region); code and its description share a region 77–96%.
+- **Paper rewritten** (`docs/paper/sphota.md`, PDF + arXiv LaTeX in `docs/paper/build/`), tables
+  generated from `bench/results` (`scripts/paper_tables.py`, checked in CI). Publication intent D-031.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 
