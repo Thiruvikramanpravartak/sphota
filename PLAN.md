@@ -77,3 +77,19 @@ Status legend: `[x]` done, `[~]` partial (see PROGRESS.md), `[ ]` todo.
 
 ## M12: Final audit
 - [x] Clean clone + venv, README walk-through, examples, tests, CI, Atlas screenshot, docs vs numbers
+
+## M13: Pivot, hardening, research (2026-11)
+- [x] Regions layer (32), themes by first code block, Atlas "Analyze a file" (D-019, D-020)
+- [x] Indian-language coverage measured (19 languages) (D-021)
+- [x] GPU decision gate run on Kaggle: FAIL, positioning final (D-022)
+- [x] Labels: hide misleading cell labels; back-translation check for region names (D-024, D-025)
+- [x] Supply-chain hardening: pinned + hash-verified models; pinned CI; isolated, attested releases (D-026, D-027)
+- [x] Adapter study + v1.1 nonlinear adapters as the default (D-028 – D-030)
+
+## M14: Publication (D-031: code, results and paper will be published; rollout date = owner)
+- [ ] Multi-domain evaluation on license-clean public data: conversational (MASSIVE, 51 languages),
+      customer support (Banking77), technical Q&A (Stack Exchange), science (arXiv), Indian-language
+      reviews (IndicReviews), code (CodeSearchNet) → `bench/results/domains-*.json`
+- [ ] Research paper: full rewrite with all results, reproducibility appendix, PDF build
+- [ ] Owner: repository security settings, Pages source, PyPI trusted publisher (RELEASING.md)
+- [ ] Owner: "ready to roll out" → tag v1.0.0, publish site, PyPI, preprint

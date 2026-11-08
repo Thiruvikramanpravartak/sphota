@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Sphota</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">
+@page { size: A4; margin: 20mm 18mm; }
+body { font-family: "Times New Roman", "Noto Serif", Georgia, serif; font-size: 10.5pt;
+line-height: 1.38; color: #111; max-width: 170mm; margin: 0 auto; }
+h1 { font-size: 17pt; text-align: center; margin: 0 0 4pt; line-height: 1.2; }
+h2 { font-size: 12.5pt; margin: 14pt 0 4pt; } h3 { font-size: 11pt; margin: 10pt 0 3pt; }
+p { margin: 4pt 0; text-align: justify; hyphens: auto; }
+table { border-collapse: collapse; margin: 6pt auto; font-size: 8.6pt; }
+th, td { border-top: 0.5pt solid #999; border-bottom: 0.5pt solid #999; padding: 2pt 5pt; }
+th { background: #f0f0f0; } code { font-family: "DejaVu Sans Mono", monospace; font-size: 8.8pt; }
+pre { font-size: 8.4pt; background: #f6f6f6; padding: 5pt; overflow-wrap: anywhere; white-space: pre-wrap; }
+blockquote { margin: 4pt 14pt; color: #333; } li { margin: 1pt 0; }
+</style>
+</head>
+<body>
+<h1 id="can-meaning-have-universal-coordinates-a-negative-and-positive-result">Can
+Meaning Have Universal Coordinates? A Negative-and-Positive Result</h1>
+<p><em>Draft for arXiv (cs.CL; cross-list cs.IR). The Sphota Authors,
+2026. Not yet submitted.</em></p>
+<h2 id="abstract">Abstract</h2>
+<p>We tried to build a <em>universal coordinate system for meaning</em>:
+a frozen, open, hierarchical code (e.g. <code>JYZA-7M-X0-A8</code>) that
+any text in any language would receive, reachable from many embedding
+models through linear adapters, so that translations, paraphrases and
+different models agree on the same address. Before running the decisive
+experiments we fixed a four-part pass/fail gate on held-out data
+(coverage, translation agreement, cross-model agreement, language
+collapse), and later amended it to close a loophole: the gate must be
+met with at least 256 top-level cells. <strong>No configuration we built
+passes.</strong> The frozen release (4096 top-level cells,
+multilingual-e5-small anchor) fails all four criteria (coverage 29%,
+confident translation agreement 65%, cross-model 16%, worst language
+collapse 34%). Agreement is bought with coarseness: each 4× finer top
+level costs roughly 10–25 points on the gate metrics, and every
+near-pass uses 32–64 cells. The anchor matters (LaBSE beats e5-small by
+11 points of coverage and 4.5 points of confident translation agreement
+at the same granularity) but not enough to change the conclusion: a GPU
+run at ~450k sentences with LaBSE and bge-m3 anchors removes language
+collapse and reaches 88% confident translation agreement at 256 cells,
+yet cross-model agreement peaks at 50% (bar: 60%). We also document a
+<em>language-collapse</em> failure: at ≥ 256 cells, k-means forms cells
+that are mostly one language (up to 55% of Portuguese test sentences),
+which a diversified sample only partly fixes. What does work: (1)
+<em>coarse regions</em> (32–64 cells) where translations agree 78–89% of
+the time when confident, useful for multilingual topic analytics,
+routing and caching; and (2) <em>migration through stored canonical
+vectors</em>: an index built with one model can be queried with another
+at 96.5–99.1% recall@10 without re-embedding. We release everything,
+including the gate, the negative results and the scripts to rerun
+them.</p>
+<h2 id="introduction">1. Introduction</h2>
+<p>Embedding vectors are a good <em>computational</em> representation of
+meaning and a poor <em>data format</em>: a vector from model A means
+nothing to model B, it cannot be read or grouped in SQL, and every model
+upgrade forces re-embedding the corpus. A natural ambition is a shared,
+stable <em>address</em> for meaning, like latitude and longitude:
+readable, hierarchical, frozen, and the same whichever language or model
+produced the text.</p>
+<p>This paper asks whether that ambition is achievable with current
+multilingual encoders and simple, transparent machinery (linear
+projections, residual k-means, linear adapters). Our answer is
+split:</p>
+<ul>
+<li><strong>Negative.</strong> A <em>fine-grained</em> universal code
+(hundreds to thousands of top-level cells, stable across languages and
+models) is not supported by our measurements. The failure is structural,
+not a tuning issue: any partition of a continuous space splits
+equivalent texts near its boundaries, and the fraction split grows
+quickly with the number of cells.</li>
+<li><strong>Positive.</strong> A <em>coarse</em> shared partition is
+stable enough to be useful, and the continuous canonical space behind it
+is an effective hub for cross-model migration.</li>
+</ul>
+<p>We think the negative result is worth publishing on its own.
+“Semantic IDs” and shared embedding spaces are active topics, and claims
+of a universal meaning code are easy to make on in-sample numbers; ours
+looked good in-sample too (81% of training sentences get a confident
+top-level code versus 26% held out).</p>
+<p>The project name comes from Bhartṛhari’s <em>sphoṭa</em> (5th c. CE):
+meaning that bursts forth whole and stays the same across its
+utterances. Our results suggest it stays the same only at a coarse
+resolution.</p>
+<p><strong>Contributions.</strong> 1. A complete, open method for a
+frozen hierarchical meaning code (§3). 2. A pre-registered decision
+gate, plus an amendment closing a granularity loophole (§4). 3. Full
+gate results across granularity, sample design and anchor (§5). 4. The
+granularity trade-off, the anchor effect and the language-collapse
+failure (§5–6). 5. Evidence for what does work: coarse regions and
+vector-based migration (§7).</p>
+<h2 id="related-work">2. Related work</h2>
+<p><strong>Semantic IDs.</strong> TIGER (Rajput et al., 2023) quantizes
+item embeddings with an RQ-VAE into codeword tuples for generative
+retrieval; DSI (Tay et al., 2022) uses hierarchical k-means document
+IDs; Singh et al. (2024) study Semantic IDs for ranking. These codes are
+private to one system and refit per catalogue, so they never face the
+cross-language and cross-model stability test that a <em>universal</em>
+code must pass. Codebook collapse in RQ-VAE is mitigated by EMA updates
+and dead-code revival (Zeghidour et al., 2021; Lee et al., 2022).</p>
+<p><strong>Embedding translation.</strong> vec2vec (Jha et al., 2025)
+translates between embedding spaces without paired data, in support of
+the Platonic representation hypothesis (Huh et al., 2024). Our results
+are compatible with that hypothesis at the level of <em>continuous</em>
+geometry (migration works) while showing that <em>discrete</em>
+agreement is far weaker.</p>
+<p><strong>Language-agnostic spaces.</strong> LASER, LaBSE (Feng et al.,
+2022) and SONAR (Duquenne et al., 2023) embed many languages jointly;
+Large Concept Models (2024) operate in SONAR space. We quantify how much
+of their cross-lingual alignment survives discretization.</p>
+<p><strong>Topic models.</strong> BERTopic (Grootendorst, 2022) clusters
+embeddings and labels clusters with c-TF-IDF, refitting per corpus. Our
+positive result is close to a <em>frozen, multilingual, shared</em>
+BERTopic-style partition.</p>
+<h2 id="method">3. Method</h2>
+<h3 id="anchor-encoder">3.1 Anchor encoder</h3>
+<p><code>intfloat/multilingual-e5-small</code> (MIT, 384-d, ~100
+languages), input <code>&quot;query: &quot; + text</code>, mean pooling, L2
+normalization. It was chosen in a bake-off against bge-m3, LaBSE and
+paraphrase-multilingual-MiniLM for speed, size and an exact ONNX export
+(max abs diff 7·10⁻⁸ versus PyTorch), accepting slightly weaker
+translation alignment than LaBSE (0.67 vs 0.62 L1 agreement at 256 cells
+in the bake-off). §5.3 revisits this choice.</p>
+<h3 id="canonical-space-meaning-lda">3.2 Canonical space
+(meaning-LDA)</h3>
+<p>With unit vectors <code>x</code>, <code>y = (x − μ) W</code>: PCA to
+384 directions, then the generalized eigenvectors of
+<code>(S_total, S_within + reg)</code>, where <code>S_within</code> is
+the scatter of translations of the same sentence (FLORES-200 dev, 800
+meanings × 12 languages; 7.2k Tatoeba pairs), shrunk toward isotropy
+(<code>reg = 0.05</code>). The top 256 directions are scaled so
+within-meaning noise has unit variance. As an ablation, PCA alone gives
+34.1% cross-lingual L1 agreement versus 46.1% with meaning-LDA (4096
+cells).</p>
+<h3 id="quantizer-and-code">3.3 Quantizer and code</h3>
+<p>Residual k-means with 4 levels (4096·256·256·256) on 77.6k sentences
+(Wikipedia sample in 12 languages + FLORES dev). Codes are Crockford
+base32 (widths 4/2/2/2) after a published affine permutation, so 85% of
+single-symbol typos are rejected without a checksum.</p>
+<h3 id="confidence">3.4 Confidence</h3>
+<p>At each level, a softmax over the 16 nearest centroids’ squared
+distances, with a temperature fitted by maximum likelihood to predict
+the <em>held-out translation’s</em> symbol; the product over levels is
+the prefix confidence. Confidence drives truncation, alternates and the
+gate’s “confident portion”.</p>
+<h3 id="adapters">3.5 Adapters</h3>
+<p>Other models enter the canonical space through ridge maps fitted on
+40k paired texts (registry: all-MiniLM-L6-v2, bge-small-en-v1.5,
+gte-small, paraphrase-multilingual-MiniLM-L12-v2, LaBSE). An
+unsupervised vec2vec-style adapter failed at our CPU budget (top-1
+retrieval 0% versus 96.5% for ridge on the same texts), so supervised
+adapters are the default.</p>
+<h2 id="the-decision-gate">4. The decision gate</h2>
+<p>Owner review of the first release concluded that in-sample numbers
+did not support a “GPS for meaning” claim. We therefore fixed the
+following gate <strong>before</strong> any v2 run (D-017). All criteria
+use held-out FLORES-200 devtest sentences in 12 languages, never used to
+fit the space, codebooks, calibration, labels or adapters.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Criterion</th>
+<th>Definition</th>
+<th>Bar</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Coverage</td>
+<td>share of held-out sentences (all 12 languages) with L1 confidence ≥
+0.7</td>
+<td>≥ 60%</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Translation agreement</td>
+<td>among en↔︎x pairs whose English code has L1 confidence ≥ 0.7, share
+with the same L1 code (mean over 11 languages)</td>
+<td>≥ 80%</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Cross-model agreement</td>
+<td>same English text, certified adapter vs anchor, same L1 code (mean
+over adapters)</td>
+<td>≥ 60%</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Language collapse</td>
+<td>per language, share of its sentences in L1 cells whose training
+members are ≥ 80% that language (English excluded)</td>
+<td>≤ 5% for every language</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Amendment (D-018).</strong> A tiny-scale dry run “passed” all
+four criteria with 16 top-level cells and 6 languages. A gate that can
+be passed by making the partition coarse says nothing about coordinates.
+We amended it: the gate must be met with <strong>≥ 256 top-level
+cells</strong>, on all 12 languages, with the cell count declared before
+the run. Results at 32–64 cells are reported as evidence for a
+<em>coarse topic</em> product only.</p>
+<h2 id="results">5. Results</h2>
+<h3 id="full-gate-results">5.1 Full gate results</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Build</th>
+<th>L1 cells</th>
+<th>Coverage (≥ 60%)</th>
+<th>Translation, confident (≥ 80%)</th>
+<th>Cross-model (≥ 60%)</th>
+<th>Worst collapse (≤ 5%)</th>
+<th>Pass</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>v1 frozen release</td>
+<td>4096</td>
+<td>29.4%</td>
+<td>65.1%</td>
+<td>15.7%</td>
+<td>33.8% (pt)</td>
+<td>0/4</td>
+</tr>
+<tr class="even">
+<td>v1 re-clustered</td>
+<td>1024</td>
+<td>42.6%</td>
+<td>69.7%</td>
+<td>23.1%</td>
+<td>44.2% (pt)</td>
+<td>0/4</td>
+</tr>
+<tr class="odd">
+<td>v1 re-clustered</td>
+<td>256</td>
+<td>49.2%</td>
+<td>74.4%</td>
+<td>32.8%</td>
+<td>54.6% (pt)</td>
+<td>0/4</td>
+</tr>
+<tr class="even">
+<td>v1 re-clustered</td>
+<td>128</td>
+<td>54.1%</td>
+<td>73.6%</td>
+<td>44.6%</td>
+<td>0.1%</td>
+<td>1/4</td>
+</tr>
+<tr class="odd">
+<td>v1 re-clustered</td>
+<td>64</td>
+<td>65.0%</td>
+<td>78.3%</td>
+<td>57.1%</td>
+<td>0.0%</td>
+<td>2/4</td>
+</tr>
+<tr class="even">
+<td>v1 re-clustered</td>
+<td>32</td>
+<td>69.0%</td>
+<td>79.3%</td>
+<td>64.5%</td>
+<td>0.0%</td>
+<td>3/4</td>
+</tr>
+<tr class="odd">
+<td>v2-mini (diversified sample)</td>
+<td>4096</td>
+<td>30.9%</td>
+<td>65.0%</td>
+<td>16.3%</td>
+<td>26.8% (pt)</td>
+<td>0/4</td>
+</tr>
+<tr class="even">
+<td>v2-mini</td>
+<td>32</td>
+<td>63.9%</td>
+<td>78.8%</td>
+<td>62.3%</td>
+<td>0.1%</td>
+<td>3/4</td>
+</tr>
+<tr class="odd">
+<td>e5-small anchor (20k corpus)</td>
+<td>32</td>
+<td>55.8%</td>
+<td>84.2%</td>
+<td>60.3%*</td>
+<td>0.0%</td>
+<td>3/4</td>
+</tr>
+<tr class="even">
+<td>LaBSE anchor (20k corpus)</td>
+<td>32</td>
+<td>66.5%</td>
+<td>88.7%</td>
+<td>53.0%*</td>
+<td>0.0%</td>
+<td>3/4</td>
+</tr>
+<tr class="odd">
+<td>LaBSE anchor (20k corpus)</td>
+<td>64</td>
+<td>64.4%</td>
+<td>85.3%</td>
+<td>39.1%*</td>
+<td>0.0%</td>
+<td>3/4</td>
+</tr>
+</tbody>
+</table>
+<p>* Reduced cross-model panel (the other anchor and all-MiniLM-L6-v2).
+Sources: <code>bench/results/l1-sweep.json</code>,
+<code>v2-mini-gate.json</code>, <code>v2-mini-4096-gate.json</code>,
+<code>anchor-check.json</code>.</p>
+<p><strong>No configuration passes all four criteria at any granularity,
+and none passes more than one criterion at the amended bar of ≥ 256
+cells: every build at 256, 1024 or 4096 cells fails all four.</strong>
+The closest configurations (3 of 4) all use 32–64 top-level cells, which
+by the amendment cannot support a coordinate-system claim.</p>
+<h3 id="the-granularity-trade-off">5.2 The granularity trade-off</h3>
+<p>Stability is bought with coarseness. Along the v1 re-clustering
+sweep, each 4× increase in top-level cells costs roughly 10–25 points on
+the gate metrics:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Coverage</th>
+<th>Translation (confident)</th>
+<th>Cross-model</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>32 → 128</td>
+<td>−14.9</td>
+<td>−5.7</td>
+<td>−20.0</td>
+</tr>
+<tr class="even">
+<td>64 → 256</td>
+<td>−15.8</td>
+<td>−3.9</td>
+<td>−24.3</td>
+</tr>
+<tr class="odd">
+<td>256 → 1024</td>
+<td>−6.6</td>
+<td>−4.7</td>
+<td>−9.8</td>
+</tr>
+<tr class="even">
+<td>1024 → 4096</td>
+<td>−13.2</td>
+<td>−4.6</td>
+<td>−7.3</td>
+</tr>
+</tbody>
+</table>
+<p>Cross-model agreement degrades fastest, then coverage; confident
+translation agreement degrades more slowly because the confidence filter
+removes the hardest boundary cases (at the price of coverage). The same
+pattern holds for LaBSE (32 → 64 cells: −2.1 coverage, −3.4 translation,
+−13.9 cross-model). We see no sign of a plateau: finer partitions simply
+place more boundaries through regions where equivalent texts land.</p>
+<h3 id="the-anchor-effect-labse-vs-e5-small">5.3 The anchor effect:
+LaBSE vs e5-small</h3>
+<p>On the same 20k corpus at 32 cells, LaBSE beats e5-small on coverage
+(66.5% vs 55.8%, +10.7) and confident translation agreement (88.7% vs
+84.2%, +4.5), and is the only build that clears the translation bar. It
+is worse on cross-model agreement with the reduced panel (53.0% vs
+60.3%), plausibly because the panel’s other models are closer to e5’s
+geometry. The anchor is therefore a first-order factor, comparable in
+size to one 4× granularity step, but it does not change the conclusion:
+a better anchor buys roughly one step of resolution, not the six steps
+from 32 to 4096 cells. We tested bge-m3 and LaBSE as anchors on a GPU in
+§5.5.</p>
+<h3 id="language-collapse">5.4 Language collapse</h3>
+<p>The first release gave confident top-level codes to only 4.5% of
+Portuguese held-out sentences versus 21–36% for other languages. Data,
+language tags, alignment (en→pt nearest neighbour 99.2%) and encoding
+were correct. The cause: <strong>52.8% of Portuguese test sentences fell
+into Portuguese-dominated cells</strong> (80–96% Portuguese training
+members; 5 cells hold 53% of pt test sentences), regardless of topic;
+for every other language the share was ≤ 0.2%
+(<code>bench/results/language-collapse-small.json</code>). The
+Portuguese Wikipedia sample is unusually homogeneous (mean pairwise
+cosine 0.84 vs ~0.78, dominated by sports and list stubs), so k-means
+spent cells on <em>language identity</em> instead of meaning.</p>
+<p>Two findings generalize:</p>
+<ul>
+<li><strong>Collapse is a function of granularity.</strong> It is absent
+at ≤ 128 cells (≤ 0.1%) and appears abruptly at 256 cells (54.6% for
+pt). Once the partition is fine enough, residual language signal in the
+anchor becomes a cheaper way for k-means to reduce distortion than
+topic.</li>
+<li><strong>The sample explains only part of it.</strong> A diversified
+per-language sample (≤ 40 sentences per title category, near-duplicates
+removed, ≤ 8000 per language) cut the worst collapse at 4096 cells only
+from 33.8% to 26.8%. Part of the cause is the anchor itself: e5-small
+keeps a separable Portuguese direction that meaning-LDA does not fully
+remove.</li>
+</ul>
+<p>Language collapse is invisible in average cross-lingual agreement and
+should be reported as a separate metric by any multilingual quantization
+work.</p>
+<h3 id="gpu-run-stronger-anchors-at-medium-scale">5.5 GPU run: stronger
+anchors at medium scale</h3>
+<p>One bounded run (Kaggle T4, 12 languages, ~450k sentences,
+diversified per-language sample), evaluated on held-out FLORES-200
+devtest against the pre-registered bar:</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>anchor</th>
+<th>L1 regions</th>
+<th>coverage ≥ 60%</th>
+<th>translation (confident) ≥ 80%</th>
+<th>cross-model ≥ 60%</th>
+<th>collapse ≤ 5%</th>
+<th>passes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>multilingual-e5-small</td>
+<td>256</td>
+<td>46.3% FAIL</td>
+<td>74.4% FAIL</td>
+<td>31.3% FAIL</td>
+<td>40.9% FAIL</td>
+<td>0/4</td>
+</tr>
+<tr class="even">
+<td>multilingual-e5-small</td>
+<td>1024</td>
+<td>39.3% FAIL</td>
+<td>71.6% FAIL</td>
+<td>24.7% FAIL</td>
+<td>31.6% FAIL</td>
+<td>0/4</td>
+</tr>
+<tr class="odd">
+<td>multilingual-e5-small</td>
+<td>4096</td>
+<td>26.7% FAIL</td>
+<td>66.0% FAIL</td>
+<td>16.2% FAIL</td>
+<td>34.2% FAIL</td>
+<td>0/4</td>
+</tr>
+<tr class="even">
+<td>LaBSE</td>
+<td>256</td>
+<td>69.4% PASS</td>
+<td>83.5% PASS</td>
+<td>40.1% FAIL</td>
+<td>0.2% PASS</td>
+<td>3/4</td>
+</tr>
+<tr class="odd">
+<td>LaBSE</td>
+<td>1024</td>
+<td>55.2% FAIL</td>
+<td>83.9% PASS</td>
+<td>29.3% FAIL</td>
+<td>0.1% PASS</td>
+<td>2/4</td>
+</tr>
+<tr class="even">
+<td>LaBSE</td>
+<td>4096</td>
+<td>46.9% FAIL</td>
+<td>78.4% FAIL</td>
+<td>17.7% FAIL</td>
+<td>0.4% PASS</td>
+<td>1/4</td>
+</tr>
+<tr class="odd">
+<td><strong>bge-m3</strong></td>
+<td><strong>256</strong></td>
+<td>67.2% PASS</td>
+<td>88.0% PASS</td>
+<td><strong>50.2% FAIL</strong></td>
+<td>0.1% PASS</td>
+<td>3/4</td>
+</tr>
+<tr class="even">
+<td>bge-m3</td>
+<td>1024</td>
+<td>62.8% PASS</td>
+<td>82.6% PASS</td>
+<td>38.0% FAIL</td>
+<td>0.1% PASS</td>
+<td>3/4</td>
+</tr>
+<tr class="odd">
+<td>bge-m3</td>
+<td>4096</td>
+<td>54.5% FAIL</td>
+<td>78.6% FAIL</td>
+<td>25.3% FAIL</td>
+<td>0.2% PASS</td>
+<td>1/4</td>
+</tr>
+</tbody>
+</table>
+<p>The stronger anchors remove language collapse (≤ 0.4% vs 34–41% for
+e5-small) and lift confident translation agreement to 88.0% (bge-m3, 256
+cells). Cross-model agreement does not follow: 50.2% at best, falling 50
+→ 38 → 25% with each 4× refinement. <strong>The gate fails</strong>, as
+we predicted. The bottleneck is not the anchor or the data volume but
+the linear adapters between models.</p>
+<h2 id="why-fine-grained-universal-codes-fail">6. Why fine-grained
+universal codes fail</h2>
+<p>Three effects compound. (1) <strong>Boundary mass:</strong>
+equivalent texts are not identical points but small clouds (translation
+noise is our unit of distance); the fraction of clouds cut by some cell
+boundary rises with the number of cells. (2) <strong>Adapter
+error:</strong> a linear adapter adds its own displacement, which at
+fine granularity exceeds the cell radius; hence cross-model agreement
+falls fastest. (3) <strong>Residual language signal:</strong> at fine
+granularity, k-means can profitably spend cells on language rather than
+meaning. Confidence and alternates make (1) visible but do not remove
+it; they trade coverage for precision. A code can be calibrated and
+honest about its uncertainty and still not be <em>universal</em>.</p>
+<h2 id="what-works">7. What works</h2>
+<h3 id="coarse-regions">7.1 Coarse regions</h3>
+<p>At 32–64 top-level cells, confident translations share a region
+78–89% of the time and there is no language collapse; with the v1 space
+or the LaBSE anchor, coverage is 64–69%, and cross-model agreement is
+57–65% for the v1 space (lower for LaBSE at 64 cells: 39%, reduced
+panel). That is a useful frozen, multilingual, shared topic partition:
+readable region codes for analytics dashboards, SQL
+<code>GROUP BY</code>, routing queries to specialised handlers, and
+semantic caching keys, with finer levels kept as optional detail
+carrying explicit confidence.</p>
+<h3 id="migration-through-stored-canonical-vectors">7.2 Migration
+through stored canonical vectors</h3>
+<p>The continuous canonical space is a much better hub than the discrete
+code. Documents indexed with model X through its adapter and queried
+with the anchor reach recall@10 of 96.5% (all-MiniLM-L6-v2), 99.1%
+(bge-small-en-v1.5), 99.0% (gte-small) and 98.5%
+(paraphrase-multilingual-MiniLM), versus 100% for re-embedding, and
+98.3% for LaBSE in the paraphrase setting; using codes alone gives only
+10–28%. Storing the 256-d canonical vector next to each item lets an
+organisation change embedding models without re-embedding its corpus,
+with N adapters instead of N² pairwise maps.</p>
+<h3 id="other-measured-properties-of-the-frozen-release">7.3 Other
+measured properties of the frozen release</h3>
+<p>Cross-lingual L1 agreement 46.1% (stable mode 46.7%), paraphrase L1
+agreement 71.6%; when both codes have L1 confidence ≥ 0.7 (16% of
+pairs), translations agree 88.7%, at ≥ 0.9 (5%), 96.5%. 92% of L1 cells
+are used on the training corpus (perplexity 2182 of 4096). Codes alone
+are a coarse index: translation retrieval top-1 30% (raw vectors 99.6%),
+SIB-200 topic P@10 16.6% vs 19.5%. Adding cross-model scatter to
+<code>S_within</code> helped at 1024 cells but not at 4096, while
+lowering cross-lingual agreement; we kept it off.</p>
+<h2 id="limitations">8. Limitations</h2>
+<p>Most experiments are CPU, <code>small</code> scale (≤ 80k fitting
+sentences, 12 languages, FLORES-200 devtest for evaluation); one GPU run
+reached <code>medium</code> scale (~450k sentences, §5.5) and confirmed
+the failure at ≥ 256 cells. We did not try nonlinear or jointly trained
+adapters. The cross-model panel for the anchor comparison is reduced.
+Labels for cells are machine-generated and filtered, not natively
+reviewed. FLORES sentences are short, formal and topically narrow; real
+traffic is likely harder.</p>
+<h2 id="conclusion">9. Conclusion</h2>
+<p>Can meaning have universal coordinates? At fine resolution, with
+today’s small multilingual encoders and linear machinery, our
+pre-registered answer is <strong>no</strong>: no build passes a fixed,
+held-out gate at ≥ 256 cells, every 4× refinement costs 10–25 points,
+and fine partitions start encoding language instead of meaning. At
+coarse resolution the answer is a qualified <strong>yes</strong>: a few
+dozen shared regions are stable across languages and reasonably stable
+across models. And the continuous space behind the code is a practical
+hub for moving between models. We recommend that work on semantic IDs
+and shared meaning spaces report held-out, cross-language and
+cross-model agreement <em>as a function of granularity</em>, together
+with a language-collapse metric, and fix the bar before running.</p>
+<h2 id="reproducibility">Reproducibility</h2>
+<p>Gate definitions: <code>DECISIONS.md</code> D-017/D-018. Results:
+<code>bench/results/</code>. Experimental v2 build:
+<code>experiments/v2-mini/</code>. GPU run (§5.5):
+<code>notebooks/kaggle_gpu_gate.ipynb</code>, or
+<code>bash scripts/gpu_build_v2.sh --scale medium --sizes &quot;256 1024 4096&quot;</code>;
+results <code>bench/results/v2-gate-medium-*.json</code>. Code,
+artifacts and data recipes are Apache-2.0.</p>
+<h2 id="references">References</h2>
+<p>Adelani et al. SIB-200, EACL 2024 · Chen et al. BGE M3, 2024 ·
+Duquenne et al. SONAR, 2023 · Feng et al. LaBSE, ACL 2022 ·
+Grootendorst. BERTopic, 2022 · Huh et al. The Platonic Representation
+Hypothesis, ICML 2024 · Jha et al. Harnessing the Universal Geometry of
+Embeddings, arXiv:2505.12540, 2025 · LCM team. Large Concept Models,
+2024 · Lee et al. RQ-VAE, CVPR 2022 · NLLB Team. FLORES-200, 2022 ·
+Rajput et al. TIGER, NeurIPS 2023 · Singh et al. Semantic IDs for
+ranking, 2024 · Tay et al. DSI, NeurIPS 2022 · Wang et al. Multilingual
+E5, 2024 · Zeghidour et al. SoundStream, 2021 · Bhartṛhari,
+Vākyapadīya.</p>
+</body>
+</html>

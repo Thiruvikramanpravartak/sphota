@@ -325,3 +325,13 @@ The owner confirmed nobody uses Sphota yet, so switching the default adapter set
 anyone's stored codes. `DEFAULT_SET = "v1.1"` in `sphota.adapters`; the linear v1 set stays frozen
 inside the release and selectable (`adapters="v1"`, `SPHOTA_ADAPTERS=v1`). Release stays on hold
 until the owner says it is ready to roll out.
+
+## D-031 Publication intent: code, results and paper will be published
+The owner confirmed (2026-11-08) that the project is being built for publication: the open-source
+code and artifacts, the benchmark results and a research paper. The rollout date stays the owner's
+call ("ready to roll out"). Consequences, binding from now on: every evaluation dataset must have
+a license that allows publishing results (recorded per dataset in `docs/benchmark.md`); every
+number in the paper must be reproducible by a script in this repository with its result JSON in
+`bench/results/`; negative results are reported, not dropped; no private or personal data enters
+the repository; the paper and docs use the D-015 positioning, with "GPS for meaning" as the stated
+long-term research goal.
