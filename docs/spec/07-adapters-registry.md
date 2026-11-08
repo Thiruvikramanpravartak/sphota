@@ -64,10 +64,10 @@ present (`kind: "mlp2"`): `y = h + gelu(x̂·W1 + c1)·W2 + c2` with the tanh ap
 
 * Implementations MUST verify `sha256` before loading an adapter.
 * **Adapter sets.** A registry belongs to a set. `v1` is frozen with the release (linear
-  adapters). `v1.1` (`sphota/data/adapters/v1.1/`, informative, D-028) holds `mlp2` adapters
+  adapters). `v1.1` (`sphota/data/adapters/v1.1/`, D-028) holds `mlp2` adapters
   for the same models, certified against the same Part 8 procedure. Sets map into the same
   canonical space; codes from different sets for the same model may differ, so stored codes
-  SHOULD record the set (`model@set`). Implementations default to `v1`.
+  SHOULD record the set (`model@set`). The reference implementation defaults to `v1.1` (D-030); `v1` remains available.
 * Only models whose weights are under an OSI-approved (or comparably open) license are
   admitted to the default registry. Adapters for other models (e.g. CC-BY-NC weights or
   proprietary APIs) MAY be trained by users with `sphota train-adapter`; they are not

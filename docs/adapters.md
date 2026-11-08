@@ -35,7 +35,7 @@ full-scale adapter.
 Full certificates (exact and neighbourhood agreement, fidelity) are in the
 [benchmark](benchmark.md) and the [leaderboard](https://github.com/thiruvikramanpravartak/sphota/blob/main/bench/leaderboard/index.html).
 
-## Nonlinear adapters (set v1.1, opt-in)
+## Nonlinear adapters (set v1.1, the default)
 
 The same five models also have **v1.1** adapters: the linear map plus a small residual network
 (one 1024-unit hidden layer), trained on the same pairs (D-028). They roughly double how often the
@@ -43,12 +43,13 @@ other model's code lands in the anchor's own cell, keep migration recall at ~100
 same certification. Shipped as numpy-only `.npz` (≈ 9.7 MB in total, float16 hidden weights).
 
 ```python
-encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2", adapters="v1.1")
+encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2")              # v1.1
+encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2", adapters="v1")  # linear
 ```
 
 ```bash
-sphota encode -m minilm-l6 --adapters v1.1 "The CEO resigned"
-SPHOTA_ADAPTERS=v1.1 python my_app.py        # make v1.1 the default for a process
+sphota encode -m minilm-l6 "The CEO resigned"                 # v1.1
+SPHOTA_ADAPTERS=v1 python my_app.py                           # the linear set for a process
 ```
 
 | model | same cell, English: v1 → v1.1 | same cell, 12 languages: v1 → v1.1 | recall@10 (migration) | grade |
@@ -59,7 +60,8 @@ SPHOTA_ADAPTERS=v1.1 python my_app.py        # make v1.1 the default for a proce
 | paraphrase-multilingual-MiniLM-L12-v2 | 23.3% → **35.4%** | 24.5% → 32.8% | 100.0% → 100.0% | certified-multilingual |
 | LaBSE | 19.2% → **32.8%** | 19.4% → 31.9% | 100.0% → 100.0% | certified-multilingual |
 
-The default stays `v1` (frozen) so stored codes never change silently; codes from the two sets
+v1.1 has been the default since D-030 (before the first public release, so no stored codes
+change). The linear `v1` set stays available, frozen inside the release. Codes from the two sets
 can differ for the same model, so record which set produced a stored code. Rebuild:
 `python -m sphota.build.adapters_v11 --scale small`.
 

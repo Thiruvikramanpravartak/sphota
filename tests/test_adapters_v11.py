@@ -45,9 +45,9 @@ def test_linear_adapter_unchanged_without_hidden_layer():
 
 def test_adapter_set_selection(monkeypatch):
     monkeypatch.delenv("SPHOTA_ADAPTERS", raising=False)
-    assert _set_name(None) == "v1"
-    assert _set_name("v1.1") == "v1.1"
-    monkeypatch.setenv("SPHOTA_ADAPTERS", "v1.1")
     assert _set_name(None) == "v1.1"
+    assert _set_name("v1") == "v1"
+    monkeypatch.setenv("SPHOTA_ADAPTERS", "v1")
+    assert _set_name(None) == "v1"
     with pytest.raises(AdapterError, match="unknown adapter set"):
         _set_name("v9")

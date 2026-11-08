@@ -16,9 +16,9 @@ Optional (``kind == "mlp2"``, adapter set v1.1, D-028): ``W1`` (d_model, H), ``c
 ``y = x @ A + b + gelu(x @ W1 + c1) @ W2 + c2`` (tanh-approximated GELU, numpy only).
 Arrays may be stored as float16; they are used as float32. Loaded with ``allow_pickle=False``.
 
-Adapter sets: ``v1`` (default, the frozen registry inside the release) and ``v1.1`` (nonlinear,
-opt-in: ``adapters="v1.1"`` or ``SPHOTA_ADAPTERS=v1.1``), which roughly doubles same-cell agreement
-with the anchor (D-028).
+Adapter sets: ``v1.1`` (default since D-030: nonlinear, roughly double the same-cell agreement with
+the anchor, D-028) and ``v1`` (the original linear registry frozen inside the release; choose it
+with ``adapters="v1"`` or ``SPHOTA_ADAPTERS=v1``).
 """
 
 from __future__ import annotations
@@ -119,10 +119,11 @@ def load_adapter(path: str | Path, sha256: str | None = None) -> Adapter:
 
 
 ADAPTER_SETS = ("v1", "v1.1")
+DEFAULT_SET = "v1.1"  # D-030 (no users yet, so the better set became the default before 1.0)
 
 
 def _set_name(adapters: str | None) -> str:
-    name = adapters or os.environ.get("SPHOTA_ADAPTERS") or "v1"
+    name = adapters or os.environ.get("SPHOTA_ADAPTERS") or DEFAULT_SET
     if name not in ADAPTER_SETS:
         raise AdapterError(f"unknown adapter set {name!r}; use one of {', '.join(ADAPTER_SETS)}")
     return name
@@ -164,8 +165,8 @@ def registry_entry(model: str) -> dict[str, Any] | None:
 def get_adapter(model: str, adapters: str | None = None) -> Adapter:
     """Registry adapter for ``model`` (HF id, short name, or path to an ``.npz``).
 
-    ``adapters`` picks the set: ``"v1"`` (default, frozen linear) or ``"v1.1"`` (nonlinear,
-    higher agreement with the anchor); ``SPHOTA_ADAPTERS`` sets the default.
+    ``adapters`` picks the set: ``"v1.1"`` (default, nonlinear) or ``"v1"`` (frozen, linear);
+    ``SPHOTA_ADAPTERS`` sets the default for a process.
     """
     return _get_adapter(model, _set_name(adapters))
 

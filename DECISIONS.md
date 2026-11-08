@@ -319,3 +319,9 @@ unchanged (~100%), 9.7 MB total. They live in `sphota/data/adapters/v1.1/` so th
 registry is untouched (owner rule). Default stays `v1`: switching would change stored codes for
 anyone who encoded through an adapter. Making v1.1 the default is an owner decision for the next
 minor version.
+
+## D-030 v1.1 adapters become the default before the first release
+The owner confirmed nobody uses Sphota yet, so switching the default adapter set cannot change
+anyone's stored codes. `DEFAULT_SET = "v1.1"` in `sphota.adapters`; the linear v1 set stays frozen
+inside the release and selectable (`adapters="v1"`, `SPHOTA_ADAPTERS=v1`). Release stays on hold
+until the owner says it is ready to roll out.

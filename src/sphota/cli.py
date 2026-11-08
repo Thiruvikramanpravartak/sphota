@@ -55,7 +55,9 @@ else:
             None, "--model", "-m", help="Encode via another model's adapter."
         ),
         adapters: str | None = typer.Option(
-            None, "--adapters", help="Adapter set for --model: v1 (default) or v1.1 (nonlinear)."
+            None,
+            "--adapters",
+            help="Adapter set for --model: v1.1 (default, nonlinear) or v1 (linear).",
         ),
         lang: str = typer.Option("en", "--lang", help="Label language."),
         as_json: bool = typer.Option(False, "--json", help="JSON lines output."),
