@@ -455,3 +455,23 @@ round-1 dev splits (D-034 rule). The single winner is evaluated once on fresh co
 MASSIVE it, pt, nl, pl, tr, vi, id, ja, ko, fa, he, th, sw (all test items); Stack Exchange test
 split #3 and arXiv split #3 (5,000 each); Banking77 train, a disjoint 3,000-item sample; R3 on
 MASSIVE en+{it, ja, tr, sw}. This is the third evaluation round of R1–R4; the count is reported.
+
+## D-038 Refinement round 3 result (FAIL on R1, R3) and pre-registration of round 4
+**Round 3 (D-037), fresh confirmation set 2, winner M4_kmeans_2sqrt+centre, evaluated once:**
+R1 12/16 (misses it, nl, ja, ko by 0.05–0.08), R2 pass, R3 FAIL (en+it 11% vs 29% fixed themes,
+en+tr 11% vs 32%, en+sw 14% vs 17%; en+ja passes 60% vs 36%), R4 pass (0.10 s). Diagnosis: with
+~2√n groups, k-means separates same-script languages (script centring cannot tell English from
+Italian); round 2's coarser silhouette k hid this. Root fix: centre by *language*, not script.
+
+**Round 4, registered before any round-4 run.**
+* A language identifier for the anchor: multinomial logistic regression on raw anchor vectors,
+  trained on MASSIVE **train** utterances (all 51 locales, test texts excluded) plus FLORES-200
+  dev; never on any evaluation split. Shipped as a checksummed `.npz` (NumPy inference).
+  Centring groups = predicted language, applied only to languages with ≥ 30 rows in the file.
+* Candidates (k = ⌈2√n⌉): (a) canonical space + script centring (round-3 winner);
+  (b) canonical space + language centring; (c) raw anchor space + language centring;
+  (d) raw anchor space + script centring. Selection on round-1 dev splits (D-034 rule).
+* The single winner is evaluated once on fresh confirmation set 3: MASSIVE af, am, az, cy, da, el,
+  fi, hu, hy, is, jv, ka, km, lv, mn, ms, my, nb, ro, sl, sq, sv, tl, zh-TW (test items); Stack
+  Exchange split #4, arXiv split #4; Banking77 train, a third disjoint sample; R3 on MASSIVE
+  en+{da, ro, sv, ms, el, ka}. Fourth round of R1–R4; the count is reported.
