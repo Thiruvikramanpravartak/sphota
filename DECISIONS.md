@@ -385,3 +385,21 @@ Protocol:
   tried on dev; anything not listed here is reported as exploratory.
 * Datasets must be license-clean (D-031); FLORES-derived sets are excluded from evaluation of
   anything fitted on FLORES dev.
+
+## D-034 Amendment to D-033, recorded before the small-scale test run
+Disclosure: a tiny-scale smoke run (300-row subsets, used to check the pipeline) reported its test
+split, which showed the unmodified M3 failing R3 (mixed-language files: refinement split language
+pairs more often than the fixed themes). Diagnosis on dev data only: on MASSIVE the per-language
+mean offset in the canonical space is 6–11 (0.3–0.5 translation units), against 1–2 on FLORES, so
+2-means splits mixed groups along language. Changes, all chosen and checked on dev splits; the
+small-scale test split has not been evaluated by any method:
+* Variants added to M2/M3 (declared family): per-script mean centring (`language="centre"`) and a
+  split guard that refuses splits separating scripts (`language="guard"`); script = dominant
+  Unicode writing system of the text (label-free). M3_auto: split-and-merge with tau chosen per
+  file by silhouette over a fixed grid (label-free).
+* tau grid extended to 0.3–1.4 (the dev optimum sat at the old grid edge, 0.6).
+* Selection rule: a candidate is eligible only if it passes R3 on dev mixed-language files; among
+  eligible candidates, maximize the mean dev gap (V − reference), as before.
+* Known risk of centring: if language and topic are correlated in a real file, centring can merge
+  topics; the guard does not move vectors and has no such risk.
+Targets R1–R4 and their bars are unchanged.
