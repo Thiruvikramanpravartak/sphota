@@ -520,3 +520,24 @@ this method family whichever way it goes, and the paper reports all six rounds.
   devtest instead (1,012 parallel sentences per language; never used by any refinement step):
   eng+{nld, pol, ces, ind, ita, tur, ron, swe, ell, kor, heb, hin}. R1 confirmation = Stack
   Exchange #6–#10, arXiv #6–#10, MasakhaNEWS train headlines (16 languages).
+
+## D-041 Refinement study: final result (FAIL against the pre-registered bar) and product decision
+**Round 6 (D-040, final), fresh confirmation set 5, winner M4_kmeans_2sqrt[raw, language_masked]
+(no candidate passed every dev R3 pair: Khmer, Burmese and Bodo pairs failed for all, so the
+count rule picked among all candidates), evaluated once:** R1 18/26 (FAIL: Stack Exchange #8–#10;
+MasakhaNEWS train amh, eng, fra, pcm, sna), R2 pass, R3 11/12 (FAIL: FLORES eng+ind 37% vs 41%;
+the other 11 pairs 77–89% vs 38–53% fixed themes), R4 pass (0.14 s).
+
+**Six rounds, summarized:** R2 and R4 pass from round 2 on; R3 passes 9/9 in round 5 and 11/12 in
+round 6; R1 peaks at 26/27 (round 4) and 15/16 (round 5). The residual R1 failure is structural:
+the reference may use the *true* number of labels, and no label-free rule for k fits both
+fine-grained label sets (59–77 intents) and coarse, well-separated ones (12–17 Stack Exchange
+sites, 7 news topics). Per the owner's rule the bar is not lowered: **the refinement does not
+meet its pre-registered targets**, and the paper says so.
+
+**Product decision.** Against what users get today (fixed themes), refinement wins on 38 of 42
+fresh sets (rounds 5–6; mean V gain +0.05 to +0.10; Banking77 0.42 → 0.69–0.74) and loses only on
+four low-resource African languages (−0.01 to −0.02), and it keeps translations together 2× as
+often in mixed-language files. So it ships as the default grouping inside one file, with the stable
+theme code kept next to every group, and its limits stated in the docs: broad-topic files get more
+and finer groups than their natural categories; languages the anchor does not know gain nothing.
