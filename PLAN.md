@@ -93,3 +93,12 @@ Status legend: `[x]` done, `[~]` partial (see PROGRESS.md), `[ ]` todo.
 - [ ] Research paper: full rewrite with all results, reproducibility appendix, PDF build
 - [ ] Owner: repository security settings, Pages source, PyPI trusted publisher (RELEASING.md)
 - [ ] Owner: "ready to roll out" → tag v1.0.0, publish site, PyPI, preprint
+
+## M15: Research drill (D-033 pre-registration; no bar lowered)
+- [ ] Protocol: dev/test splits, bootstrap CIs, fixed seeds in every evaluation script
+- [ ] More data: more domains and languages (license-clean), including informal and code data
+- [ ] Per-file refinement (M1–M3 on dev → winner on test vs R1–R4) → library, CLI, Atlas
+- [ ] More models: adapter study on larger embedding models
+- [ ] Short-text fix at the root: research space fitted with short parallel data (not the frozen v1)
+- [ ] GPU gate re-run with strong anchors + nonlinear adapters (Kaggle notebook, owner runs it)
+- [ ] Paper: methodology section, all new results

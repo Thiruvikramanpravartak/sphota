@@ -351,3 +351,37 @@ theme 34–55%; docstring→code recall@10 75–94% with raw anchor vectors, 76�
 projection. Product consequence: themes are a good zero-setup, stable-ID view; for best grouping
 within one file, a per-file refinement step is the next feature to build. Claims in docs must cite
 the real-data numbers, not only FLORES.
+
+## D-033 Pre-registration: per-file refinement targets and evaluation protocol (before any run)
+Recorded 2026-11-09, before implementing or evaluating any refinement method. The owner's rule:
+**no bar is lowered**. The D-017/D-018 gate stays exactly as defined (coverage ≥ 60%, confident
+translation ≥ 80%, cross-model ≥ 60%, collapse ≤ 5%, at ≥ 256 cells).
+
+Targets for per-file refinement (all must hold; a miss is reported as a miss):
+* **R1 quality.** On the *test* split of every evaluation dataset (and every evaluated language),
+  the refined grouping's V-measure ≥ reference − 0.05, where reference = max(k-means on the
+  dataset's own anchor embeddings with the true number of labels; k-means with the same number of
+  groups as the refined output). The method never sees labels or the true number of labels.
+* **R2 stability.** Every message's main code is identical with and without refinement (100%), and
+  refinement is deterministic: the same file gives the same groups; shuffling the rows gives an
+  adjusted Rand index ≥ 0.95 against the unshuffled result.
+* **R3 languages.** In mixed-language files built from parallel data (pivot + one other language
+  in one file), the share of parallel pairs that land in the same refined group must be ≥ the
+  share that land in the same fixed theme.
+* **R4 speed.** 3,000 messages refined in ≤ 2 s in Python on the reference CPU and ≤ 5 s in the
+  browser, encoding excluded.
+
+Protocol:
+* Each dataset is split once into dev (30%) and test (70%) by a fixed seed (20261109). Every method
+  choice and hyperparameter is made on dev only; each pre-registered candidate is evaluated on test
+  once, and all results are reported, pass or fail.
+* Uncertainty: 95% bootstrap confidence intervals (1,000 resamples of items) for every headline
+  metric; R1 is judged on the point estimate and the CI is reported next to it.
+* Candidates declared now: **M1** k-means in the canonical space with k chosen by a silhouette
+  sweep; **M2** threshold clustering in the canonical space, the distance threshold expressed in
+  translation-noise units (the space's unit, §3.2 of the paper) and fixed once on dev data across
+  all datasets; **M3** split-and-merge of the fixed themes (split a theme when its members are
+  spread beyond the threshold, merge themes whose centres are within it). Variants of these may be
+  tried on dev; anything not listed here is reported as exploratory.
+* Datasets must be license-clean (D-031); FLORES-derived sets are excluded from evaluation of
+  anything fitted on FLORES dev.
