@@ -417,3 +417,25 @@ confirmation run with a different k-means seed (`--seed 1`); otherwise it is rep
 "passed once, not confirmed". (4) Held-out MASSIVE test commands' same-cell agreement is reported
 for every configuration as a secondary, non-gate metric. (5) No result changes the frozen s1
 space; a confirmed pass would open an RFC for a space s2.
+
+## D-036 Refinement round 1 result (FAIL) and pre-registration of round 2
+**Round 1 (D-033/D-034), test split, as registered:** no candidate meets R1–R4.
+M3_auto+centre (dev winner): R1 15/22, R2 fails (shuffle ARI 0.08: its silhouette sample depended
+on row order, a bug), R3 5/8. M2_bisect τ=1.0+centre: R1 11/22, R2 pass, R3 7/8.
+M3_split_merge τ=1.0+centre: R1 8/22, R2 pass, R3 7/8. R4 (Python, 3,000 rows): 1.2 s, pass.
+Diagnosis: a fixed distance threshold does not transfer across languages and domains (τ=1.0 gives
+8 groups for Banking77's 77 intents and 882 for Stack Exchange's 20 sites); per-file adaptivity
+helped most; split-and-merge of the fixed themes inherits their boundaries, and at equal group
+counts plain k-means on the file is better. Round 1's test splits are now spent for selection.
+
+**Round 2, registered before any round-2 run:**
+* Candidate M4: deterministic k-means on the file's canonical vectors (rows in canonical order,
+  k-means++ with a fixed seed, so results do not depend on row order), with per-script centring
+  as an option, k chosen label-free by silhouette on a deterministic sample over a fixed grid.
+  The M3_auto ordering bug is fixed and M3_auto re-enters as a candidate.
+* Selection: on the round-1 dev splits, same rule as D-034 (R3-dev eligible, max mean gap).
+* Evaluation: **only the single winner**, once, on a fresh confirmation set never evaluated by any
+  method: MASSIVE de, fr, ru, ur, kn, ml (all test items); IndicReviews gu, kn, ml, or, pa, ur;
+  MasakhaNEWS ibo, lin, lug, orm, pcm, run, sna, som, tir, xho; Stack Exchange test split #2 and
+  arXiv split #2 (5,000 items each); Banking77 train split (3,000 items). R3 on mixed files
+  MASSIVE en+{de, fr, ru, ur} and IndicReviews hi+{gu, kn, ml}. Targets R1–R4 unchanged.
