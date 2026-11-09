@@ -18,6 +18,7 @@ method is fixed; the script enforces the order (dev selection runs first and is 
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import time
 
@@ -105,7 +106,12 @@ def run_method(c: Candidate, Y: np.ndarray, l1: np.ndarray, scripts: np.ndarray)
     m, t, lang = c
     if m == "M1_kmeans_silhouette":
         return kmeans_silhouette(Y)
-    method = {"M2_bisect": "bisect", "M3_split_merge": "split_merge", "M3_auto": "auto"}[m]
+    method = {
+        "M2_bisect": "bisect",
+        "M3_split_merge": "split_merge",
+        "M3_auto": "auto",
+        "M4_kmeans": "kmeans",
+    }[m]
     return refine(Y, method, tau=t, l1=l1, scripts=scripts, language=lang).labels
 
 
@@ -322,10 +328,202 @@ def run(scale: str) -> dict:
     }
 
 
+# ------------------------------------------------------------------ round 2 (D-036)
+
+CONFIRM_MASSIVE = ["de", "fr", "ru", "ur", "kn", "ml"]
+CONFIRM_INDIC = ["gu", "kn", "ml", "or", "pa", "ur"]
+CONFIRM_MASAKHA = ["ibo", "lin", "lug", "orm", "pcm", "run", "sna", "som", "tir", "xho"]
+CONFIRM_R3 = [("massive", "en", lg) for lg in ["de", "fr", "ru", "ur"]] + [
+    ("indic_reviews", "hi", lg) for lg in ["gu", "kn", "ml"]
+]
+
+
+def _massive_langs(langs: list[str]) -> dict[str, tuple[list[str], list[str]]]:
+    out = {}
+    for lg in langs:
+        with gzip.open(_hf("mteb/amazon_massive_intent", f"test/{lg}.json.gz"), "rt") as f:
+            rows = sorted((json.loads(line) for line in f), key=lambda r: int(r["id"]))
+        out[lg] = ([r["text"] for r in rows], [r["label"] for r in rows])
+    return out
+
+
+def _jsonl_split(repo: str, fname: str, line: int, n: int) -> tuple[list[str], list[str]]:
+    opener = gzip.open if fname.endswith(".gz") else open
+    with opener(_hf(repo, fname), "rt", encoding="utf-8") as f:
+        for i, row in enumerate(f):
+            if i == line:
+                j = json.loads(row)
+                break
+    idx = np.sort(
+        np.random.default_rng(SEED).choice(
+            len(j["sentences"]), min(n, len(j["sentences"])), replace=False
+        )
+    )
+    return [j["sentences"][i] for i in idx], [str(j["labels"][i]) for i in idx]
+
+
+def confirmation_sets() -> dict[str, tuple[list[str], list[str]]]:
+    import pandas as pd
+
+    from sphota.build.domains import INDIC_LANGS
+
+    out = {}
+    for lg, v in _massive_langs(["en", *CONFIRM_MASSIVE]).items():
+        out[f"massive/{lg}"] = v
+    ind = load_indic(1000)
+    for lg in ["hi", *CONFIRM_INDIC]:
+        assert lg in INDIC_LANGS
+        out[f"indic_reviews/{lg}"] = ind[lg]
+    for lg in CONFIRM_MASAKHA:
+        out[f"masakhanews/{lg}"] = load_masakha(lg)
+    out["stackexchange#2/en"] = _jsonl_split("mteb/stackexchange-clustering", "test.jsonl", 1, 5000)
+    out["arxiv#2/en"] = _jsonl_split("mteb/arxiv-clustering-s2s", "test.jsonl.gz", 1, 5000)
+    df = pd.read_parquet(_hf("PolyAI/banking77", "data/train-00000-of-00001.parquet"))
+    idx = np.sort(np.random.default_rng(SEED).choice(len(df), 3000, replace=False))
+    out["banking77-train/en"] = (df.text.iloc[idx].tolist(), [str(x) for x in df.label.iloc[idx]])
+    return out
+
+
+def round2(scale: str) -> dict:
+    from sklearn.metrics import adjusted_rand_score
+
+    from sphota.refine import script_of
+    from sphota.release import load_release
+    from sphota.space import project
+
+    rel = load_release()
+    C1 = rel.codebooks[0].astype(np.float64)
+
+    def embed_all(data: dict, prefix: str) -> dict:
+        emb = {}
+        for name, (texts, _labels) in data.items():
+            X = embed.cached(
+                ANCHOR,
+                f"{prefix}-{name.replace('/', '-').replace('#', '')}-{len(texts)}",
+                texts,
+                scale,
+            )
+            Y = project(rel, X).astype(np.float64)
+            emb[name] = (X, Y, nearest(Y, C1), np.array([script_of(t) for t in texts]))
+        return emb
+
+    # ---- selection on the round-1 dev splits (D-034 rule)
+    data = datasets(scale)
+    emb = embed_all(data, "refine")
+    splits = {name: split(len(data[name][0])) for name in data}
+    cands = [("M3_auto", None, lang) for lang in ["none", "centre", "guard"]] + [
+        ("M4_kmeans", None, lang) for lang in ["none", "centre"]
+    ]
+    dev = {}
+    for c in cands:
+        gaps = []
+        for name, (_texts, labels) in data.items():
+            d = splits[name][0]
+            X, Y, l1, sc = (a[d] for a in emb[name])
+            lab = [labels[i] for i in d]
+            pred = run_method(c, Y, l1, sc)
+            gaps.append(vm(lab, pred) - reference(X, lab, len(set(pred.tolist())))["reference"])
+        r3 = r3_eval(c, 0, data, emb, splits)
+        dev[key_of(c)] = {
+            "candidate": list(c),
+            "mean_gap": round(float(np.mean(gaps)), 4),
+            "min_gap": round(float(np.min(gaps)), 4),
+            "R3_dev_pass": all(x["pass"] for x in r3.values()),
+            "R3_dev": {k: v["pass"] for k, v in r3.items()},
+        }
+        log(
+            f"round2 dev {key_of(c):<22} gap {np.mean(gaps):+.4f} worst {np.min(gaps):+.4f} "
+            f"R3 {sum(x['pass'] for x in r3.values())}/{len(r3)}"
+        )
+    eligible = {k: v for k, v in dev.items() if v["R3_dev_pass"]} or dev
+    winner = max(eligible, key=lambda k: eligible[k]["mean_gap"])
+    c = tuple(dev[winner]["candidate"])
+    log(f"round2 selection frozen: {winner}")
+
+    # ---- the winner, once, on the fresh confirmation set
+    conf = confirmation_sets()
+    cemb = embed_all(conf, "confirm")
+    per = {}
+    for name, (_texts, labels) in conf.items():
+        if name in ("massive/en", "indic_reviews/hi"):
+            continue  # pivots for R3 only (already used in round 1)
+        X, Y, l1, sc = cemb[name]
+        pred = run_method(c, Y, l1, sc)
+        ref = reference(X, labels, len(set(pred.tolist())))
+        v = vm(labels, pred)
+        perm = np.random.default_rng(1).permutation(len(Y))
+        ari = adjusted_rand_score(pred[perm], run_method(c, Y[perm], l1[perm], sc[perm]))
+        per[name] = {
+            "n": len(labels),
+            "labels": len(set(labels)),
+            "groups": len(set(pred.tolist())),
+            "refined_v": round(v, 4),
+            "refined_v_ci": boot_ci(labels, pred),
+            "themes_v": round(vm(labels, l1), 4),
+            **{k: round(x, 4) for k, x in ref.items()},
+            "R1_pass": bool(v >= ref["reference"] - 0.05),
+            "shuffle_ari": round(float(ari), 4),
+        }
+        log(
+            f"confirm {name:<22} V {v:.4f} ref {ref['reference']:.4f} {'PASS' if per[name]['R1_pass'] else 'miss'}"
+        )
+    r3 = {}
+    for ds, a, b in CONFIRM_R3:
+        na, nb = f"{ds}/{a}", f"{ds}/{b}"
+        Ya, Yb = cemb[na][1], cemb[nb][1]
+        la, lb = cemb[na][2], cemb[nb][2]
+        sa, sb = cemb[na][3], cemb[nb][3]
+        pred = run_method(
+            c, np.concatenate([Ya, Yb]), np.concatenate([la, lb]), np.concatenate([sa, sb])
+        )
+        k = len(Ya)
+        same, theme = float((pred[:k] == pred[k:]).mean()), float((la == lb).mean())
+        r3[f"{na}+{b}"] = {
+            "same_refined_group": round(same, 4),
+            "same_fixed_theme": round(theme, 4),
+            "pass": bool(same >= theme),
+        }
+    big = np.concatenate([cemb[n][1] for n in ["massive/de", "banking77-train/en"]])[:3000]
+    l1b = nearest(big, C1)
+    scb = np.concatenate([cemb[n][3] for n in ["massive/de", "banking77-train/en"]])[:3000]
+    times = []
+    for _ in range(3):
+        t1 = time.time()
+        run_method(c, big, l1b, scb)
+        times.append(time.time() - t1)
+    res = {
+        "round": 2,
+        "pre_registration": "DECISIONS.md D-036",
+        "dev": dev,
+        "winner": winner,
+        "confirmation": per,
+        "R1_passed": sum(x["R1_pass"] for x in per.values()),
+        "R1_sets": len(per),
+        "R1_all": all(x["R1_pass"] for x in per.values()),
+        "R2_min_shuffle_ari": min(x["shuffle_ari"] for x in per.values()),
+        "R3": r3,
+        "R3_all": all(x["pass"] for x in r3.values()),
+        "R4": {
+            "rows": len(big),
+            "python_seconds_median": round(float(np.median(times)), 3),
+            "R4_python_pass": bool(np.median(times) <= 2.0),
+        },
+    }
+    res["R2_pass"] = res["R2_min_shuffle_ari"] >= 0.95
+    return res
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scale", choices=["tiny", "small", "medium", "full"], default="small")
+    ap.add_argument("--round", type=int, choices=[1, 2], default=1)
     a = ap.parse_args()
+    if a.round == 2:
+        out = round2(a.scale)
+        p = ROOT / "bench" / "results" / f"refine-round2-{a.scale}.json"
+        p.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+        log(f"wrote {p}  winner={out['winner']}")
+        raise SystemExit(0)
     out = run(a.scale)
     p = ROOT / "bench" / "results" / f"refine-study-{a.scale}.json"
     p.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")

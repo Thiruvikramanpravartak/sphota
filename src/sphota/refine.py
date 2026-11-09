@@ -196,6 +196,50 @@ def silhouette(Y: np.ndarray, labels: np.ndarray, sample: int = 1000, seed: int 
 
 
 AUTO_TAUS = (0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+K_GRID = (4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512)
+
+
+def _kmeans(X: np.ndarray, k: int, seed: int = 0, iters: int = 15) -> np.ndarray:
+    """Deterministic k-means (k-means++ init with a fixed seed) on rows given in canonical order."""
+    X = X.astype(np.float32)
+    n = len(X)
+    k = max(1, min(k, n))
+    rng = np.random.default_rng(seed)
+    xn = (X**2).sum(1)
+    centres = [int(rng.integers(n))]
+    d2 = np.maximum(xn + xn[centres[0]] - 2 * X @ X[centres[0]], 0)
+    for _ in range(1, k):
+        p = d2 / d2.sum() if d2.sum() > 0 else np.full(n, 1 / n)
+        c = int(rng.choice(n, p=p))
+        centres.append(c)
+        d2 = np.minimum(d2, np.maximum(xn + xn[c] - 2 * X @ X[c], 0))
+    C = X[centres].copy()
+    lab = np.zeros(n, dtype=np.int64)
+    for it in range(iters):
+        cn = (C**2).sum(1)
+        new = np.argmin(cn[None] - 2 * X @ C.T, 1)
+        if it and (new == lab).all():
+            break
+        lab = new
+        for j in range(k):
+            m = lab == j
+            if m.any():
+                C[j] = X[m].mean(0)
+    return lab
+
+
+def _kmeans_auto(Xo: np.ndarray, sample: int = 1000, grid: tuple[int, ...] = K_GRID) -> int:
+    """Label-free k: best silhouette over ``grid``, fitted on a deterministic sample of the
+    canonically ordered rows."""
+    n = len(Xo)
+    step = max(1, n // sample)
+    S = Xo[::step][:sample]
+    best_k, best_s = grid[0], -2.0
+    for k in [k for k in grid if k <= len(S) / 4] or [2]:
+        s = silhouette(S, _kmeans(S, k), sample=len(S))
+        if s > best_s:
+            best_k, best_s = k, s
+    return best_k
 
 
 def refine(
@@ -207,6 +251,7 @@ def refine(
     unit: float = NOISE_UNIT,
     scripts: np.ndarray | None = None,
     language: str = "none",
+    k_groups: int | None = None,
 ) -> Refined:
     """Group one file's canonical vectors ``Y`` (n, D).
 
@@ -233,8 +278,10 @@ def refine(
     l1o = None if l1 is None else np.asarray(l1)[order]
     guard = np.asarray(scripts)[order] if language == "guard" else None
     if method == "auto":
-        # split_merge at the threshold whose grouping has the best silhouette (label-free)
+        # split_merge at the threshold whose grouping has the best silhouette (label-free);
+        # the silhouette sample is taken in canonical row order, so the choice is shuffle-proof
         best, best_s = None, -2.0
+        ordr = _order(Y)
         for t in AUTO_TAUS:
             r = refine(
                 Y,
@@ -246,12 +293,16 @@ def refine(
                 scripts=scripts,
                 language="guard" if language == "guard" else "none",
             )
-            s = silhouette(Y, r.labels)
+            s = silhouette(Y[ordr], r.labels[ordr])
             if s > best_s:
                 best, best_s = r, s
         assert best is not None
         return best
-    if method == "bisect":
+    if method == "kmeans":
+        k = _kmeans_auto(Yo) if k_groups is None else int(k_groups)
+        lab = _kmeans(Yo, k)
+        groups = [np.where(lab == j)[0] for j in np.unique(lab)]
+    elif method == "bisect":
         groups = _bisect_groups(Yo, [np.arange(n)], limit, min_size, guard)
     elif method == "split_merge":
         if l1o is None:
@@ -259,7 +310,9 @@ def refine(
         start = [np.where(l1o == c)[0] for c in np.unique(l1o)]
         groups = _bisect_groups(Yo, _merge_close(Yo, start, limit), limit, min_size, guard)
     else:
-        raise ValueError(f"unknown method {method!r}; use 'bisect', 'split_merge' or 'auto'")
+        raise ValueError(
+            f"unknown method {method!r}; use 'kmeans', 'bisect', 'split_merge' or 'auto'"
+        )
     # deterministic group order: by size, then by first row in canonical order
     groups.sort(key=lambda g: (-len(g), int(g.min())))
     lab_o = np.empty(n, dtype=np.int64)
