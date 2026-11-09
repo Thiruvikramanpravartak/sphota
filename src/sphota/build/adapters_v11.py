@@ -42,13 +42,14 @@ def fit_mlp2(model: str, X: np.ndarray, Y: np.ndarray, meta: dict | None = None,
     from sphota.certify import fit_adapter
 
     torch.manual_seed(seed)
+    dev = "cuda" if torch.cuda.is_available() else "cpu"
     base = fit_adapter(model, X, Y, meta=meta)
     Xn = X / np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-12)
-    xt = torch.tensor(Xn, dtype=torch.float32)
-    bt = torch.tensor(Xn @ base.A + base.b, dtype=torch.float32)
-    yt = torch.tensor(Y, dtype=torch.float32)
-    l1 = torch.nn.Linear(X.shape[1], HIDDEN)
-    l2 = torch.nn.Linear(HIDDEN, Y.shape[1])
+    xt = torch.tensor(Xn, dtype=torch.float32, device=dev)
+    bt = torch.tensor(Xn @ base.A + base.b, dtype=torch.float32, device=dev)
+    yt = torch.tensor(Y, dtype=torch.float32, device=dev)
+    l1 = torch.nn.Linear(X.shape[1], HIDDEN).to(dev)
+    l2 = torch.nn.Linear(HIDDEN, Y.shape[1]).to(dev)
     torch.nn.init.zeros_(l2.weight)
     torch.nn.init.zeros_(l2.bias)
     act = torch.nn.GELU(approximate="tanh")
@@ -57,7 +58,7 @@ def fit_mlp2(model: str, X: np.ndarray, Y: np.ndarray, meta: dict | None = None,
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, EPOCHS)
     var = float(yt.var(0).sum())
     for _ in range(EPOCHS):
-        perm = torch.randperm(len(xt))
+        perm = torch.randperm(len(xt), device=dev)
         for s in range(0, len(xt), 256):
             i = perm[s : s + 256]
             pred = bt[i] + l2(act(l1(xt[i])))
@@ -67,10 +68,10 @@ def fit_mlp2(model: str, X: np.ndarray, Y: np.ndarray, meta: dict | None = None,
             opt.step()
         sched.step()
     with torch.no_grad():
-        W1 = l1.weight.T.numpy().astype(np.float16)
-        c1 = l1.bias.numpy().astype(np.float16)
-        W2 = l2.weight.T.numpy().astype(np.float16)
-        c2 = l2.bias.numpy().astype(np.float32)
+        W1 = l1.weight.T.cpu().numpy().astype(np.float16)
+        c1 = l1.bias.cpu().numpy().astype(np.float16)
+        W2 = l2.weight.T.cpu().numpy().astype(np.float16)
+        c2 = l2.bias.cpu().numpy().astype(np.float32)
     m = {**base.meta, "kind": "mlp2", "set": "v1.1", "hidden": HIDDEN, "activation": "gelu_tanh"}
     m["train"] = {
         **base.meta.get("train", {}),

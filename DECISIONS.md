@@ -403,3 +403,17 @@ small-scale test split has not been evaluated by any method:
 * Known risk of centring: if language and topic are correlated in a real file, centring can merge
   topics; the guard does not move vectors and has no such risk.
 Targets R1–R4 and their bars are unchanged.
+
+## D-035 Pre-registration: GPU gate run 2 (strongest combination), before it is run
+The D-017/D-018 gate is unchanged. Run 2 tests the combination the evidence points to: anchors
+LaBSE and bge-m3 (run 1: 3/4 at 256 cells, cross-model 40–50%), nonlinear adapters (D-028: about
+2× same-cell agreement), and MASSIVE train commands (11.5k meanings aligned across the 12 gate
+languages, test texts excluded) added to the meaning-LDA translation scatter, targeting the
+short-text weakness (D-032). Medium scale, sizes 256 / 1024 / 4096, notebook cell 4.
+Rules fixed now: (1) 6 configurations are tested (2 anchors × 3 sizes); this number is reported.
+(2) A configuration passes only if all four criteria pass. (3) Because 6 tries raise the chance
+of a lucky pass, a pass counts as a gate result only after the same configuration also passes a
+confirmation run with a different k-means seed (`--seed 1`); otherwise it is reported as
+"passed once, not confirmed". (4) Held-out MASSIVE test commands' same-cell agreement is reported
+for every configuration as a secondary, non-gate metric. (5) No result changes the frozen s1
+space; a confirmed pass would open an RFC for a space s2.

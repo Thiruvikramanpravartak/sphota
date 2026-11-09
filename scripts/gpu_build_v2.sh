@@ -14,12 +14,16 @@ SCALE=full
 DRY=0
 ANCHORS="intfloat/multilingual-e5-small sentence-transformers/LaBSE BAAI/bge-m3"
 SIZES="256 1024 4096"   # D-018: the gate needs >= 256 top-level cells
+ADAPTER_KIND=ridge      # ridge (v1) | mlp (nonlinear, D-028)
+EXTRA=""                # --extra-parallel massive: short parallel commands in meaning-LDA (D-035)
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --scale) SCALE="$2"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     --anchors) ANCHORS="$2"; shift 2 ;;
     --sizes) SIZES="$2"; shift 2 ;;
+    --adapter-kind) ADAPTER_KIND="$2"; shift 2 ;;
+    --extra-parallel) EXTRA="--extra-parallel $2"; shift 2 ;;
     *) echo "unknown option $1"; exit 2 ;;
   esac
 done
@@ -43,12 +47,13 @@ echo "== [2-3/4] build + gate per anchor: $ANCHORS"
 for A in $ANCHORS; do
   SHORT="$(echo "$A" | tr '/' '_')"
   $PY -m sphota.build.gate v2mini --scale "$SCALE" --anchor "$A" --sizes $SIZES \
-      --adapter-models $ADAPTERS --n-adapter "$NADAPT" --out "experiments/v2-$SCALE-$SHORT"
+      --adapter-models $ADAPTERS --n-adapter "$NADAPT" --adapter-kind "$ADAPTER_KIND" $EXTRA \
+      --out "experiments/v2-$SCALE-$SHORT-$ADAPTER_KIND"
 done
 echo "== [4/4] summary"
 $PY - <<'PYEOF'
 import glob, json
-for f in sorted(glob.glob("bench/results/v2-gate-*.json")) + sorted(glob.glob("bench/results/v2-mini-gate.json")):
+for f in sorted(glob.glob("bench/results/v2-gate-*.json")):
     r = json.load(open(f)); k = r["kept_K1"]
     best = next(x for x in r["results"] if x["K1"] == k)
     flags = " ".join(f"{n.split('_',1)[1]}={'PASS' if v['pass'] else 'FAIL'}" for n, v in best["verdict"].items())

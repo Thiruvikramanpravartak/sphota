@@ -305,6 +305,46 @@ def diversify(
     return np.sort(np.concatenate(keep))
 
 
+MASSIVE_CODE = {"zh": "zh-CN"}  # FLORES-style code -> MASSIVE locale code
+
+
+def massive_parallel(scale: str, langs: list[str], anchor: str, split: str = "train") -> dict:
+    """Anchor embeddings of MASSIVE ``split`` utterances aligned across ``langs`` (same id in
+    every language). Train items whose English text also occurs in the test split are dropped."""
+    import gzip
+
+    from sphota.build.domains import _hf
+
+    def rows(lg: str, sp: str) -> dict:
+        with gzip.open(
+            _hf("mteb/amazon_massive_intent", f"{sp}/{MASSIVE_CODE.get(lg, lg)}.json.gz"), "rt"
+        ) as f:
+            return {r["id"]: r["text"] for r in (json.loads(line) for line in f)}
+
+    R = {lg: rows(lg, split) for lg in langs}
+    ids = sorted(set.intersection(*(set(r) for r in R.values())), key=int)
+    if split == "train":
+        test_en = set(rows("en", "test").values())
+        ids = [i for i in ids if R["en"][i] not in test_en]
+    if scale == "tiny":
+        ids = ids[:1500]
+    E = {
+        lg: embed.cached(anchor, f"massive-{split}-{lg}-{len(ids)}", [R[lg][i] for i in ids], scale)
+        for lg in langs
+    }
+    return {"ids": ids, "E": E}
+
+
+def massive_xling(sp, C: np.ndarray, scale: str, langs: list[str], anchor: str) -> dict:
+    """Held-out MASSIVE test commands: share in the same top-level cell as the English version."""
+    from sphota.build.domains import nearest
+
+    m = massive_parallel(scale, langs, anchor, split="test")
+    cell = {lg: nearest(sp(m["E"][lg]), C) for lg in langs}
+    per = {lg: round(float((cell[lg] == cell["en"]).mean()), 4) for lg in langs if lg != "en"}
+    return {"mean": round(float(np.mean(list(per.values()))), 4), "per_lang": per}
+
+
 def v2mini(
     scale: str,
     sizes=(32, 64),
@@ -312,9 +352,17 @@ def v2mini(
     anchor: str = ANCHOR,
     adapter_models: list[str] | None = None,
     n_adapter: int = 40000,
+    adapter_kind: str = "ridge",
+    extra_parallel: str | None = None,
+    seed: int = 0,
 ) -> dict:
     """Rebuild the space on a diversified sample, evaluate the D-017 gate, keep the best build
-    as an experimental release (never overwrites frozen v1)."""
+    as an experimental release (never overwrites frozen v1).
+
+    ``adapter_kind``: ``"ridge"`` (as in v1) or ``"mlp"`` (v1.1-style nonlinear, D-028).
+    ``extra_parallel``: ``"massive"`` adds MASSIVE train commands (aligned across the 12
+    languages, test texts excluded) to the translation scatter of meaning-LDA, so the space also
+    learns that short informal commands in different languages are the same (D-035)."""
     from sphota.build.adapters import training_texts
     from sphota.build.label_filter import filter_labels
     from sphota.build.labels import ctfidf
@@ -331,6 +379,10 @@ def v2mini(
     tr, ca = tatoeba_split(len(tat))
     groups = [np.stack([E[("dev", lg)][i] for lg in langs]) for i in fit_ids]
     groups += [np.stack([E["tat_x"][i], E["tat_en"][i]]) for i in tr]
+    if extra_parallel == "massive":
+        mp = massive_parallel(scale, langs, anchor)
+        groups += [np.stack([mp["E"][lg][i] for lg in langs]) for i in range(len(mp["ids"]))]
+        log(f"meaning-LDA: + {len(mp['ids'])} MASSIVE train meanings x {len(langs)} languages")
     corpus = np.concatenate([E["wiki"][keep]] + [E[("dev", lg)][fit_ids] for lg in langs])
     corpus_langs = np.concatenate(
         [wiki["lang"].values[keep]] + [[lg] * len(fit_ids) for lg in langs]
@@ -353,16 +405,27 @@ def v2mini(
             if n_m == len(texts)
             else sp(embed.cached(anchor, f"adapter-train-{len(texts_m)}", texts_m, scale))
         )
-        Yad[m] = fit_adapter(m, Xm, Ytr_m)(
-            embed.cached(m, "flores_devtest_en", test["en"].tolist(), scale)
-        )
+        if adapter_kind == "mlp":
+            from sphota.build.adapters_v11 import fit_mlp2
+
+            ad_m = fit_mlp2(m, Xm, Ytr_m)
+        else:
+            ad_m = fit_adapter(m, Xm, Ytr_m)
+        Yad[m] = ad_m(embed.cached(m, "flores_devtest_en", test["en"].tolist(), scale))
     results = []
     best = None
     for k in sizes:
-        C = kmeans(Yc, k, seed=0, iters=40)
+        C = kmeans(Yc, k, seed=seed, iters=40)
         T = calibrate_T(C, Ya, Yb)
         m = gate_metrics(C, T, Ytest, Yc, corpus_langs, Yad)
+        m["seed"] = seed
         m["sample"] = {"wiki_sentences": len(keep), "of": len(wiki)}
+        m["adapter_kind"] = adapter_kind
+        m["extra_parallel"] = extra_parallel
+        try:
+            m["massive_xling_same_cell"] = massive_xling(sp, C, scale, langs, anchor)
+        except Exception as e:  # pragma: no cover - network dependent
+            log(f"massive cross-lingual eval skipped ({type(e).__name__})")
         m["verdict"] = {k2: {"value": v[0], "pass": bool(v[1])} for k2, v in verdict(m).items()}
         log(
             f"v2-mini K1={k}: "
@@ -452,6 +515,9 @@ def main() -> None:
     ap.add_argument("--adapter-models", nargs="*", default=None)
     ap.add_argument("--n-adapter", type=int, default=40000)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--adapter-kind", choices=["ridge", "mlp"], default="ridge")
+    ap.add_argument("--extra-parallel", choices=["massive"], default=None)
+    ap.add_argument("--seed", type=int, default=0, help="k-means seed (confirmation runs, D-035)")
     a = ap.parse_args()
     if a.cmd == "sweep":
         res = sweep(a.scale)
@@ -472,11 +538,19 @@ def main() -> None:
             anchor=a.anchor,
             adapter_models=a.adapter_models,
             n_adapter=a.n_adapter,
+            adapter_kind=a.adapter_kind,
+            extra_parallel=a.extra_parallel,
+            seed=a.seed,
+        )
+        suffix = (
+            ("-mlp" if a.adapter_kind == "mlp" else "")
+            + (f"-{a.extra_parallel}" if a.extra_parallel else "")
+            + (f"-seed{a.seed}" if a.seed else "")
         )
         name = (
             "v2-mini-gate.json"
-            if a.scale == "small" and a.anchor == ANCHOR
-            else f"v2-gate-{a.scale}-{embed.short(a.anchor)}.json"
+            if a.scale == "small" and a.anchor == ANCHOR and not suffix
+            else f"v2-gate-{a.scale}-{embed.short(a.anchor)}{suffix}.json"
         )
         (ROOT / "bench" / "results" / name).write_text(json.dumps(res, indent=1), encoding="utf-8")
         print_report(res)
