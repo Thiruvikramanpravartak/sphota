@@ -515,3 +515,8 @@ SIB-200 *test* (FLORES devtest sentences, 7 topics) for eng, hin, tam, ben, swh,
 ces, ind, ita, tur, ron, swe, ell, kor, heb; R3 on SIB-200 eng+{nld, pol, ces, ind, ita, tur,
 ron, swe, ell, kor, heb, hin}. Sixth round of R1–R4; after it the result is reported as final for
 this method family whichever way it goes, and the paper reports all six rounds.
+* Amendment to the round-6 plan, before any round-6 run: the MTEB copy of SIB-200 test holds only
+  99 sentences per language, too few for R1, so SIB-200 is dropped from R1. R3 uses FLORES-200
+  devtest instead (1,012 parallel sentences per language; never used by any refinement step):
+  eng+{nld, pol, ces, ind, ita, tur, ron, swe, ell, kor, heb, hin}. R1 confirmation = Stack
+  Exchange #6–#10, arXiv #6–#10, MasakhaNEWS train headlines (16 languages).

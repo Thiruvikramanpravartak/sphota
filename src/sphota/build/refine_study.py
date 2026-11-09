@@ -1049,13 +1049,250 @@ def round5(scale: str) -> dict:
     return res
 
 
+# ------------------------------------------------------------------ round 6 (D-040, final)
+
+R6_RULES = ["2sqrt", "1.5sqrt", "sqrt", "geo"]
+MASAKHA_ALL = [
+    "amh",
+    "eng",
+    "fra",
+    "hau",
+    "ibo",
+    "lin",
+    "lug",
+    "orm",
+    "pcm",
+    "run",
+    "sna",
+    "som",
+    "swa",
+    "tir",
+    "xho",
+    "yor",
+]
+FLORES_R3 = {
+    "nld": "nld_Latn",
+    "pol": "pol_Latn",
+    "ces": "ces_Latn",
+    "ind": "ind_Latn",
+    "ita": "ita_Latn",
+    "tur": "tur_Latn",
+    "ron": "ron_Latn",
+    "swe": "swe_Latn",
+    "ell": "ell_Grek",
+    "kor": "kor_Hang",
+    "heb": "heb_Hebr",
+    "hin": "hin_Deva",
+}
+
+
+def masakha_train(lg: str) -> tuple[list[str], list[str]]:
+    import pandas as pd
+
+    df = pd.read_csv(_hf("masakhane/masakhanews", f"data/{lg}/train.tsv"), sep="\t")
+    seen = set(load_masakha(lg)[0])
+    df = df[~df.headline.astype(str).isin(seen)].drop_duplicates("headline")
+    return df.headline.astype(str).tolist(), df.category.astype(str).tolist()
+
+
+def round6(scale: str) -> dict:
+    import pandas as pd
+    from sklearn.metrics import adjusted_rand_score
+
+    from sphota.langid import language_keys
+    from sphota.refine import refine
+    from sphota.release import load_release
+    from sphota.space import project
+
+    rel = load_release()
+    C1 = rel.codebooks[0].astype(np.float64)
+
+    def embed_all(data: dict, prefix: str) -> dict:
+        emb = {}
+        for name, (texts, _labels) in data.items():
+            tag = name.replace("/", "-").replace("#", "")
+            X = embed.cached(ANCHOR, f"{prefix}-{tag}-{len(texts)}", texts, scale)
+            emb[name] = (
+                X,
+                nearest(project(rel, X).astype(np.float64), C1),
+                language_keys(texts, X, script_masked=True),
+            )
+        return emb
+
+    def run_rule(rule: str, X: np.ndarray, keys: np.ndarray) -> np.ndarray:
+        V = X / np.linalg.norm(X, axis=1, keepdims=True)
+        return refine(V, "kmeans", scripts=keys, language="centre", k_rule=rule).labels
+
+    def r3_pair(rule, ea, eb, ix=None) -> tuple[float, float]:
+        (Xa, la, ka), (Xb, lb, kb) = ea, eb
+        if ix is not None:
+            Xa, la, ka, Xb, lb, kb = Xa[ix], la[ix], ka[ix], Xb[ix], lb[ix], kb[ix]
+        pred = run_rule(rule, np.concatenate([Xa, Xb]), np.concatenate([ka, kb]))
+        k = len(Xa)
+        return float((pred[:k] == pred[k:]).mean()), float((la == lb).mean())
+
+    # ---- dev pool: round-1 dev splits + every spent confirmation set (rounds 2-5)
+    pool = {}
+    r1 = datasets(scale)
+    sp1 = {name: split(len(r1[name][0])) for name in r1}
+    for name, (t, lab) in r1.items():
+        d = sp1[name][0]
+        pool[f"r1dev:{name}"] = ([t[i] for i in d], [lab[i] for i in d])
+    mas_test = _massive_langs(massive_locales_all())
+    for lg, v in mas_test.items():
+        pool[f"massive-test/{lg}"] = v
+    for lg, v in _massive_langs(CONFIRM4_R1, split="validation").items():
+        pool[f"massive-val/{lg}"] = v
+    ind = load_indic(1000)
+    for lg, v in ind.items():
+        pool[f"indic/{lg}"] = v
+    for lg in MASAKHA_ALL:
+        pool[f"masakha-mteb/{lg}"] = load_masakha(lg)
+    for j in range(1, 5):
+        pool[f"stackexchange#{j + 1}"] = _jsonl_split(
+            "mteb/stackexchange-clustering", "test.jsonl", j, 5000
+        )
+        pool[f"arxiv#{j + 1}"] = _jsonl_split("mteb/arxiv-clustering-s2s", "test.jsonl.gz", j, 5000)
+    df = pd.read_parquet(_hf("PolyAI/banking77", "data/train-00000-of-00001.parquet"))
+    pool["banking77-train"] = (df.text.tolist()[:3000], [str(x) for x in df.label.tolist()[:3000]])
+    pemb = embed_all(pool, "pool")
+    kt_ref = {}
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import v_measure_score
+
+    def kmeans_v(X, labels, k):
+        Xn = X / np.linalg.norm(X, axis=1, keepdims=True)
+        k = max(2, min(k, len(X) - 1))
+        return float(v_measure_score(labels, KMeans(k, n_init=3, random_state=0).fit_predict(Xn)))
+
+    for name, (_t, lab) in pool.items():
+        kt_ref[name] = kmeans_v(pemb[name][0], lab, len(set(lab)))
+    dev = {}
+    r3_dev_pairs = [("massive-test/en", f"massive-test/{lg}") for lg in mas_test if lg != "en"]
+    r3_dev_pairs += [("massive-val/en", f"massive-val/{lg}") for lg in CONFIRM4_R1 if lg != "en"]
+    r3_dev_pairs += [("indic/hi", f"indic/{lg}") for lg in ind if lg != "hi"]
+    for rule in R6_RULES:
+        gaps, passed = [], 0
+        for name, (_t, lab) in pool.items():
+            X, _l1, keys = pemb[name]
+            pred = run_rule(rule, X, keys)
+            ref = max(kt_ref[name], kmeans_v(X, lab, len(set(pred.tolist()))))
+            g = vm(lab, pred) - ref
+            gaps.append(g)
+            passed += int(g >= -0.05)
+        r3 = {
+            f"{a}+{b.split('/')[-1]}": (lambda st: st[0] >= st[1])(r3_pair(rule, pemb[a], pemb[b]))
+            for a, b in r3_dev_pairs
+        }
+        dev[rule] = {
+            "R1_dev_passed": passed,
+            "dev_sets": len(gaps),
+            "mean_gap": round(float(np.mean(gaps)), 4),
+            "R3_dev_passed": int(sum(r3.values())),
+            "R3_dev_pairs": len(r3),
+            "R3_dev_pass": all(r3.values()),
+            "R3_dev_failures": [k for k, v in r3.items() if not v],
+        }
+        log(
+            f"round6 dev k={rule:<8} R1dev {passed}/{len(gaps)} gap {np.mean(gaps):+.4f} R3 {sum(r3.values())}/{len(r3)}"
+        )
+    eligible = {k: v for k, v in dev.items() if v["R3_dev_pass"]} or dev
+    winner = max(eligible, key=lambda k: (eligible[k]["R1_dev_passed"], eligible[k]["mean_gap"]))
+    log(f"round6 selection frozen: k={winner} [raw, language_masked]")
+
+    # ---- the winner, once, on fresh confirmation set 5
+    conf = {}
+    for j in range(5, 10):
+        conf[f"stackexchange#{j + 1}"] = _jsonl_split(
+            "mteb/stackexchange-clustering", "test.jsonl", j, 5000
+        )
+        conf[f"arxiv#{j + 1}"] = _jsonl_split("mteb/arxiv-clustering-s2s", "test.jsonl.gz", j, 5000)
+    for lg in MASAKHA_ALL:
+        conf[f"masakha-train/{lg}"] = masakha_train(lg)
+    cemb = embed_all(conf, "confirm5")
+    per = {}
+    for name, (_t, labels) in conf.items():
+        X, l1, keys = cemb[name]
+        pred = run_rule(winner, X, keys)
+        ref = {
+            "kmeans_k_true": kmeans_v(X, labels, len(set(labels))),
+            "kmeans_same_groups": kmeans_v(X, labels, len(set(pred.tolist()))),
+        }
+        ref["reference"] = max(ref.values())
+        v = vm(labels, pred)
+        perm = np.random.default_rng(1).permutation(len(X))
+        ari = adjusted_rand_score(pred[perm], run_rule(winner, X[perm], keys[perm]))
+        per[name] = {
+            "n": len(labels),
+            "labels": len(set(labels)),
+            "groups": len(set(pred.tolist())),
+            "refined_v": round(v, 4),
+            "refined_v_ci": boot_ci(labels, pred),
+            "themes_v": round(vm(labels, l1), 4),
+            **{k: round(x, 4) for k, x in ref.items()},
+            "R1_pass": bool(v >= ref["reference"] - 0.05),
+            "shuffle_ari": round(float(ari), 4),
+        }
+        log(
+            f"confirm5 {name:<22} V {v:.4f} ref {ref['reference']:.4f} {'PASS' if per[name]['R1_pass'] else 'miss'}"
+        )
+    fl = pd.read_parquet(_hf("mteb/flores", "devtest.parquet"))
+    fdata = {"flores/eng": (fl["eng_Latn"].astype(str).tolist(), ["x"] * len(fl))}
+    for short, col in FLORES_R3.items():
+        fdata[f"flores/{short}"] = (fl[col].astype(str).tolist(), ["x"] * len(fl))
+    femb = embed_all(fdata, "confirm5")
+    r3 = {}
+    for short in FLORES_R3:
+        same, theme = r3_pair(winner, femb["flores/eng"], femb[f"flores/{short}"])
+        r3[f"flores/eng+{short}"] = {
+            "same_refined_group": round(same, 4),
+            "same_fixed_theme": round(theme, 4),
+            "pass": bool(same >= theme),
+        }
+    Xb = np.concatenate([cemb["masakha-train/eng"][0], cemb["masakha-train/fra"][0]])[:3000]
+    kb = np.concatenate([cemb["masakha-train/eng"][2], cemb["masakha-train/fra"][2]])[:3000]
+    times = []
+    for _ in range(3):
+        t1 = time.time()
+        run_rule(winner, Xb, kb)
+        times.append(time.time() - t1)
+    res = {
+        "round": 6,
+        "final": True,
+        "pre_registration": "DECISIONS.md D-040",
+        "dev": dev,
+        "winner": f"M4_kmeans_{winner}[raw,language_masked]",
+        "confirmation": per,
+        "R1_passed": sum(x["R1_pass"] for x in per.values()),
+        "R1_sets": len(per),
+        "R1_all": all(x["R1_pass"] for x in per.values()),
+        "R2_min_shuffle_ari": min(x["shuffle_ari"] for x in per.values()),
+        "R3": r3,
+        "R3_all": all(x["pass"] for x in r3.values()),
+        "R4": {
+            "rows": len(Xb),
+            "python_seconds_median": round(float(np.median(times)), 3),
+            "R4_python_pass": bool(np.median(times) <= 2.0),
+        },
+    }
+    res["R2_pass"] = res["R2_min_shuffle_ari"] >= 0.95
+    return res
+
+
+def massive_locales_all() -> list[str]:
+    from huggingface_hub import list_repo_files
+
+    fs = list_repo_files("mteb/amazon_massive_intent", repo_type="dataset")
+    return sorted(f.split("/")[1].split(".")[0] for f in fs if f.startswith("test/"))
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scale", choices=["tiny", "small", "medium", "full"], default="small")
-    ap.add_argument("--round", type=int, choices=[1, 2, 3, 4, 5], default=1)
+    ap.add_argument("--round", type=int, choices=[1, 2, 3, 4, 5, 6], default=1)
     a = ap.parse_args()
-    if a.round in (2, 3, 4, 5):
-        out = {2: round2, 3: round3, 4: round4, 5: round5}[a.round](a.scale)
+    if a.round in (2, 3, 4, 5, 6):
+        out = {2: round2, 3: round3, 4: round4, 5: round5, 6: round6}[a.round](a.scale)
         p = ROOT / "bench" / "results" / f"refine-round{a.round}-{a.scale}.json"
         p.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
         log(f"wrote {p}  winner={out['winner']}")

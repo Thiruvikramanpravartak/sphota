@@ -308,10 +308,16 @@ def refine(
             k = int(np.ceil(np.sqrt(n)))
         elif k_rule == "2sqrt":
             k = int(np.ceil(2 * np.sqrt(n)))
+        elif k_rule == "1.5sqrt":
+            k = int(np.ceil(1.5 * np.sqrt(n)))
+        elif k_rule == "geo":
+            k = int(np.rint(np.sqrt(_kmeans_auto(Yo) * np.ceil(2 * np.sqrt(n)))))
         elif k_rule == "max":
             k = max(_kmeans_auto(Yo), int(np.ceil(np.sqrt(n))))
         else:
-            raise ValueError("k_rule must be 'silhouette', 'sqrt', '2sqrt' or 'max'")
+            raise ValueError(
+                "k_rule must be 'silhouette', 'sqrt', '1.5sqrt', '2sqrt', 'geo' or 'max'"
+            )
         lab = _kmeans(Yo, k)
         groups = [np.where(lab == j)[0] for j in np.unique(lab)]
     elif method == "bisect":
