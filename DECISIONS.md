@@ -439,3 +439,19 @@ counts plain k-means on the file is better. Round 1's test splits are now spent 
   MasakhaNEWS ibo, lin, lug, orm, pcm, run, sna, som, tir, xho; Stack Exchange test split #2 and
   arXiv split #2 (5,000 items each); Banking77 train split (3,000 items). R3 on mixed files
   MASSIVE en+{de, fr, ru, ur} and IndicReviews hi+{gu, kn, ml}. Targets R1–R4 unchanged.
+
+## D-037 Refinement round 2 result (FAIL on R1) and pre-registration of round 3
+**Round 2 (D-036), fresh confirmation set, winner M4_kmeans+centre, evaluated once:**
+R1 16/25 (FAIL), R2 pass (shuffle ARI 1.0), R3 7/7 pass (translations share a refined group
+63–80% vs 29–46% for fixed themes), R4 pass (0.31 s for 3,000 rows). Banking77 (train split):
+0.742 vs reference 0.741, up from 0.416 with the fixed themes. Diagnosis: the silhouette picks too
+few groups (4 for most MasakhaNEWS languages, 12 for MASSIVE de with 59 intents); V-measure falls
+quickly below the true group count and stays flat above it, so undershooting is the costly error.
+For languages the anchor barely knows (som, tir, xho) the fixed themes beat per-file clustering.
+
+**Round 3, registered before any round-3 run.** Candidates (M4 family, + centre): k chosen by
+(a) silhouette (round 2), (b) ⌈√n⌉, (c) ⌈2√n⌉, (d) max(silhouette k, ⌈√n⌉). Selection on the
+round-1 dev splits (D-034 rule). The single winner is evaluated once on fresh confirmation set 2:
+MASSIVE it, pt, nl, pl, tr, vi, id, ja, ko, fa, he, th, sw (all test items); Stack Exchange test
+split #3 and arXiv split #3 (5,000 each); Banking77 train, a disjoint 3,000-item sample; R3 on
+MASSIVE en+{it, ja, tr, sw}. This is the third evaluation round of R1–R4; the count is reported.

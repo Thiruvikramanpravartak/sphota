@@ -252,6 +252,7 @@ def refine(
     scripts: np.ndarray | None = None,
     language: str = "none",
     k_groups: int | None = None,
+    k_rule: str = "silhouette",
 ) -> Refined:
     """Group one file's canonical vectors ``Y`` (n, D).
 
@@ -299,7 +300,18 @@ def refine(
         assert best is not None
         return best
     if method == "kmeans":
-        k = _kmeans_auto(Yo) if k_groups is None else int(k_groups)
+        if k_groups is not None:
+            k = int(k_groups)
+        elif k_rule == "silhouette":
+            k = _kmeans_auto(Yo)
+        elif k_rule == "sqrt":
+            k = int(np.ceil(np.sqrt(n)))
+        elif k_rule == "2sqrt":
+            k = int(np.ceil(2 * np.sqrt(n)))
+        elif k_rule == "max":
+            k = max(_kmeans_auto(Yo), int(np.ceil(np.sqrt(n))))
+        else:
+            raise ValueError("k_rule must be 'silhouette', 'sqrt', '2sqrt' or 'max'")
         lab = _kmeans(Yo, k)
         groups = [np.where(lab == j)[0] for j in np.unique(lab)]
     elif method == "bisect":
