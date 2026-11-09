@@ -61,5 +61,162 @@
  ],
  "accuracy_heldout_10pct": 0.9457,
  "accuracy_flores_devtest": 0.9409,
+ "class_scripts": {
+  "af": [
+   "LATIN"
+  ],
+  "am": [
+   "ETHIOPIC"
+  ],
+  "ar": [
+   "ARABIC",
+   "LATIN"
+  ],
+  "az": [
+   "LATIN"
+  ],
+  "bn": [
+   "BENGALI"
+  ],
+  "cy": [
+   "LATIN"
+  ],
+  "da": [
+   "LATIN"
+  ],
+  "de": [
+   "LATIN"
+  ],
+  "el": [
+   "GREEK"
+  ],
+  "en": [
+   "LATIN"
+  ],
+  "es": [
+   "LATIN"
+  ],
+  "fa": [
+   "ARABIC"
+  ],
+  "fi": [
+   "LATIN"
+  ],
+  "fr": [
+   "LATIN"
+  ],
+  "he": [
+   "HEBREW"
+  ],
+  "hi": [
+   "DEVANAGARI"
+  ],
+  "hu": [
+   "LATIN"
+  ],
+  "hy": [
+   "ARMENIAN"
+  ],
+  "id": [
+   "LATIN"
+  ],
+  "is": [
+   "LATIN"
+  ],
+  "it": [
+   "LATIN"
+  ],
+  "ja": [
+   "CJK"
+  ],
+  "jv": [
+   "LATIN"
+  ],
+  "ka": [
+   "GEORGIAN"
+  ],
+  "km": [
+   "KHMER"
+  ],
+  "kn": [
+   "KANNADA"
+  ],
+  "ko": [
+   "HANGUL"
+  ],
+  "lv": [
+   "LATIN"
+  ],
+  "ml": [
+   "MALAYALAM"
+  ],
+  "mn": [
+   "CYRILLIC"
+  ],
+  "ms": [
+   "LATIN"
+  ],
+  "my": [
+   "MYANMAR"
+  ],
+  "nb": [
+   "LATIN"
+  ],
+  "nl": [
+   "LATIN"
+  ],
+  "pl": [
+   "LATIN"
+  ],
+  "pt": [
+   "LATIN"
+  ],
+  "ro": [
+   "LATIN"
+  ],
+  "ru": [
+   "CYRILLIC"
+  ],
+  "sl": [
+   "LATIN"
+  ],
+  "sq": [
+   "LATIN"
+  ],
+  "sv": [
+   "LATIN"
+  ],
+  "sw": [
+   "LATIN"
+  ],
+  "ta": [
+   "TAMIL"
+  ],
+  "te": [
+   "TELUGU"
+  ],
+  "th": [
+   "THAI"
+  ],
+  "tl": [
+   "LATIN"
+  ],
+  "tr": [
+   "LATIN"
+  ],
+  "ur": [
+   "ARABIC"
+  ],
+  "vi": [
+   "LATIN"
+  ],
+  "zh-CN": [
+   "CJK"
+  ],
+  "zh-TW": [
+   "CJK",
+   "LATIN"
+  ]
+ },
  "sha256": "b11fd55474d23c0a13c2732f8e75a6290709fc0e4e7e242b01d8532b4f9000aa"
 }

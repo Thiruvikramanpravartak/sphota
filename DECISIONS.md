@@ -475,3 +475,22 @@ Italian); round 2's coarser silhouette k hid this. Root fix: centre by *language
   fi, hu, hy, is, jv, ka, km, lv, mn, ms, my, nb, ro, sl, sq, sv, tl, zh-TW (test items); Stack
   Exchange split #4, arXiv split #4; Banking77 train, a third disjoint sample; R3 on MASSIVE
   en+{da, ro, sv, ms, el, ka}. Fourth round of R1–R4; the count is reported.
+
+## D-039 Refinement round 4 result (FAIL on R3) and pre-registration of round 5
+**Round 4 (D-038), fresh confirmation set 3, winner M4_kmeans_2sqrt[canonical, script], evaluated
+once:** R1 **26/27** (only Stack Exchange split #4 misses, by 0.006), R2 pass, R3 FAIL 2/6
+(same-script pairs: en+da 15% vs 36% fixed themes, en+ro 22% vs 32%, en+sv 30% vs 39%, en+ms
+32% vs 37%; en+el and en+ka pass), R4 pass (0.08 s). Language centring was available but not
+selected: the dev R3 set held only one same-script pair (en+es), so dev could not see the failure.
+Methodological lesson recorded: the dev set must contain the failure mode being fixed. On spent
+round-3/4 pairs (now dev data) language centring gives 56–70% vs 29–42% fixed themes.
+Script-consistent language prediction added (a Devanagari text can no longer be labelled Bengali).
+
+**Round 5, registered before any round-5 run.** k = ⌈2√n⌉. Candidates: [canonical, script],
+[canonical, language], [canonical, language with script mask], [raw, language with script mask].
+Dev R1 sets: round-1 dev splits. Dev R3 pairs: round-1 dev pairs plus spent MASSIVE test pairs
+en+{da, ro, sv, ms, de, it, tr}. Rule: eligible = all dev R3 pairs pass; maximize mean dev gap.
+The single winner is evaluated once on fresh confirmation set 4: the MASSIVE **validation** split
+(never used by any step), R1 on en, de, fr, it, tr, ro, sv, hi, ta, ja, ar, ru, sw; Stack Exchange
+split #5 and arXiv split #5 (5,000 each); the remaining Banking77 train items not in samples
+a–c; R3 on MASSIVE validation en+{de, fr, it, tr, ro, sv, hi, ja, ar}. Fifth round of R1–R4.

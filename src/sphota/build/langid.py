@@ -71,6 +71,18 @@ def run(scale: str, per_lang: int) -> dict:
     yt = np.array([FLORES_TO_MASSIVE.get(lg, lg) for lg in langs for _ in range(len(test))])
     acc_flores = float((clf.predict(Xt) == yt).mean())
     clf.fit(X, y)  # final model on the whole training pool
+    # writing systems seen per language in the training texts (for script-consistent prediction)
+    from collections import Counter
+
+    from sphota.refine import script_of
+
+    seen: dict[str, Counter] = {}
+    for t, lg in zip(texts, labels):
+        seen.setdefault(lg, Counter())[script_of(t)] += 1
+    class_scripts = {
+        lg: sorted(s for s, n in c.items() if n >= 0.02 * sum(c.values()) and s != "NONE")
+        for lg, c in seen.items()
+    }
     OUT.mkdir(parents=True, exist_ok=True)
     p = OUT / "langid.npz"
     np.savez(
@@ -92,6 +104,7 @@ def run(scale: str, per_lang: int) -> dict:
         ],
         "accuracy_heldout_10pct": round(acc_holdout, 4),
         "accuracy_flores_devtest": round(acc_flores, 4),
+        "class_scripts": class_scripts,
         "sha256": sha256_file(p),
     }
     (OUT / "langid.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")

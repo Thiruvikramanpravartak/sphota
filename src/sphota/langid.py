@@ -37,19 +37,40 @@ def _model() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         return z["W"].astype(np.float32), z["b"].astype(np.float32), z["classes"]
 
 
-def predict(X: np.ndarray) -> np.ndarray:
-    """Predicted MASSIVE locale (e.g. ``"en"``, ``"hi"``, ``"zh-CN"``) for raw anchor vectors."""
+@functools.lru_cache(maxsize=1)
+def _class_scripts() -> dict[str, list[str]]:
+    meta = json.loads((DIR / "langid.json").read_text(encoding="utf-8"))
+    return dict(meta.get("class_scripts", {}))
+
+
+def predict(X: np.ndarray, scripts: list[str] | None = None) -> np.ndarray:
+    """Predicted MASSIVE locale (e.g. ``"en"``, ``"hi"``, ``"zh-CN"``) for raw anchor vectors.
+
+    ``scripts``: optional writing system per row; predictions are then restricted to languages
+    seen in that script in the training data (e.g. Devanagari text cannot be labelled Bengali).
+    """
     W, b, classes = _model()
     X = np.atleast_2d(np.asarray(X, dtype=np.float32))
     X = X / np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-12)
-    return classes[np.argmax(X @ W + b, axis=1)]
+    logits = X @ W + b
+    if scripts is not None:
+        cs = _class_scripts()
+        for i, s in enumerate(scripts):
+            ok = np.array([s in cs.get(str(c), [s]) for c in classes])
+            if ok.any():
+                logits[i, ~ok] = -np.inf
+    return classes[np.argmax(logits, axis=1)]
 
 
-def language_keys(texts: list[str], X: np.ndarray) -> np.ndarray:
-    """Per-message grouping key: script, plus predicted language for shared scripts."""
+def language_keys(texts: list[str], X: np.ndarray, script_masked: bool = True) -> np.ndarray:
+    """Per-message grouping key: script, plus predicted language for shared scripts.
+
+    ``script_masked`` restricts the language to those written in the message's script (D-039).
+    """
     scripts = [script_of(t) for t in texts]
     need = [i for i, s in enumerate(scripts) if s in SHARED_SCRIPTS]
-    pred = predict(np.asarray(X)[need]) if need else []
+    sub = [scripts[i] for i in need] if script_masked else None
+    pred = predict(np.asarray(X)[need], sub) if need else []
     keys = np.array(scripts, dtype=object)
     for i, p in zip(need, pred):
         keys[i] = f"{scripts[i]}:{p}"
