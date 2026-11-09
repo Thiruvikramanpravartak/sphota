@@ -494,3 +494,24 @@ The single winner is evaluated once on fresh confirmation set 4: the MASSIVE **v
 (never used by any step), R1 on en, de, fr, it, tr, ro, sv, hi, ta, ja, ar, ru, sw; Stack Exchange
 split #5 and arXiv split #5 (5,000 each); the remaining Banking77 train items not in samples
 a–c; R3 on MASSIVE validation en+{de, fr, it, tr, ro, sv, hi, ja, ar}. Fifth round of R1–R4.
+
+## D-040 Refinement round 5 result (FAIL on R1 by one set) and pre-registration of round 6
+**Round 5 (D-039), fresh confirmation set 4, winner M4_kmeans_2sqrt[raw, language_masked],
+evaluated once:** R1 15/16 (all 13 MASSIVE-validation languages, arXiv #5 and Banking77 pass;
+Stack Exchange #5 misses: 0.463 vs bar 0.522), R2 pass, **R3 9/9 pass** (59–76% vs 31–47% fixed
+themes), R4 pass (0.12 s). Stack Exchange misses whenever a split has few, well-separated labels
+(12–17 sites): ⌈2√n⌉ = 142 groups is then too fine (it passed with 32 labels in round 3).
+
+**Round 6, registered before any round-6 run.** All candidates use [raw, language_masked]; k by
+⌈2√n⌉, ⌈1.5√n⌉, ⌈√n⌉, or the geometric mean of the silhouette k and ⌈2√n⌉. Dev pool: round-1
+dev splits plus every spent confirmation set of rounds 2–5 (MASSIVE test and validation, Indic
+Reviews, MasakhaNEWS, Stack Exchange #2–#5, arXiv #2–#5, Banking77 samples); dev R3 pairs: round-1
+dev pairs, MASSIVE test en+X for all 50 other locales, MASSIVE validation en+X, IndicReviews hi+X.
+Rule (changed, declared now): eligible = all dev R3 pairs pass; choose the candidate passing R1 on
+the most dev sets, tie-break by mean dev gap. The single winner is evaluated once on fresh
+confirmation set 5: Stack Exchange splits #6–#10, arXiv splits #6–#10, MasakhaNEWS original *train*
+split for its 16 languages (items whose headline appears in the MTEB clustering set removed), and
+SIB-200 *test* (FLORES devtest sentences, 7 topics) for eng, hin, tam, ben, swh, yor, nld, pol,
+ces, ind, ita, tur, ron, swe, ell, kor, heb; R3 on SIB-200 eng+{nld, pol, ces, ind, ita, tur,
+ron, swe, ell, kor, heb, hin}. Sixth round of R1–R4; after it the result is reported as final for
+this method family whichever way it goes, and the paper reports all six rounds.
