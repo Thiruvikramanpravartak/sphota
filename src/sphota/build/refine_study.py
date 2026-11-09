@@ -342,10 +342,10 @@ CONFIRM_R3 = [("massive", "en", lg) for lg in ["de", "fr", "ru", "ur"]] + [
 ]
 
 
-def _massive_langs(langs: list[str]) -> dict[str, tuple[list[str], list[str]]]:
+def _massive_langs(langs: list[str], split: str = "test") -> dict[str, tuple[list[str], list[str]]]:
     out = {}
     for lg in langs:
-        with gzip.open(_hf("mteb/amazon_massive_intent", f"test/{lg}.json.gz"), "rt") as f:
+        with gzip.open(_hf("mteb/amazon_massive_intent", f"{split}/{lg}.json.gz"), "rt") as f:
             rows = sorted((json.loads(line) for line in f), key=lambda r: int(r["id"]))
         out[lg] = ([r["text"] for r in rows], [r["label"] for r in rows])
     return out
@@ -869,13 +869,193 @@ def round4(scale: str) -> dict:
     return res
 
 
+# ------------------------------------------------------------------ round 5 (D-039)
+
+R5_CANDS = [
+    ("canonical", "script"),
+    ("canonical", "language"),
+    ("canonical", "language_masked"),
+    ("raw", "language_masked"),
+]
+SPENT_R3 = ["da", "ro", "sv", "ms", "de", "it", "tr"]
+CONFIRM4_R1 = ["en", "de", "fr", "it", "tr", "ro", "sv", "hi", "ta", "ja", "ar", "ru", "sw"]
+CONFIRM4_R3 = ["de", "fr", "it", "tr", "ro", "sv", "hi", "ja", "ar"]
+
+
+def round5(scale: str) -> dict:
+    import pandas as pd
+    from sklearn.metrics import adjusted_rand_score
+
+    from sphota.langid import language_keys
+    from sphota.refine import script_of
+    from sphota.release import load_release
+    from sphota.space import project
+
+    rel = load_release()
+    C1 = rel.codebooks[0].astype(np.float64)
+
+    def embed_all(data: dict, prefix: str) -> dict:
+        emb = {}
+        for name, (texts, _labels) in data.items():
+            tag = name.replace("/", "-").replace("#", "")
+            X = embed.cached(ANCHOR, f"{prefix}-{tag}-{len(texts)}", texts, scale)
+            Y = project(rel, X).astype(np.float64)
+            keys = {
+                "script": np.array([script_of(t) for t in texts]),
+                "language": language_keys(texts, X, script_masked=False),
+                "language_masked": language_keys(texts, X, script_masked=True),
+            }
+            emb[name] = (X, Y, nearest(Y, C1), keys)
+        return emb
+
+    def sub(keys: dict, ix) -> dict:
+        return {k: v[ix] for k, v in keys.items()}
+
+    def cat(a: dict, b: dict) -> dict:
+        return {k: np.concatenate([a[k], b[k]]) for k in a}
+
+    def r3_pair(c, ea, eb, ix=None) -> tuple[float, float]:
+        Xa, Ya, la, ka = ea
+        Xb, Yb, lb, kb = eb
+        if ix is not None:
+            Xa, Ya, la, ka = Xa[ix], Ya[ix], la[ix], sub(ka, ix)
+            Xb, Yb, lb, kb = Xb[ix], Yb[ix], lb[ix], sub(kb, ix)
+        pred = r4_run(c, np.concatenate([Xa, Xb]), np.concatenate([Ya, Yb]), cat(ka, kb))
+        k = len(Ya)
+        return float((pred[:k] == pred[k:]).mean()), float((la == lb).mean())
+
+    data = datasets(scale)
+    emb = embed_all(data, "refine")
+    splits = {name: split(len(data[name][0])) for name in data}
+    spent = embed_all(
+        {f"massive/{lg}": v for lg, v in _massive_langs(["en", *SPENT_R3]).items()}, "spent"
+    )
+    dev = {}
+    for c in R5_CANDS:
+        gaps = []
+        for name, (_texts, labels) in data.items():
+            d = splits[name][0]
+            X, Y, _l1, keys = emb[name]
+            lab = [labels[i] for i in d]
+            pred = r4_run(c, X[d], Y[d], sub(keys, d))
+            gaps.append(vm(lab, pred) - reference(X[d], lab, len(set(pred.tolist())))["reference"])
+        r3 = {}
+        for ds, a, b in R3_PAIRS:
+            same, theme = r3_pair(c, emb[f"{ds}/{a}"], emb[f"{ds}/{b}"], splits[f"{ds}/{a}"][0])
+            r3[f"dev:{ds}/{a}+{b}"] = same >= theme
+        for b in SPENT_R3:
+            same, theme = r3_pair(c, spent["massive/en"], spent[f"massive/{b}"])
+            r3[f"spent:massive/en+{b}"] = same >= theme
+        key = f"M4_kmeans_2sqrt[{c[0]},{c[1]}]"
+        dev[key] = {
+            "candidate": list(c),
+            "mean_gap": round(float(np.mean(gaps)), 4),
+            "min_gap": round(float(np.min(gaps)), 4),
+            "R1_dev_passed": int(sum(g >= -0.05 for g in gaps)),
+            "dev_sets": len(gaps),
+            "R3_dev": r3,
+            "R3_dev_pass": all(r3.values()),
+        }
+        log(
+            f"round5 dev {key:<44} gap {np.mean(gaps):+.4f} R1dev {dev[key]['R1_dev_passed']}/{len(gaps)} "
+            f"R3 {sum(r3.values())}/{len(r3)}"
+        )
+    eligible = {k: v for k, v in dev.items() if v["R3_dev_pass"]} or dev
+    winner = max(eligible, key=lambda k: eligible[k]["mean_gap"])
+    c = tuple(dev[winner]["candidate"])
+    log(f"round5 selection frozen: {winner}")
+
+    conf = {
+        f"massive-val/{lg}": v for lg, v in _massive_langs(CONFIRM4_R1, split="validation").items()
+    }
+    conf["stackexchange#5/en"] = _jsonl_split(
+        "mteb/stackexchange-clustering", "test.jsonl", 4, 5000
+    )
+    conf["arxiv#5/en"] = _jsonl_split("mteb/arxiv-clustering-s2s", "test.jsonl.gz", 4, 5000)
+    df = pd.read_parquet(_hf("PolyAI/banking77", "data/train-00000-of-00001.parquet"))
+    used = set(np.random.default_rng(SEED).choice(len(df), 3000, replace=False).tolist())
+    for seed in (SEED + 1, SEED + 2):
+        rest = np.array([i for i in range(len(df)) if i not in used])
+        used |= set(
+            np.random.default_rng(seed).choice(rest, min(3000, len(rest)), replace=False).tolist()
+        )
+    rest = np.array([i for i in range(len(df)) if i not in used])
+    conf["banking77-train-rest/en"] = (
+        df.text.iloc[rest].tolist(),
+        [str(x) for x in df.label.iloc[rest]],
+    )
+    cemb = embed_all(conf, "confirm4")
+    per = {}
+    for name, (_texts, labels) in conf.items():
+        X, Y, l1, keys = cemb[name]
+        pred = r4_run(c, X, Y, keys)
+        ref = reference(X, labels, len(set(pred.tolist())))
+        v = vm(labels, pred)
+        perm = np.random.default_rng(1).permutation(len(Y))
+        ari = adjusted_rand_score(pred[perm], r4_run(c, X[perm], Y[perm], sub(keys, perm)))
+        per[name] = {
+            "n": len(labels),
+            "labels": len(set(labels)),
+            "groups": len(set(pred.tolist())),
+            "refined_v": round(v, 4),
+            "refined_v_ci": boot_ci(labels, pred),
+            "themes_v": round(vm(labels, l1), 4),
+            **{k: round(x, 4) for k, x in ref.items()},
+            "R1_pass": bool(v >= ref["reference"] - 0.05),
+            "shuffle_ari": round(float(ari), 4),
+        }
+        log(
+            f"confirm4 {name:<24} V {v:.4f} ref {ref['reference']:.4f} {'PASS' if per[name]['R1_pass'] else 'miss'}"
+        )
+    r3 = {}
+    for b in CONFIRM4_R3:
+        same, theme = r3_pair(c, cemb["massive-val/en"], cemb[f"massive-val/{b}"])
+        r3[f"massive-val/en+{b}"] = {
+            "same_refined_group": round(same, 4),
+            "same_fixed_theme": round(theme, 4),
+            "pass": bool(same >= theme),
+        }
+    names = ["massive-val/de", "massive-val/hi"]
+    Xb = np.concatenate([cemb[n][0] for n in names])
+    Yb = np.concatenate([cemb[n][1] for n in names])
+    kb = {k: np.concatenate([cemb[n][3][k] for n in names]) for k in cemb[names[0]][3]}
+    reps = int(np.ceil(3000 / len(Xb)))
+    Xb, Yb = np.concatenate([Xb] * reps)[:3000], np.concatenate([Yb] * reps)[:3000]
+    kb = {k: np.concatenate([v] * reps)[:3000] for k, v in kb.items()}
+    times = []
+    for _ in range(3):
+        t1 = time.time()
+        r4_run(c, Xb, Yb, kb)
+        times.append(time.time() - t1)
+    res = {
+        "round": 5,
+        "pre_registration": "DECISIONS.md D-039",
+        "dev": dev,
+        "winner": winner,
+        "confirmation": per,
+        "R1_passed": sum(x["R1_pass"] for x in per.values()),
+        "R1_sets": len(per),
+        "R1_all": all(x["R1_pass"] for x in per.values()),
+        "R2_min_shuffle_ari": min(x["shuffle_ari"] for x in per.values()),
+        "R3": r3,
+        "R3_all": all(x["pass"] for x in r3.values()),
+        "R4": {
+            "rows": len(Yb),
+            "python_seconds_median": round(float(np.median(times)), 3),
+            "R4_python_pass": bool(np.median(times) <= 2.0),
+        },
+    }
+    res["R2_pass"] = res["R2_min_shuffle_ari"] >= 0.95
+    return res
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scale", choices=["tiny", "small", "medium", "full"], default="small")
-    ap.add_argument("--round", type=int, choices=[1, 2, 3, 4], default=1)
+    ap.add_argument("--round", type=int, choices=[1, 2, 3, 4, 5], default=1)
     a = ap.parse_args()
-    if a.round in (2, 3, 4):
-        out = {2: round2, 3: round3, 4: round4}[a.round](a.scale)
+    if a.round in (2, 3, 4, 5):
+        out = {2: round2, 3: round3, 4: round4, 5: round5}[a.round](a.scale)
         p = ROOT / "bench" / "results" / f"refine-round{a.round}-{a.scale}.json"
         p.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
         log(f"wrote {p}  winner={out['winner']}")
