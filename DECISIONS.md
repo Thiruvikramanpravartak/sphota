@@ -556,3 +556,16 @@ and finer groups than their natural categories; languages the anchor does not kn
 * k-means seeding now uses a portable PRNG (mulberry32), identical in both languages. Post-hoc
   implementation check (not a selection step) on the round-6 confirmation sets: R1 18/26 as in
   round 6, mean |ΔV| = 0.012 (`bench/results/refine-implcheck-small.json`).
+
+## D-043 Short-text fix at CPU scale: large gain on its target, language collapse elsewhere
+CPU, small scale, e5 anchor, ridge adapters; only change = MASSIVE train commands (11,492 meanings
+× 12 languages, test texts excluded) added to the meaning-LDA translation scatter
+(`bench/results/shorttext-{baseline,massive}-small.json`). Held-out MASSIVE test commands in the
+same top-level cell as English: 32 cells 52% → 84%, 256 cells 42% → 72%, 1024 cells 41% → 50%.
+But at 256 cells worst language collapse rises 0% → 85% (Portuguese Wikipedia), FLORES coverage
+falls 48% → 31% and confident translation 76% → 71%; cross-model rises 33% → 39%. The scatter
+dominated by one text type over-fits the space to it. **Prediction recorded before GPU run 2's
+result is seen:** run 2 (which adds all 11.5k commands) is likely to fail the collapse criterion
+at ≥ 256 cells even with LaBSE/bge-m3. Next, exploratory (not pre-registered): fewer commands
+(800 and 2,500 meanings) to look for a balance; any balance found would need its own
+pre-registered run.

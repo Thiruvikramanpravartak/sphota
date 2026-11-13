@@ -355,6 +355,7 @@ def v2mini(
     adapter_kind: str = "ridge",
     extra_parallel: str | None = None,
     seed: int = 0,
+    extra_n: int | None = None,
 ) -> dict:
     """Rebuild the space on a diversified sample, evaluate the D-017 gate, keep the best build
     as an experimental release (never overwrites frozen v1).
@@ -381,8 +382,13 @@ def v2mini(
     groups += [np.stack([E["tat_x"][i], E["tat_en"][i]]) for i in tr]
     if extra_parallel == "massive":
         mp = massive_parallel(scale, langs, anchor)
-        groups += [np.stack([mp["E"][lg][i] for lg in langs]) for i in range(len(mp["ids"]))]
-        log(f"meaning-LDA: + {len(mp['ids'])} MASSIVE train meanings x {len(langs)} languages")
+        idx = range(len(mp["ids"]))
+        if extra_n is not None and extra_n < len(mp["ids"]):  # exploratory balance (D-043)
+            idx = np.sort(
+                np.random.default_rng(seed).choice(len(mp["ids"]), extra_n, replace=False)
+            )
+        groups += [np.stack([mp["E"][lg][i] for lg in langs]) for i in idx]
+        log(f"meaning-LDA: + {len(idx)} MASSIVE train meanings x {len(langs)} languages")
     corpus = np.concatenate([E["wiki"][keep]] + [E[("dev", lg)][fit_ids] for lg in langs])
     corpus_langs = np.concatenate(
         [wiki["lang"].values[keep]] + [[lg] * len(fit_ids) for lg in langs]
@@ -518,6 +524,9 @@ def main() -> None:
     ap.add_argument("--adapter-kind", choices=["ridge", "mlp"], default="ridge")
     ap.add_argument("--extra-parallel", choices=["massive"], default=None)
     ap.add_argument("--seed", type=int, default=0, help="k-means seed (confirmation runs, D-035)")
+    ap.add_argument(
+        "--extra-n", type=int, default=None, help="cap on extra parallel meanings (D-043)"
+    )
     a = ap.parse_args()
     if a.cmd == "sweep":
         res = sweep(a.scale)
@@ -541,11 +550,13 @@ def main() -> None:
             adapter_kind=a.adapter_kind,
             extra_parallel=a.extra_parallel,
             seed=a.seed,
+            extra_n=a.extra_n,
         )
         suffix = (
             ("-mlp" if a.adapter_kind == "mlp" else "")
             + (f"-{a.extra_parallel}" if a.extra_parallel else "")
             + (f"-seed{a.seed}" if a.seed else "")
+            + (f"-n{a.extra_n}" if a.extra_n else "")
         )
         name = (
             "v2-mini-gate.json"
