@@ -243,10 +243,13 @@ else:
         lang: str = typer.Option("en", "--lang"),
         limit: int | None = typer.Option(None, "--limit"),
         by: str = typer.Option(
-            "theme",
+            "refined",
             "--by",
-            help="Grouping: theme (first code block, named by your texts; best for one domain), "
-            "region (32 broad cross-language regions) or l1 (automatic labels).",
+            help="Grouping: refined (default: groups fitted to this file, each tied to a stable "
+            "theme code), theme (first code block only), region (32 broad areas) or l1.",
+        ),
+        csv_out: Path | None = typer.Option(
+            None, "--csv", help="Also write one row per message (group, theme, code) to this CSV."
         ),
     ) -> None:
         """Topic analytics → a standalone HTML report (prefix tree, counts, samples)."""
@@ -254,11 +257,21 @@ else:
 
         try:
             res = analyze_file(
-                file, column=column, out=out, min_count=min_count, lang=lang, limit=limit, by=by
+                file,
+                column=column,
+                out=out,
+                min_count=min_count,
+                lang=lang,
+                limit=limit,
+                by=by,
+                csv_out=csv_out,
             )
         except Exception as e:
             _fail(e)
-        con.print(f"[green]wrote[/] {res['out']}  ({res['n']} rows, {res['n_l1']} topics)")
+        con.print(
+            f"[green]wrote[/] {res['out']}  ({res['n']} rows, {res['n_l1']} groups)"
+            + (f", {csv_out}" if csv_out else "")
+        )
 
     @app.command("train-adapter")
     def train_adapter(

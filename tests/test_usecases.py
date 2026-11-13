@@ -188,3 +188,25 @@ def test_report_escapes_hostile_text(fake_encoder):
     html = render_html(build_report([evil, *GOLD], by="theme"))
     assert "<script>alert" not in html and "<img src=x" not in html
     assert "&lt;script&gt;" in html
+
+
+def test_refined_report_and_csv(fake_encoder, tmp_path):
+    from sphota.api import encode_with_vectors
+    from sphota.usecases.analytics import refined_groups, write_csv
+
+    texts = [*GOLD, "=HYPERLINK(1)", "+cmd", *GOLD]
+    codes, X = encode_with_vectors(texts)
+    rep = build_report(texts, codes=codes, by="refined", vectors=X)
+    assert sum(r.count for r in rep.roots) == len(texts)
+    assert all("." in r.prefix and r.name for r in rep.roots)  # 'WJX1.2' ids, named groups
+    html = render_html(rep)
+    assert "<details" in html
+    g1, g2 = refined_groups(texts, X, codes), refined_groups(texts, X, codes)
+    assert (g1["labels"] == g2["labels"]).all()  # deterministic
+    p = tmp_path / "out.csv"
+    write_csv(p, texts, codes, g1)
+    body = p.read_text(encoding="utf-8-sig")
+    assert "'=HYPERLINK(1)" in body and "'+cmd" in body  # formulas neutralized
+    assert body.splitlines()[0].startswith("text,group,group_name,theme")
+    hidden = build_report(texts, codes=codes, by="refined", vectors=X, min_count=99)
+    assert hidden.suppressed == len(texts)

@@ -1286,11 +1286,64 @@ def massive_locales_all() -> list[str]:
     return sorted(f.split("/")[1].split(".")[0] for f in fs if f.startswith("test/"))
 
 
+def implementation_check(scale: str) -> dict:
+    """Post-hoc check (not a selection step): re-run the round-6 confirmation with the shipped
+    refinement implementation (portable mulberry32 seeding) and compare with round 6."""
+    import pandas as pd
+
+    from sphota.langid import language_keys
+    from sphota.refine import refine
+    from sphota.release import load_release
+    from sphota.space import project
+
+    rel = load_release()
+    C1 = rel.codebooks[0].astype(np.float64)
+    conf = {}
+    for j in range(5, 10):
+        conf[f"stackexchange#{j + 1}"] = _jsonl_split(
+            "mteb/stackexchange-clustering", "test.jsonl", j, 5000
+        )
+        conf[f"arxiv#{j + 1}"] = _jsonl_split("mteb/arxiv-clustering-s2s", "test.jsonl.gz", j, 5000)
+    for lg in MASAKHA_ALL:
+        conf[f"masakha-train/{lg}"] = masakha_train(lg)
+    r6 = json.loads(
+        (ROOT / "bench" / "results" / f"refine-round6-{scale}.json").read_text(encoding="utf-8")
+    )
+    out = {}
+    for name, (texts, labels) in conf.items():
+        tag = name.replace("/", "-").replace("#", "")
+        X = embed.cached(ANCHOR, f"confirm5-{tag}-{len(texts)}", texts, scale)
+        V = X / np.linalg.norm(X, axis=1, keepdims=True)
+        keys = language_keys(texts, X, script_masked=True)
+        pred = refine(V, "kmeans", scripts=keys, language="centre", k_rule="2sqrt").labels
+        v = vm(labels, pred)
+        ref = r6["confirmation"][name]["reference"]
+        out[name] = {
+            "refined_v_shipped": round(v, 4),
+            "refined_v_round6": r6["confirmation"][name]["refined_v"],
+            "R1_pass_shipped": bool(v >= ref - 0.05),
+        }
+    _ = (pd, C1, project)
+    return {
+        "note": "post-hoc implementation check, not a selection step (D-042)",
+        "sets": out,
+        "R1_passed_shipped": sum(x["R1_pass_shipped"] for x in out.values()),
+        "R1_sets": len(out),
+    }
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scale", choices=["tiny", "small", "medium", "full"], default="small")
     ap.add_argument("--round", type=int, choices=[1, 2, 3, 4, 5, 6], default=1)
+    ap.add_argument("--implementation-check", action="store_true")
     a = ap.parse_args()
+    if a.implementation_check:
+        out = implementation_check(a.scale)
+        p = ROOT / "bench" / "results" / f"refine-implcheck-{a.scale}.json"
+        p.write_text(json.dumps(out, indent=1), encoding="utf-8")
+        log(f"wrote {p}: R1 {out['R1_passed_shipped']}/{out['R1_sets']}")
+        raise SystemExit(0)
     if a.round in (2, 3, 4, 5, 6):
         out = {2: round2, 3: round3, 4: round4, 5: round5, 6: round6}[a.round](a.scale)
         p = ROOT / "bench" / "results" / f"refine-round{a.round}-{a.scale}.json"

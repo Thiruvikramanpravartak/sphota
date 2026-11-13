@@ -199,20 +199,39 @@ AUTO_TAUS = (0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
 K_GRID = (4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512)
 
 
+class Mulberry32:
+    """Tiny portable PRNG (mulberry32), implemented identically in the Meaning Atlas (TypeScript),
+    so the browser and the library choose the same k-means seeds."""
+
+    def __init__(self, seed: int = 0):
+        self.a = seed & 0xFFFFFFFF
+
+    def __call__(self) -> float:
+        self.a = (self.a + 0x6D2B79F5) & 0xFFFFFFFF
+        t = self.a
+        t = ((t ^ (t >> 15)) * (t | 1)) & 0xFFFFFFFF
+        t ^= (t + (((t ^ (t >> 7)) * (t | 61)) & 0xFFFFFFFF)) & 0xFFFFFFFF
+        return ((t ^ (t >> 14)) & 0xFFFFFFFF) / 4294967296.0
+
+
 def _kmeans(X: np.ndarray, k: int, seed: int = 0, iters: int = 15) -> np.ndarray:
-    """Deterministic k-means (k-means++ init with a fixed seed) on rows given in canonical order."""
+    """Deterministic k-means (k-means++ init, mulberry32 seed) on rows given in canonical order."""
     X = X.astype(np.float32)
     n = len(X)
     k = max(1, min(k, n))
-    rng = np.random.default_rng(seed)
-    xn = (X**2).sum(1)
-    centres = [int(rng.integers(n))]
-    d2 = np.maximum(xn + xn[centres[0]] - 2 * X @ X[centres[0]], 0)
+    rng = Mulberry32(seed)
+    xn = (X.astype(np.float64) ** 2).sum(1)
+    Xd = X.astype(np.float64)
+    centres = [min(int(rng() * n), n - 1)]
+    d2 = np.maximum(xn + xn[centres[0]] - 2 * Xd @ Xd[centres[0]], 0)
     for _ in range(1, k):
-        p = d2 / d2.sum() if d2.sum() > 0 else np.full(n, 1 / n)
-        c = int(rng.choice(n, p=p))
+        cum = np.cumsum(d2)
+        if cum[-1] > 0:
+            c = min(int(np.searchsorted(cum, rng() * cum[-1], side="right")), n - 1)
+        else:
+            c = min(int(rng() * n), n - 1)
         centres.append(c)
-        d2 = np.minimum(d2, np.maximum(xn + xn[c] - 2 * X @ X[c], 0))
+        d2 = np.minimum(d2, np.maximum(xn + xn[c] - 2 * Xd @ Xd[c], 0))
     C = X[centres].copy()
     lab = np.zeros(n, dtype=np.int64)
     for it in range(iters):

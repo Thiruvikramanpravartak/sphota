@@ -376,6 +376,21 @@ def encode_batch(
     return _to_codes(Y, texts, min_confidence, max_level, stable, rel, ts)
 
 
+def encode_with_vectors(texts: Iterable[str]) -> tuple[list[Sphota], np.ndarray]:
+    """Encode with the anchor and also return its raw vectors (n, 384), in one pass.
+
+    Per-file refinement (:mod:`sphota.refine`) groups by the raw anchor vectors and detects each
+    message's language from them (:mod:`sphota.langid`)."""
+    texts = list(texts)
+    if not texts:
+        return [], np.zeros((0, 384), np.float32)
+    _warn_unsupported(texts)
+    rel = load_release()
+    enc, _ = _encoder_for(None)
+    X = enc.encode(texts)
+    return _to_codes(project(rel, X), texts, None, 4, False, rel, 1.0), X
+
+
 def encode(
     text: str,
     *,

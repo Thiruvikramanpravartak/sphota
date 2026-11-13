@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from sphota.api import Sphota, encode_batch, label
 
 TEXT_COLUMNS = (
@@ -124,11 +126,34 @@ def read_texts(
 
 
 def _lab(key: str, lang: str = "en") -> str:
+    if "." in key:  # refined group id like "WJX1.2": no general label (groups are per file)
+        return ""
     if key.startswith("R") and "-" not in key and len(key) == 3:
         from sphota.regions import region_label
 
         return region_label(key)
     return label(key, lang)
+
+
+def refined_groups(texts: Sequence[str], X: np.ndarray, codes: Sequence[Sphota]) -> dict[str, Any]:
+    """Per-file refinement (D-041): groups fitted to this file, each tied to a stable theme code.
+
+    Returns ``{"labels": group per text, "names": representative text per group, "ids": group id
+    like 'WJX1.2' per group}``. Deterministic; row order does not matter."""
+    from sphota.codes import from_indices
+    from sphota.langid import language_keys
+    from sphota.refine import refine
+
+    V = X / np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-12)
+    l1 = np.array([c.levels[0] for c in codes])
+    keys = language_keys(list(texts), X)
+    r = refine(V, "kmeans", scripts=keys, language="centre", k_rule="2sqrt", l1=l1)
+    per_parent: Counter = Counter()
+    ids = []
+    for p in r.parent:
+        per_parent[p] += 1
+        ids.append(f"{from_indices([p])}.{per_parent[p]}")
+    return {"labels": r.labels, "names": [texts[i] for i in r.representative], "ids": ids}
 
 
 def build_report(
@@ -139,12 +164,19 @@ def build_report(
     samples: int = 3,
     title: str = "Sphota topic report",
     by: str = "region",
+    vectors: np.ndarray | None = None,
 ) -> TopicReport:
     """Group texts into a two-level tree. ``by='region'`` (default): 32 cross-language regions,
     then L1 cells; ``by='l1'``: L1 cells, then L2 cells; ``by='theme'``: like ``l1``, but each
-    group is named by its own most confident text instead of the general-purpose labels."""
-    if by not in ("region", "l1", "theme"):
-        raise ValueError(f"by must be 'theme', 'region' or 'l1', not {by!r}")
+    group is named by its own most confident text instead of the general-purpose labels;
+    ``by='refined'``: groups fitted to this file (D-041), each named by its most typical text and
+    tied to a stable theme code (``WJX1.2``), with the themes inside it as children.
+    ``vectors``: the raw anchor vectors (from :func:`sphota.api.encode_with_vectors`); computed if
+    missing."""
+    if by not in ("region", "l1", "theme", "refined"):
+        raise ValueError(f"by must be 'refined', 'theme', 'region' or 'l1', not {by!r}")
+    if by == "refined":
+        return _refined_report(texts, codes, langs, min_count, samples, title, vectors)
     codes = list(codes) if codes is not None else encode_batch(list(texts))
     langs = list(langs) if langs is not None else [None] * len(texts)
     roots: dict[str, TopicNode] = {}
@@ -258,6 +290,77 @@ ul{{padding-left:18px}} li{{margin:6px 0}} li .n{{margin-left:6px}}
 </main></body></html>"""
 
 
+def _refined_report(texts, codes, langs, min_count, samples, title, vectors) -> TopicReport:
+    from sphota.api import encode_with_vectors
+
+    texts = list(texts)
+    if codes is None or vectors is None:
+        codes, vectors = encode_with_vectors(texts)
+    langs = list(langs) if langs is not None else [None] * len(texts)
+    g = refined_groups(texts, vectors, codes)
+    nodes = [TopicNode(gid, name=name[:90]) for gid, name in zip(g["ids"], g["names"])]
+    for t, c, lg, lab in zip(texts, codes, langs, g["labels"]):
+        n1 = nodes[int(lab)]
+        n1.count += 1
+        if lg:
+            n1.langs[lg] += 1
+        if len(n1.samples) < samples and t[:90] != n1.name:
+            n1.samples.append(t)
+        theme = str(c.code.prefix(1))
+        n2 = n1.children.setdefault(theme, TopicNode(theme))
+        n2.count += 1
+        if len(n2.samples) < samples:
+            n2.samples.append(t)
+    suppressed, kept = 0, []
+    for r in nodes:
+        if r.count < min_count:
+            suppressed += r.count
+            continue
+        r.children = {k: v for k, v in r.children.items() if v.count >= min_count}
+        if min_count > 1:
+            r.samples, r.name = [], None
+            for ch in r.children.values():
+                ch.samples = []
+        kept.append(r)
+    kept.sort(key=lambda r: -r.count)
+    return TopicReport(len(texts), kept, suppressed, title)
+
+
+_FORMULA = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _defuse(s: str) -> str:
+    """Spreadsheet formula injection guard (OWASP): prefix risky cells with an apostrophe."""
+    return "'" + s if s.startswith(_FORMULA) else s
+
+
+def write_csv(
+    path: str | Path, texts: Sequence[str], codes: Sequence[Sphota], groups: dict | None
+) -> None:
+    """One row per message: text, refined group id and name, theme, full code, region."""
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f)
+        w.writerow(
+            ["text", "group", "group_name", "theme", "sphota_code", "region", "region_confidence"]
+        )
+        for i, (t, c) in enumerate(zip(texts, codes)):
+            gid = gname = ""
+            if groups is not None:
+                j = int(groups["labels"][i])
+                gid, gname = groups["ids"][j], groups["names"][j]
+            w.writerow(
+                [
+                    _defuse(t),
+                    gid,
+                    _defuse(gname),
+                    str(c.code.prefix(1)),
+                    str(c),
+                    c.region,
+                    f"{c.region_confidence:.3f}",
+                ]
+            )
+
+
 def analyze_file(
     path: str | Path,
     column: str | None = None,
@@ -265,13 +368,27 @@ def analyze_file(
     min_count: int = 1,
     lang: str = "en",
     limit: int | None = None,
-    by: str = "region",
+    by: str = "refined",
+    csv_out: str | Path | None = None,
 ) -> dict[str, Any]:
+    from sphota.api import encode_with_vectors
+
     texts, langs = read_texts(path, column, limit)
+    codes, X = encode_with_vectors(texts)
     rep = build_report(
-        texts, langs=langs, min_count=min_count, title=f"Topics in {Path(path).name}", by=by
+        texts,
+        codes=codes,
+        langs=langs,
+        min_count=min_count,
+        title=f"Topics in {Path(path).name}",
+        by=by,
+        vectors=X,
     )
     Path(out).write_text(render_html(rep, lang), encoding="utf-8")
+    if csv_out is not None:
+        write_csv(
+            csv_out, texts, codes, refined_groups(texts, X, codes) if by == "refined" else None
+        )
     return {"out": str(out), "n": rep.n, "n_l1": len(rep.roots), "report": rep}
 
 
