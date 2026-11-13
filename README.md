@@ -51,14 +51,21 @@ downloads the model once (~470 MB; `SPHOTA_ENCODER=int8` for ~120 MB), then ever
 offline on CPU.
 
 **Best first thing to try:** group a file of messages (support tickets, reviews, survey answers)
-by theme, in any mix of languages:
+by meaning, in any mix of languages:
 
 ```bash
-sphota analyze messages.csv -o report.html     # needs a text/message column; opens in any browser
+sphota analyze messages.csv -o report.html --csv rows.csv   # needs a text/message column
+sphota analyze messages.csv --detail coarse                  # fewer, broader groups
 ```
 
-Each theme is named after one of your own messages, and the same complaint in different languages
-usually lands in the same theme. No upload, no API key.
+For files of 200+ messages the groups are fitted to your file and each carries a stable theme
+code (`WJX1.2` = theme `WJX1`, group 2) so you can track it over time; each group is named after
+its most typical message, and translations of the same complaint usually land together (they do
+about twice as often as with fixed themes). Smaller files use the fixed themes. No upload, no API
+key; the same runs in the browser in the [Meaning Atlas](atlas/). How well this works, including
+where it falls short: [paper §8](docs/paper/sphota.md).
+
+<img src="docs/assets/atlas-groups.png" alt="Meaning Atlas analyzing 600 English and Hindi voice-assistant commands: groups such as 'what is the weather of this week' and 'turn the lights off please', each mixing both languages" width="860">
 
 ```python
 >>> from sphota import encode
@@ -88,7 +95,8 @@ sphota certify --model sentence-transformers/all-MiniLM-L6-v2
 | Use case | One line | Notes |
 |---|---|---|
 | **Never re-index again** | `CodeIndex().add_texts(docs, model="A")` … `.search(q, model="B")` | items store code + canonical vector; switching models changes only queries ([benchmark](docs/benchmark.md#6-never-re-index-cross-model-retrieval)) |
-| Topic analytics | `sphota analyze data.csv` or drop the file in the [Atlas](atlas/) | themes across languages, named by your own messages; counts, samples, CSV/HTML report |
+| Topic analytics | `sphota analyze data.csv` or drop the file in the [Atlas](atlas/) | groups fitted to your file + stable theme codes, across languages; named by your own messages; HTML report + per-message CSV |
+| Use your existing embeddings | `encode(text, model="intfloat/multilingual-e5-base")` | 7 certified adapters (MiniLM, bge-small/base, gte, LaBSE, multilingual MiniLM, e5-base); nonlinear v1.1 set by default ([adapters](docs/adapters.md)) |
 | Cross-lingual search & dedupe | `cross_lingual_search(q, docs)`, `dedupe(texts)` | Tamil query → Hindi, Spanish, English docs |
 | Semantic cache | `SemanticCache(depth=2).get_or_compute(q, llm)` | hits across paraphrases and languages |
 | Routing | `PrefixRouter().fit(examples, routes).route(text)` | rules written once apply to every language |
