@@ -569,3 +569,14 @@ result is seen:** run 2 (which adds all 11.5k commands) is likely to fail the co
 at ≥ 256 cells even with LaBSE/bge-m3. Next, exploratory (not pre-registered): fewer commands
 (800 and 2,500 meanings) to look for a balance; any balance found would need its own
 pre-registered run.
+
+## D-044 Short-text balance sweep (exploratory): the trade-off does not go away
+Same setup as D-043 with fewer MASSIVE meanings in the scatter (`shorttext-massive-n{800,2500}`):
+at 256 cells, short commands in the same cell as English 42% → 54% (800) / 55% (2,500) / 72%
+(11.5k), while worst language collapse goes 0% → 55% / 75% / 85% (always Portuguese Wikipedia,
+the sample flagged in D-016). At 32 cells, 800 meanings is a clean gain: 52% → 69% for short
+commands and all four gate criteria pass (coverage 60.9%, confident translation 80.8%,
+cross-model 64.5%, collapse 0.1%) — not a valid gate result (D-018 needs ≥ 256 cells), but direct
+evidence for a better *coarse* layer in a future space. Conclusion for the paper: the
+meaning-LDA scatter decides which kinds of text count as "the same"; adding a text type helps it
+and, at fine granularity, lets residual language signal in other text types split cells.

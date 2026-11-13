@@ -1,0 +1,271 @@
+{
+ "results": [
+  {
+   "K1": 32,
+   "T": 16.643808330638212,
+   "coverage": 0.6089,
+   "coverage_per_lang": {
+    "en": 0.669,
+    "hi": 0.6739,
+    "ta": 0.67,
+    "es": 0.6038,
+    "fr": 0.6166,
+    "de": 0.6393,
+    "zh": 0.6038,
+    "ar": 0.6008,
+    "ru": 0.6561,
+    "ja": 0.5939,
+    "pt": 0.3162,
+    "bn": 0.663
+   },
+   "translation_all": 0.7009,
+   "translation_confident": 0.8078,
+   "confident_en_share": 0.669,
+   "translation_top2": 0.8613,
+   "collapse_max": 0.001,
+   "collapse_worst_lang": "ar",
+   "collapse_per_lang": {
+    "hi": 0.0,
+    "ta": 0.0,
+    "es": 0.0,
+    "fr": 0.0,
+    "de": 0.0,
+    "zh": 0.0,
+    "ar": 0.001,
+    "ru": 0.0,
+    "ja": 0.0,
+    "pt": 0.0,
+    "bn": 0.0
+   },
+   "used_cells_frac": 1.0,
+   "cross_model": 0.6445,
+   "cross_model_per_model": {
+    "all-MiniLM-L6-v2": 0.6492,
+    "bge-small-en-v1.5": 0.6729,
+    "gte-small": 0.6294,
+    "paraphrase-multilingual-MiniLM-L12-v2": 0.6611,
+    "LaBSE": 0.6097
+   },
+   "seed": 0,
+   "sample": {
+    "wiki_sentences": 44499,
+    "of": 68000
+   },
+   "adapter_kind": "ridge",
+   "extra_parallel": "massive",
+   "massive_xling_same_cell": {
+    "mean": 0.6947,
+    "per_lang": {
+     "hi": 0.694,
+     "ta": 0.6543,
+     "es": 0.7512,
+     "fr": 0.7344,
+     "de": 0.7216,
+     "zh": 0.6345,
+     "ar": 0.6533,
+     "ru": 0.7223,
+     "ja": 0.6765,
+     "pt": 0.7128,
+     "bn": 0.687
+    }
+   },
+   "verdict": {
+    "1_coverage": {
+     "value": 0.6089,
+     "pass": true
+    },
+    "2_translation_confident": {
+     "value": 0.8078,
+     "pass": true
+    },
+    "3_cross_model": {
+     "value": 0.6445,
+     "pass": true
+    },
+    "4_collapse_max": {
+     "value": 0.001,
+     "pass": true
+    }
+   }
+  },
+  {
+   "K1": 256,
+   "T": 23.685422648378573,
+   "coverage": 0.4324,
+   "coverage_per_lang": {
+    "en": 0.5504,
+    "hi": 0.5198,
+    "ta": 0.5128,
+    "es": 0.4051,
+    "fr": 0.4051,
+    "de": 0.502,
+    "zh": 0.3913,
+    "ar": 0.3824,
+    "ru": 0.5287,
+    "ja": 0.4032,
+    "pt": 0.0781,
+    "bn": 0.5099
+   },
+   "translation_all": 0.6085,
+   "translation_confident": 0.7584,
+   "confident_en_share": 0.5504,
+   "translation_top2": 0.7708,
+   "collapse_max": 0.5534,
+   "collapse_worst_lang": "pt",
+   "collapse_per_lang": {
+    "hi": 0.0,
+    "ta": 0.0,
+    "es": 0.0,
+    "fr": 0.0,
+    "de": 0.0,
+    "zh": 0.0,
+    "ar": 0.001,
+    "ru": 0.0,
+    "ja": 0.0,
+    "pt": 0.5534,
+    "bn": 0.0
+   },
+   "used_cells_frac": 1.0,
+   "cross_model": 0.3569,
+   "cross_model_per_model": {
+    "all-MiniLM-L6-v2": 0.3498,
+    "bge-small-en-v1.5": 0.3528,
+    "gte-small": 0.2342,
+    "paraphrase-multilingual-MiniLM-L12-v2": 0.4358,
+    "LaBSE": 0.4121
+   },
+   "seed": 0,
+   "sample": {
+    "wiki_sentences": 44499,
+    "of": 68000
+   },
+   "adapter_kind": "ridge",
+   "extra_parallel": "massive",
+   "massive_xling_same_cell": {
+    "mean": 0.5354,
+    "per_lang": {
+     "hi": 0.5279,
+     "ta": 0.4882,
+     "es": 0.6073,
+     "fr": 0.5841,
+     "de": 0.5696,
+     "zh": 0.5,
+     "ar": 0.4711,
+     "ru": 0.5474,
+     "ja": 0.5178,
+     "pt": 0.5662,
+     "bn": 0.5101
+    }
+   },
+   "verdict": {
+    "1_coverage": {
+     "value": 0.4324,
+     "pass": false
+    },
+    "2_translation_confident": {
+     "value": 0.7584,
+     "pass": false
+    },
+    "3_cross_model": {
+     "value": 0.3569,
+     "pass": false
+    },
+    "4_collapse_max": {
+     "value": 0.5534,
+     "pass": false
+    }
+   }
+  },
+  {
+   "K1": 1024,
+   "T": 24.351895067219868,
+   "coverage": 0.3113,
+   "coverage_per_lang": {
+    "en": 0.4249,
+    "hi": 0.3735,
+    "ta": 0.3755,
+    "es": 0.3004,
+    "fr": 0.2589,
+    "de": 0.3824,
+    "zh": 0.2737,
+    "ar": 0.247,
+    "ru": 0.3775,
+    "ja": 0.3142,
+    "pt": 0.0435,
+    "bn": 0.3646
+   },
+   "translation_all": 0.5127,
+   "translation_confident": 0.6981,
+   "confident_en_share": 0.4249,
+   "translation_top2": 0.6644,
+   "collapse_max": 0.6146,
+   "collapse_worst_lang": "pt",
+   "collapse_per_lang": {
+    "hi": 0.001,
+    "ta": 0.0,
+    "es": 0.0,
+    "fr": 0.0,
+    "de": 0.0,
+    "zh": 0.0,
+    "ar": 0.0,
+    "ru": 0.0,
+    "ja": 0.0,
+    "pt": 0.6146,
+    "bn": 0.0
+   },
+   "used_cells_frac": 1.0,
+   "cross_model": 0.2152,
+   "cross_model_per_model": {
+    "all-MiniLM-L6-v2": 0.2184,
+    "bge-small-en-v1.5": 0.1986,
+    "gte-small": 0.1166,
+    "paraphrase-multilingual-MiniLM-L12-v2": 0.2925,
+    "LaBSE": 0.25
+   },
+   "seed": 0,
+   "sample": {
+    "wiki_sentences": 44499,
+    "of": 68000
+   },
+   "adapter_kind": "ridge",
+   "extra_parallel": "massive",
+   "massive_xling_same_cell": {
+    "mean": 0.4928,
+    "per_lang": {
+     "hi": 0.4889,
+     "ta": 0.4603,
+     "es": 0.5508,
+     "fr": 0.543,
+     "de": 0.5367,
+     "zh": 0.464,
+     "ar": 0.4237,
+     "ru": 0.5134,
+     "ja": 0.4711,
+     "pt": 0.5178,
+     "bn": 0.4516
+    }
+   },
+   "verdict": {
+    "1_coverage": {
+     "value": 0.3113,
+     "pass": false
+    },
+    "2_translation_confident": {
+     "value": 0.6981,
+     "pass": false
+    },
+    "3_cross_model": {
+     "value": 0.2152,
+     "pass": false
+    },
+    "4_collapse_max": {
+     "value": 0.6146,
+     "pass": false
+    }
+   }
+  }
+ ],
+ "kept_K1": 32,
+ "labels_kept": 32,
+ "labels_review": 26
+}
