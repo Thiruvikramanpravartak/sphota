@@ -43,6 +43,17 @@ MODELS = {
     },
     "sentence-transformers/LaBSE": {"n": 20000, "multilingual": True},
 }
+# larger models (D-043): does the nonlinear-adapter gain hold beyond small models?
+MORE_MODELS = {
+    "intfloat/multilingual-e5-base": {"n": 40000, "multilingual": True},
+    "BAAI/bge-base-en-v1.5": {"n": 40000, "multilingual": False},
+    "sentence-transformers/distiluse-base-multilingual-cased-v2": {
+        "n": 40000,
+        "multilingual": True,
+    },
+    "mixedbread-ai/mxbai-embed-large-v1": {"n": 40000, "multilingual": False},
+}
+MODELS_ALL = {**MODELS, **MORE_MODELS}
 ANCHOR = "intfloat/multilingual-e5-small"
 
 
@@ -177,7 +188,7 @@ def run(scale: str, models: list[str], quick: bool = False) -> dict:
 
     res: dict = {"scale": scale, "anchor": ANCHOR, "space": rel.version, "models": {}}
     for model in models:
-        cfg = MODELS[model]
+        cfg = MODELS_ALL[model]
         texts = training_texts(scale, cfg["n"])
         X = embed.cached(model, f"adapter-train-{cfg['n']}", texts, scale)
         Y = Y40 if cfg["n"] == 40000 else anchor_canonical(scale, texts)
@@ -238,10 +249,15 @@ def run(scale: str, models: list[str], quick: bool = False) -> dict:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scale", choices=["tiny", "small", "medium", "full"], default="small")
-    ap.add_argument("--models", nargs="*", default=list(MODELS))
+    ap.add_argument("--models", nargs="*", default=list(MODELS), help=f"any of {list(MODELS_ALL)}")
     ap.add_argument("--quick", action="store_true", help="10 epochs instead of 40")
     a = ap.parse_args()
     out = run(a.scale, a.models, a.quick)
     p = ROOT / "bench" / "results" / f"adapter-study-{a.scale}.json"
+    if p.exists() and set(a.models) != set(MODELS):  # a subset: merge, keep earlier models
+        old = json.loads(p.read_text(encoding="utf-8"))
+        old["models"].update(out["models"])
+        old.setdefault("scaling", {}).update(out.get("scaling", {}))
+        out = old
     p.write_text(json.dumps(out, indent=1), encoding="utf-8")
     log(f"wrote {p}")
