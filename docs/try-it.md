@@ -18,7 +18,9 @@ This page takes about 10 minutes.
 Open the Meaning Atlas, click **Analyze a file** (or drag the file onto the page), wait for
 the encoder to load (~120 MB, once), and read the report on the right:
 
-* each row is a **theme**, named after one of your own messages, with its count and share;
+* each row is a **group** fitted to your file (for files of 200+ messages; smaller files show
+  themes), with an id like `WJX1.2` (stable theme `WJX1`, group 2), named after its most typical
+  message, with its count and share; switch to **Themes** or **32 regions** for the fixed layers;
 * click a theme to see example messages and the language mix, and to find it on the map;
 * **Download results (CSV)** gives every message with its theme code (e.g. `WJX1`), region and
   full Sphota code.
@@ -35,7 +37,8 @@ sphota analyze messages.csv -o report.html
 
 Open `report.html` in a browser. The first run downloads the encoder (~470 MB; set
 `SPHOTA_ENCODER=int8` for ~120 MB). `--by region` groups into 32 broad areas instead of themes;
-`--min-count 10` hides small groups and sample texts (for sharing a report).
+`--min-count 10` hides small groups and sample texts (for sharing a report); `--csv rows.csv` writes
+every message with its group, theme and code.
 
 ## 3. What to look for
 

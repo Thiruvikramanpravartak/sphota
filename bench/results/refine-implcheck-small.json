@@ -1,0 +1,137 @@
+{
+ "note": "post-hoc implementation check, not a selection step (D-042)",
+ "sets": {
+  "stackexchange#6": {
+   "refined_v_shipped": 0.499,
+   "refined_v_round6": 0.4917,
+   "R1_pass_shipped": true
+  },
+  "arxiv#6": {
+   "refined_v_shipped": 0.2705,
+   "refined_v_round6": 0.2696,
+   "R1_pass_shipped": true
+  },
+  "stackexchange#7": {
+   "refined_v_shipped": 0.5254,
+   "refined_v_round6": 0.5307,
+   "R1_pass_shipped": true
+  },
+  "arxiv#7": {
+   "refined_v_shipped": 0.2734,
+   "refined_v_round6": 0.2776,
+   "R1_pass_shipped": true
+  },
+  "stackexchange#8": {
+   "refined_v_shipped": 0.5547,
+   "refined_v_round6": 0.5553,
+   "R1_pass_shipped": false
+  },
+  "arxiv#8": {
+   "refined_v_shipped": 0.276,
+   "refined_v_round6": 0.2653,
+   "R1_pass_shipped": true
+  },
+  "stackexchange#9": {
+   "refined_v_shipped": 0.5018,
+   "refined_v_round6": 0.4808,
+   "R1_pass_shipped": false
+  },
+  "arxiv#9": {
+   "refined_v_shipped": 0.2741,
+   "refined_v_round6": 0.271,
+   "R1_pass_shipped": true
+  },
+  "stackexchange#10": {
+   "refined_v_shipped": 0.4947,
+   "refined_v_round6": 0.5149,
+   "R1_pass_shipped": false
+  },
+  "arxiv#10": {
+   "refined_v_shipped": 0.279,
+   "refined_v_round6": 0.2837,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/amh": {
+   "refined_v_shipped": 0.2763,
+   "refined_v_round6": 0.2527,
+   "R1_pass_shipped": false
+  },
+  "masakha-train/eng": {
+   "refined_v_shipped": 0.3487,
+   "refined_v_round6": 0.3498,
+   "R1_pass_shipped": false
+  },
+  "masakha-train/fra": {
+   "refined_v_shipped": 0.3412,
+   "refined_v_round6": 0.3211,
+   "R1_pass_shipped": false
+  },
+  "masakha-train/hau": {
+   "refined_v_shipped": 0.2978,
+   "refined_v_round6": 0.2997,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/ibo": {
+   "refined_v_shipped": 0.2537,
+   "refined_v_round6": 0.2175,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/lin": {
+   "refined_v_shipped": 0.2314,
+   "refined_v_round6": 0.2748,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/lug": {
+   "refined_v_shipped": 0.1837,
+   "refined_v_round6": 0.161,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/orm": {
+   "refined_v_shipped": 0.1531,
+   "refined_v_round6": 0.1431,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/pcm": {
+   "refined_v_shipped": 0.4152,
+   "refined_v_round6": 0.4138,
+   "R1_pass_shipped": false
+  },
+  "masakha-train/run": {
+   "refined_v_shipped": 0.2708,
+   "refined_v_round6": 0.2613,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/sna": {
+   "refined_v_shipped": 0.2556,
+   "refined_v_round6": 0.2415,
+   "R1_pass_shipped": false
+  },
+  "masakha-train/som": {
+   "refined_v_shipped": 0.2139,
+   "refined_v_round6": 0.2302,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/swa": {
+   "refined_v_shipped": 0.2807,
+   "refined_v_round6": 0.2815,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/tir": {
+   "refined_v_shipped": 0.2308,
+   "refined_v_round6": 0.2194,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/xho": {
+   "refined_v_shipped": 0.1649,
+   "refined_v_round6": 0.1667,
+   "R1_pass_shipped": true
+  },
+  "masakha-train/yor": {
+   "refined_v_shipped": 0.2448,
+   "refined_v_round6": 0.2585,
+   "R1_pass_shipped": true
+  }
+ },
+ "R1_passed_shipped": 18,
+ "R1_sets": 26
+}

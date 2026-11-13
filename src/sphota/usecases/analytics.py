@@ -326,6 +326,8 @@ def _refined_report(texts, codes, langs, min_count, samples, title, vectors) -> 
     return TopicReport(len(texts), kept, suppressed, title)
 
 
+REFINE_MIN_ROWS = 200  # below this, per-file groups are noisy; "auto" uses themes (D-042)
+
 _FORMULA = ("=", "+", "-", "@", "\t", "\r")
 
 
@@ -368,12 +370,14 @@ def analyze_file(
     min_count: int = 1,
     lang: str = "en",
     limit: int | None = None,
-    by: str = "refined",
+    by: str = "auto",
     csv_out: str | Path | None = None,
 ) -> dict[str, Any]:
     from sphota.api import encode_with_vectors
 
     texts, langs = read_texts(path, column, limit)
+    if by == "auto":  # refined groups need enough messages (D-042): small files use themes
+        by = "refined" if len(texts) >= REFINE_MIN_ROWS else "theme"
     codes, X = encode_with_vectors(texts)
     rep = build_report(
         texts,
@@ -389,7 +393,7 @@ def analyze_file(
         write_csv(
             csv_out, texts, codes, refined_groups(texts, X, codes) if by == "refined" else None
         )
-    return {"out": str(out), "n": rep.n, "n_l1": len(rep.roots), "report": rep}
+    return {"out": str(out), "n": rep.n, "n_l1": len(rep.roots), "report": rep, "by": by}
 
 
 def prefix_counts(codes: Sequence[str], level: int = 1) -> Counter:

@@ -29,8 +29,12 @@ other model ─────────► adapter ─────────�
 `c.region` (e.g. `R07`) is one of 32 coarse regions with its own confidence and label. Regions are
 the layer that is shared across languages and models (79% confident translation agreement, 64.5%
 cross-model). The four code levels below add precision *within* a model; their cross-language
-agreement drops quickly with depth. `sphota analyze` groups by theme by default: the first code block, named by the group's own most
-confident text (`--by region` for the 32 broad regions, `--by l1` for the automatic labels). Regions
+agreement drops quickly with depth. `sphota analyze` (and the Atlas) group a file in two layers: the stable **theme** (first code
+block, identical for everyone and over time) and, for files of 200+ messages, **groups fitted to
+that file** (`WJX1.2` = theme `WJX1`, group 2), with language-aware correction so translations
+land together (D-041/D-042). Per-file groups beat the fixed themes on 38 of 42 fresh evaluation
+sets but did not meet every pre-registered target (they over-split files with a few broad
+categories); `--by theme` / `--by region` give the fixed layers only. Regions
 are fitted on general text, so a file from one domain (support tickets, reviews) falls into a few of
 them, while the first block still separates themes across languages (83% vs 29% purity on the Atlas
 sample, D-020).

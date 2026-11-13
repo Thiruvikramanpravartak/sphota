@@ -11,6 +11,9 @@ The *space version* (`s1`) is independent of the library version and is frozen.
 - `sphota analyze --by theme` (default): groups named by the file's own most confident texts.
 - Meaning Atlas: "Analyze a file" (CSV/TSV/TXT/JSONL, in the browser), CSV export, "exact codes"
   switch (fp32 model, identical to Python), 7 more label languages.
+- Per-file refined groups (`sphota analyze --by auto`, Atlas "Groups"): groups fitted to one file,
+  tied to stable theme codes (`WJX1.2`), language-aware; `--csv` row export;
+  `sphota.refine`, `sphota.langid` (51-language identifier), `encode_with_vectors` (D-041/D-042).
 - `sphota.unsupported_script()` and a warning when encoding Ol Chiki / Meetei Mayek text.
 - `Sphota.confident_label()`; `label_confident` in `to_dict()`.
 - Benchmarks: 19 Indian languages (FLORES); GPU decision gate at medium scale (failed, D-022).

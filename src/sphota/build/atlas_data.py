@@ -119,6 +119,30 @@ def write_regions(out: Path) -> None:
     )
 
 
+def write_langid(out: Path) -> None:
+    """Language identifier for in-browser refinement: W (384, C) then b (C), float32 little endian,
+    plus classes and the scripts each language is written in (mirrors sphota.langid)."""
+    d = ROOT / "src" / "sphota" / "data" / "langid"
+    meta = json.loads((d / "langid.json").read_text(encoding="utf-8"))
+    with np.load(d / "langid.npz", allow_pickle=False) as z:
+        W, b, classes = z["W"].astype("<f4"), z["b"].astype("<f4"), z["classes"].tolist()
+    with open(out / "langid.bin", "wb") as f:
+        f.write(np.ascontiguousarray(W).tobytes())
+        f.write(np.ascontiguousarray(b).tobytes())
+    (out / "langid.json").write_text(
+        json.dumps(
+            {
+                "dim": int(W.shape[0]),
+                "classes": classes,
+                "class_scripts": meta["class_scripts"],
+                "accuracy_flores_devtest": meta["accuracy_flores_devtest"],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+
 def add_regions(out: Path) -> None:
     """Re-colour an existing map.json by region without re-running t-SNE (keeps the layout)."""
     rel = load_release()
@@ -135,6 +159,7 @@ def add_regions(out: Path) -> None:
         json.dumps(d, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
     write_regions(out)
+    write_langid(out)
     log(f"atlas regions: {len(regions)} regions → {out}")
 
 
@@ -232,6 +257,7 @@ def build(out: Path) -> None:
     }
     (out / "space.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     write_regions(out)
+    write_langid(out)
     log(f"atlas data: {len(cells)} L1, {len(l2)} L2, {len(regions)} regions → {out}")
 
 

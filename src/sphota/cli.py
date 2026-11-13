@@ -243,10 +243,11 @@ else:
         lang: str = typer.Option("en", "--lang"),
         limit: int | None = typer.Option(None, "--limit"),
         by: str = typer.Option(
-            "refined",
+            "auto",
             "--by",
-            help="Grouping: refined (default: groups fitted to this file, each tied to a stable "
-            "theme code), theme (first code block only), region (32 broad areas) or l1.",
+            help="Grouping: auto (default: refined for files of 200+ messages, else theme), "
+            "refined (groups fitted to this file, each tied to a stable theme code), theme "
+            "(first code block only), region (32 broad areas) or l1.",
         ),
         csv_out: Path | None = typer.Option(
             None, "--csv", help="Also write one row per message (group, theme, code) to this CSV."
@@ -269,7 +270,7 @@ else:
         except Exception as e:
             _fail(e)
         con.print(
-            f"[green]wrote[/] {res['out']}  ({res['n']} rows, {res['n_l1']} groups)"
+            f"[green]wrote[/] {res['out']}  ({res['n']} rows, {res['n_l1']} groups by {res['by']})"
             + (f", {csv_out}" if csv_out else "")
         )
 

@@ -541,3 +541,18 @@ four low-resource African languages (−0.01 to −0.02), and it keeps translati
 often in mixed-language files. So it ships as the default grouping inside one file, with the stable
 theme code kept next to every group, and its limits stated in the docs: broad-topic files get more
 and finer groups than their natural categories; languages the anchor does not know gain nothing.
+
+## D-042 Shipping per-file refinement
+* Library/CLI: `sphota analyze --by auto` (default) uses refined groups for files of ≥ 200
+  messages and themes below that (the method was evaluated on files of ~175–5,000 messages; a
+  48-message demo file gives noisy groups). Groups carry ids like `WJX1.2` (stable theme + group
+  number) and are named by their most typical message; `--csv` writes one row per message (group,
+  theme, full code, region), with spreadsheet formulas neutralized. `sphota.api.encode_with_vectors`
+  returns codes and raw anchor vectors in one pass.
+* Atlas: "Groups" view (default for ≥ 200 rows), same algorithm as the library (port in
+  `atlas/src/refine.ts`, language identifier shipped as `langid.bin`/`langid.json`). On the same
+  vectors the TypeScript and Python implementations agree exactly (2,100 MASSIVE-validation
+  messages: identical groups, language keys and parent themes).
+* k-means seeding now uses a portable PRNG (mulberry32), identical in both languages. Post-hoc
+  implementation check (not a selection step) on the round-6 confirmation sets: R1 18/26 as in
+  round 6, mean |ΔV| = 0.012 (`bench/results/refine-implcheck-small.json`).

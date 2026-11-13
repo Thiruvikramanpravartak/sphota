@@ -3,6 +3,7 @@
 import "./style.css";
 import { SphotaSpace, embed, embedBatch, formatLevels, loadModel, parseCode, precision, type Encoded } from "./encoder";
 import { readMessages, scriptOf, summarize, toCsv, type FileRow, type GroupSummary, type GroupBy } from "./analyze";
+import { LangId, languageKey, refineFile } from "./refine";
 
 interface Cell { i: number; code: string; x: number; y: number; n: number; r: number; l: Record<string, string>; ex: string[]; nb: number[] }
 interface Region { k: number; id: string; x: number; y: number; color: string; name: string; full: string; members: number; spread: number }
@@ -832,7 +833,12 @@ let fileRows: FileRow[] = [];
 let fileCounts = new Map<number, number>();
 let fileName = "";
 let fileFocus: number | null = null; // group key (L1 cell or region) the report is focused on
-let fileGroupBy: GroupBy = "cell";
+let fileGroupBy: GroupBy = "group";
+let groupIds: string[] = [];
+let groupNames: string[] = [];
+let groupParent: number[] = [];
+let groupCells = new Map<number, Set<number>>();
+let langid: LangId | null | undefined;
 const MAX_GROUPS = 25;
 let fileJob: { cancelled: boolean } | null = null;
 
@@ -849,7 +855,8 @@ function drawFileLayer(sz: number) {
   ctx.beginPath();
   for (const [i, n] of fileCounts) {
     const c = data.cells[i];
-    if (fileFocus !== null && (fileGroupBy === "cell" ? i !== fileFocus : c.r !== fileFocus)) continue;
+    if (fileFocus !== null && (fileGroupBy === "group" ? !groupCells.get(fileFocus)?.has(i)
+      : fileGroupBy === "cell" ? i !== fileFocus : c.r !== fileFocus)) continue;
     const r = Math.min(26, (2.5 + 2.2 * Math.sqrt(n)) * Math.max(0.8, sz * 0.7));
     if (SX[i] < -r || SY[i] < -r || SX[i] > W + r || SY[i] > H + r) continue;
     ctx.moveTo(SX[i] + r, SY[i]);
@@ -896,8 +903,20 @@ async function analyzeFile(name: string, src: string, column?: string) {
       const y = space.project(v);
       const enc = space.quantize(y, texts[i]);
       const reg = regionOf(y);
-      return { text: texts[i], lang: langs[i], script: scriptOf(texts[i]), cell: enc.levels[0], cellP: enc.levelConf[0], region: reg.k, regionP: reg.p, code: enc.code };
+      return { text: texts[i], lang: langs[i], script: scriptOf(texts[i]), cell: enc.levels[0], cellP: enc.levelConf[0], group: -1, region: reg.k, regionP: reg.p, code: enc.code };
     });
+    // per-file refinement (same algorithm as `sphota analyze`, D-041)
+    if (langid === undefined) langid = await LangId.load(DATA).catch(() => null);
+    const keys = texts.map((t, i) => languageKey(t, vecs[i], langid ?? null));
+    const ref = refineFile(vecs, keys, rows.map((r) => r.cell));
+    rows.forEach((r, i) => { r.group = ref.labels[i]; });
+    const perParent = new Map<number, number>();
+    groupParent = ref.parent;
+    groupIds = ref.parent.map((p) => { const n = (perParent.get(p) ?? 0) + 1; perParent.set(p, n); return `${data.cells[p].code.slice(0, 4)}.${n}`; });
+    groupNames = ref.representative.map((i) => texts[i]);
+    fileGroupBy = rows.length >= 200 ? "group" : "cell"; // small files: themes (D-042)
+    groupCells = new Map();
+    rows.forEach((r) => { if (!groupCells.has(r.group)) groupCells.set(r.group, new Set()); groupCells.get(r.group)!.add(r.cell); });
     fileRows = rows;
     fileCounts = new Map();
     for (const r of rows) fileCounts.set(r.cell, (fileCounts.get(r.cell) ?? 0) + 1);
@@ -917,7 +936,8 @@ async function analyzeFile(name: string, src: string, column?: string) {
 }
 
 function renderReport(columns: string[] = [], column = "") {
-  const byCell = fileGroupBy === "cell";
+  const byGroup = fileGroupBy === "group";
+  const byCell = fileGroupBy === "cell" || byGroup;
   const all: GroupSummary[] = summarize(fileRows, fileGroupBy);
   const sums = all.slice(0, MAX_GROUPS);
   const rest = all.slice(MAX_GROUPS).reduce((t, s) => t + s.count, 0);
@@ -930,17 +950,18 @@ function renderReport(columns: string[] = [], column = "") {
   const clip = (t: string, m: number) => (t.length > m ? t.slice(0, m - 1) + "…" : t);
   panel.innerHTML = `<div class="report">
     <h2>${esc(fileName)}</h2>
-    <p class="muted">${n.toLocaleString()} messages in <b>${all.length}</b> ${byCell ? "themes" : "of 32 regions"} · scripts: ${scripts.map(([s, c]) => `${esc(s)} ${Math.round((100 * c) / n)}%`).join(", ")}${uncertain ? ` · ${Math.round((100 * uncertain) / n)}% low-confidence` : ""}</p>
+    <p class="muted">${n.toLocaleString()} messages in <b>${all.length}</b> ${byGroup ? "groups" : byCell ? "themes" : "of 32 regions"} · scripts: ${scripts.map(([s, c]) => `${esc(s)} ${Math.round((100 * c) / n)}%`).join(", ")}${uncertain ? ` · ${Math.round((100 * uncertain) / n)}% low-confidence` : ""}</p>
     <div class="seg" role="group" aria-label="Group by">
-      <button type="button" data-by="cell" aria-pressed="${byCell}">Themes (code)</button>
+      <button type="button" data-by="group" aria-pressed="${byGroup}">Groups</button>
+      <button type="button" data-by="cell" aria-pressed="${fileGroupBy === "cell"}">Themes (code)</button>
       <button type="button" data-by="region" aria-pressed="${!byCell}">32 regions</button>
     </div>
     ${colPicker}
     <ol class="regions">${sums.map((s) => {
-      const cell = byCell ? data.cells[s.k] : null;
+      const cell = byGroup ? data.cells[groupParent[s.k]] : byCell ? data.cells[s.k] : null;
       const r = data.regions[cell ? cell.r : s.k];
-      const id = cell ? cell.code.slice(0, 4) : r.id;
-      const name = cell ? `“${clip(s.samples[0] ?? "", 70)}”` : regionName(s.k);
+      const id = byGroup ? groupIds[s.k] : cell ? cell.code.slice(0, 4) : r.id;
+      const name = byGroup ? `“${clip(groupNames[s.k] ?? "", 70)}”` : cell ? `“${clip(s.samples[0] ?? "", 70)}”` : regionName(s.k);
       const mix = s.langs.length ? s.langs.map(([l, c]) => `${esc(l)} ${c}`).join(" · ") : s.scripts.map(([l, c]) => `${esc(l)} ${c}`).join(" · ");
       return `<li class="${fileFocus === s.k ? "on" : ""}">
         <button type="button" class="rrow" data-k="${s.k}" aria-expanded="${fileFocus === s.k}">
@@ -959,7 +980,9 @@ function renderReport(columns: string[] = [], column = "") {
       <button type="button" class="chip" id="dl-file">Download results (CSV)</button>
       <button type="button" class="chip" id="clear-file">Clear</button>
     </div>
-    <p class="muted">Encoded in your browser with multilingual-e5-small (${precision() === "fp32" ? "full precision: codes match the Python library" : "compressed model: the first block almost always matches the Python library, finer blocks can differ; tick “exact codes” for identical codes"}); nothing was uploaded. ${byCell
+    <p class="muted">Encoded in your browser with multilingual-e5-small (${precision() === "fp32" ? "full precision: codes match the Python library" : "compressed model: the first block almost always matches the Python library, finer blocks can differ; tick “exact codes” for identical codes"}); nothing was uploaded. ${byGroup
+      ? "Groups are fitted to this file; each carries a stable theme code (e.g. WJX1.2 = theme WJX1, group 2) and is named by its most typical message. Translations of the same message usually land together. Files under a few hundred messages give noisy groups; broad-topic files get finer groups than their categories."
+      : byCell
       ? "A theme is the first block of the code: translations of the same complaint usually share it. Themes are named by your own messages."
       : "Regions are 32 broad, general-knowledge areas; most messages from one domain (e.g. support tickets) fall into a few of them."}</p>
   </div>`;
@@ -976,13 +999,13 @@ function renderReport(columns: string[] = [], column = "") {
     fileFocus = fileFocus === k ? null : k;
     renderReport(columns, column);
     if (fileFocus !== null) {
-      const t = fileGroupBy === "cell" ? data.cells[k] : data.regions[k];
-      void flyTo(t.x, t.y, baseK * (fileGroupBy === "cell" ? 4 : 2.2), 1200);
+      const t = fileGroupBy === "group" ? data.cells[groupParent[k]] : fileGroupBy === "cell" ? data.cells[k] : data.regions[k];
+      void flyTo(t.x, t.y, baseK * (fileGroupBy === "region" ? 2.2 : 4), 1200);
     }
     requestDraw();
   }));
   $<HTMLButtonElement>("dl-file").onclick = () => {
-    const blob = new Blob([toCsv(fileRows, regionName)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([toCsv(fileRows, regionName, groupIds, groupNames)], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = fileName.replace(/\.[^.]+$/, "") + "-sphota.csv";

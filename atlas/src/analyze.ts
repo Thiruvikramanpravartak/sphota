@@ -8,12 +8,13 @@ export interface FileRow {
   script: string;
   cell: number;
   cellP: number;
+  group: number; // per-file refined group (D-041), -1 before refinement
   region: number;
   regionP: number;
   code: string;
 }
 
-export type GroupBy = "cell" | "region";
+export type GroupBy = "group" | "cell" | "region";
 
 export interface GroupSummary {
   k: number;
@@ -139,8 +140,8 @@ function top<T>(xs: T[], n: number): [T, number][] {
  * confident messages, deduplicated; the first one names the group in the report.
  */
 export function summarize(rows: FileRow[], by: GroupBy = "cell", minConfident = 0.5): GroupSummary[] {
-  const key = (r: FileRow) => (by === "cell" ? r.cell : r.region);
-  const conf = (r: FileRow) => (by === "cell" ? r.cellP : r.regionP);
+  const key = (r: FileRow) => (by === "group" ? r.group : by === "cell" ? r.cell : r.region);
+  const conf = (r: FileRow) => (by === "region" ? r.regionP : r.cellP);
   const groups = new Map<number, FileRow[]>();
   for (const r of rows) {
     const k = key(r);
@@ -178,9 +179,12 @@ const q = (raw: string) => {
 };
 
 /** Results as CSV: the original text plus theme (first code block), region and full code. */
-export function toCsv(rows: FileRow[], regionName: (k: number) => string): string {
-  const head = ["text", "theme", "theme_confidence", "region", "region_name", "region_confidence", "sphota_code", "script"];
-  const lines = rows.map((r) => [r.text, r.code.slice(0, 4), r.cellP.toFixed(3), `R${String(r.region).padStart(2, "0")}`,
-    regionName(r.region), r.regionP.toFixed(3), r.code, r.script].map(q).join(","));
+export function toCsv(rows: FileRow[], regionName: (k: number) => string, groupIds: string[] = [],
+                      groupNames: string[] = []): string {
+  const head = ["text", "group", "group_name", "theme", "theme_confidence", "region", "region_name",
+    "region_confidence", "sphota_code", "script"];
+  const lines = rows.map((r) => [r.text, groupIds[r.group] ?? "", groupNames[r.group] ?? "", r.code.slice(0, 4),
+    r.cellP.toFixed(3), `R${String(r.region).padStart(2, "0")}`, regionName(r.region), r.regionP.toFixed(3),
+    r.code, r.script].map(q).join(","));
   return "﻿" + [head.join(","), ...lines].join("\r\n");
 }

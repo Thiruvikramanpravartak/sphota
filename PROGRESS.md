@@ -36,6 +36,11 @@
   languages only 36–56% (region); code and its description share a region 77–96%.
 - **Paper rewritten** (`docs/paper/sphota.md`, PDF + arXiv LaTeX in `docs/paper/build/`), tables
   generated from `bench/results` (`scripts/paper_tables.py`, checked in CI). Publication intent D-031.
+- **Per-file refinement (D-033 – D-042):** six pre-registered rounds on fresh data; fails the
+  bar (final R1 18/26, R3 11/12), beats fixed themes on 38/42 fresh sets; shipped as the default
+  for files of 200+ messages in `sphota analyze` and the Atlas (exact TS/Python parity).
+- **GPU run 2 (D-035):** running on the owner's Kaggle (T4 ×2), LaBSE + bge-m3, nonlinear adapters,
+  MASSIVE short commands in meaning-LDA.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 

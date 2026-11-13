@@ -12,7 +12,7 @@
 | `sphota validate CODE` | check a code (exit 1 if invalid) |
 | `sphota fingerprint FILE [--json]` | document fingerprint |
 | `sphota compare FILE_A FILE_B` / `sphota diff FILE_A FILE_B` | document comparison |
-| `sphota analyze data.csv [-o report.html] [--min-count 10] [--by theme\|region\|l1]` | topic analytics report; `theme` (default) names each group by its most confident text |
+| `sphota analyze data.csv [-o report.html] [--csv rows.csv] [--min-count 10] [--by auto\|refined\|theme\|region\|l1]` | topic analytics report; `auto` (default) fits groups to the file (≥ 200 messages, ids like `WJX1.2`) or uses themes for small files; `--csv` writes one row per message |
 | `sphota adapters` | certified adapters |
 | `sphota train-adapter --model HF_ID` | fit an adapter |
 | `sphota certify --model HF_ID [--adapter f.npz] [--out cert.json]` | conformance certificate |
