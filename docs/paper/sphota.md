@@ -16,8 +16,8 @@ multilingual-e5-small anchor) fails all four criteria; a GPU run at ~450k senten
 bge-m3 anchors removes language collapse and reaches 88% confident translation agreement at 256
 cells, but cross-model agreement peaks at 50% (bar: 60%). A controlled adapter study then shows that
 much of this bottleneck is the *linear* adapter: a small residual MLP trained on the same pairs
-roughly doubles same-cell agreement with the anchor (16.0% → 34.1% at 4096 cells; 32.6% → 56.1% at
-256 cells), keeps cross-model retrieval at ~100% recall@10, and is still improving at 40k training
+roughly doubles same-cell agreement with the anchor (five small models: 16.0% → 34.1% at 4096
+cells, 32.6% → 56.1% at 256 cells; multilingual-e5-base: 30.9% → 70.5% at 256 cells), keeps cross-model retrieval at ~100% recall@10, and is still improving at 40k training
 pairs, while ridge is flat. An evaluation on six public domains (multilingual commands, banking
 support, technical Q&A, science, Indian-language reviews and code) shows what a frozen code can
 still do: its themes are a competitive zero-setup grouping (V-measure within 0.05–0.09 of per-dataset
@@ -264,9 +264,33 @@ same text; all 12 languages for multilingual models, English otherwise):
 | LaBSE | residual MLP | 31.9% | 52.9% | 71.1% |
 | LaBSE | MLP + L1 code loss | 35.6% | 53.3% | 67.7% |
 | LaBSE | MLP + L1/region loss | 35.1% | 52.9% | 71.4% |
-| **mean of 5** | **linear (v1)** | **16.0%** | **32.6%** | **65.6%** |
-| **mean of 5** | **residual MLP** | **34.1%** | **56.1%** | **71.7%** |
+| multilingual-e5-base | rotation | 19.9% | 37.2% | 68.1% |
+| multilingual-e5-base | linear (v1) | 14.3% | 30.9% | 69.0% |
+| multilingual-e5-base | residual MLP | 51.0% | 70.5% | 82.5% |
+| multilingual-e5-base | MLP + L1 code loss | 50.7% | 65.6% | 77.6% |
+| multilingual-e5-base | MLP + L1/region loss | 50.1% | 65.1% | 82.2% |
+| bge-base-en-v1.5 | rotation | 11.9% | 13.7% | 60.6% |
+| bge-base-en-v1.5 | linear (v1) | 16.2% | 35.0% | 67.9% |
+| bge-base-en-v1.5 | residual MLP | 41.1% | 64.3% | 75.7% |
+| bge-base-en-v1.5 | MLP + L1 code loss | 39.7% | 54.8% | 66.5% |
+| bge-base-en-v1.5 | MLP + L1/region loss | 39.1% | 55.2% | 69.0% |
+| distiluse-base-multilingual-cased-v2 | rotation | 20.7% | 33.2% | 62.3% |
+| distiluse-base-multilingual-cased-v2 | linear (v1) | 28.9% | 46.0% | 68.3% |
+| distiluse-base-multilingual-cased-v2 | residual MLP | 36.9% | 52.3% | 69.1% |
+| distiluse-base-multilingual-cased-v2 | MLP + L1 code loss | 37.2% | 49.9% | 65.0% |
+| distiluse-base-multilingual-cased-v2 | MLP + L1/region loss | 36.8% | 49.6% | 68.1% |
+| **mean, 5 small models** | **linear (v1)** | **16.0%** | **32.6%** | **65.6%** |
+| **mean, 5 small models** | **residual MLP** | **34.1%** | **56.1%** | **71.7%** |
+| **mean, all 8 models** | **linear (v1)** | **17.4%** | **34.4%** | **66.7%** |
+| **mean, all 8 models** | **residual MLP** | **37.4%** | **58.4%** | **73.2%** |
 <!-- /table -->
+
+The gain holds, and grows, for three larger models added later (D-045): multilingual-e5-base
+goes from 14.3% to 51.0% at 4096 cells and from 30.9% to 70.5% at 256 cells; bge-base-en-v1.5 from
+35.0% to 64.3% at 256 cells; distiluse-multilingual-v2, already better aligned linearly, gains
+less (46.0% → 52.3%). For two of the three, cross-model agreement at 256 cells clears the gate's
+60% bar in this setting (re-clustered cells, FLORES devtest), which the full gate has not yet been
+re-run to confirm.
 
 A residual MLP roughly doubles fine-level agreement and brings the gate's 256-cell level from 32.6%
 to 56.1%, within four points of the 60% bar, *with the small e5 anchor on CPU-scale data*. Training

@@ -73,15 +73,16 @@ def t_adapters() -> str:
                 f"| {m.split('/')[-1]} | {label} | {pct(x['l1_4096']['all'])} | "
                 f"{pct(x['cells_256']['all'])} | {pct(x['regions_32']['all'])} |"
             )
-    n = len(d)
-    for k, label in [("ridge", "linear (v1)"), ("mlp", "residual MLP")]:
-        a = [
-            sum(v[k][g]["all"] for v in d.values()) / n
-            for g in ["l1_4096", "cells_256", "regions_32"]
-        ]
-        rows.append(
-            f"| **mean of {n}** | **{label}** | **{pct(a[0])}** | **{pct(a[1])}** | **{pct(a[2])}** |"
-        )
+    small = [m for m in d if not any(x in m for x in ("e5-base", "bge-base", "distiluse", "mxbai"))]
+    for group, members in [("5 small models", small), (f"all {len(d)} models", list(d))]:
+        for k, label in [("ridge", "linear (v1)"), ("mlp", "residual MLP")]:
+            a = [
+                sum(d[m][k][g]["all"] for m in members) / len(members)
+                for g in ["l1_4096", "cells_256", "regions_32"]
+            ]
+            rows.append(
+                f"| **mean, {group}** | **{label}** | **{pct(a[0])}** | **{pct(a[1])}** | **{pct(a[2])}** |"
+            )
     return "\n".join(rows)
 
 

@@ -580,3 +580,13 @@ cross-model 64.5%, collapse 0.1%) — not a valid gate result (D-018 needs ≥ 2
 evidence for a better *coarse* layer in a future space. Conclusion for the paper: the
 meaning-LDA scatter decides which kinds of text count as "the same"; adding a text type helps it
 and, at fine granularity, lets residual language signal in other text types split cells.
+
+## D-045 Larger models: the nonlinear-adapter gain holds and grows
+`adapter_study --models intfloat/multilingual-e5-base BAAI/bge-base-en-v1.5
+sentence-transformers/distiluse-base-multilingual-cased-v2` (pinned revisions in models.json;
+`bench/results/adapter-study-small.json`, merged with the original five). Same-cell agreement with
+the anchor, linear → MLP, at 4096 / 256 / 32: e5-base 14.3 → 51.0 / 30.9 → 70.5 / 69.0 → 82.5;
+bge-base 16.2 → 41.1 / 35.0 → 64.3 / 67.9 → 75.7; distiluse-v2 28.9 → 36.9 / 46.0 → 52.3 /
+68.3 → 69.1. Mean of all 8 models: 17.4 → 37.4 / 34.4 → 58.4 / 66.7 → 73.2. Two of three larger
+models exceed 60% at 256 cells in this setting; the full gate (all criteria, all panel models) is
+what GPU run 2 tests. mxbai-embed-large (335M) is registered but not run on CPU.
