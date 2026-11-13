@@ -106,6 +106,8 @@ jobs:
         with: { node-version: "22", package-manager-cache: false }
       - run: npm ci --ignore-scripts
       - run: npm run build
+      - name: Browser refinement identical to the Python library
+        run: node tests/refine-parity.mjs
 
   docs:
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
