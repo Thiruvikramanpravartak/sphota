@@ -252,6 +252,12 @@ else:
         csv_out: Path | None = typer.Option(
             None, "--csv", help="Also write one row per message (group, theme, code) to this CSV."
         ),
+        detail: str = typer.Option(
+            "fine", "--detail", help="Refined groups: fine (default), medium or coarse."
+        ),
+        n_groups: int | None = typer.Option(
+            None, "--groups", help="Exact number of refined groups (overrides --detail)."
+        ),
     ) -> None:
         """Topic analytics → a standalone HTML report (prefix tree, counts, samples)."""
         from sphota.usecases.analytics import analyze_file
@@ -266,6 +272,8 @@ else:
                 limit=limit,
                 by=by,
                 csv_out=csv_out,
+                detail=detail,
+                n_groups=n_groups,
             )
         except Exception as e:
             _fail(e)

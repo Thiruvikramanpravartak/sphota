@@ -38,7 +38,8 @@ sphota analyze messages.csv -o report.html
 Open `report.html` in a browser. The first run downloads the encoder (~470 MB; set
 `SPHOTA_ENCODER=int8` for ~120 MB). `--by region` groups into 32 broad areas instead of themes;
 `--min-count 10` hides small groups and sample texts (for sharing a report); `--csv rows.csv` writes
-every message with its group, theme and code.
+every message with its group, theme and code; `--detail coarse` (or `--groups 10`) gives fewer,
+broader groups when your file has only a few big categories.
 
 ## 3. What to look for
 

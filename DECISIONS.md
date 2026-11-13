@@ -599,3 +599,10 @@ English; recall@10 100%), trained and certified like the other v1.1 adapters
 ONNX exports (Xenova/*), identical to the PyTorch embeddings used for training (cosine 1.00000 on
 200 FLORES sentences). They exist only in v1.1 (no frozen v1 adapter). distiluse-v2 is not added
 (its ONNX export lacks the final dense layer; smaller gain).
+
+## D-047 Group detail setting
+`sphota analyze --detail fine|medium|coarse` (⌈2√n⌉ / ⌈√n⌉ / ⌈√n/2⌉ groups) or `--groups N`, and
+the same "Detail" selector in the Atlas (re-groups instantly from the vectors already computed).
+`fine` stays the default because it is the evaluated setting (D-040/D-041); the others let a user
+who knows their file has few, broad categories avoid the over-splitting that caused the R1 misses.
+Example (600 MASSIVE validation commands, en + hi): 49 / 25 / 13 groups.

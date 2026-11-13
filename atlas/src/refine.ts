@@ -141,14 +141,18 @@ function kmeans(X: Float32Array[], k: number, seed = 0, iters = 15): Int32Array 
   return lab;
 }
 
-/** Refine one file: raw anchor vectors (unit norm), language keys, first-level cells. */
-export function refineFile(raw: Float32Array[], keys: string[], l1: number[]): Refined {
+export type Detail = "fine" | "medium" | "coarse";
+const DETAIL_FACTOR: Record<Detail, number> = { fine: 2, medium: 1, coarse: 0.5 };
+
+/** Refine one file: raw anchor vectors (unit norm), language keys, first-level cells.
+ *  ``detail``: fine (⌈2√n⌉ groups, the evaluated default), medium (⌈√n⌉), coarse (⌈√n/2⌉). */
+export function refineFile(raw: Float32Array[], keys: string[], l1: number[], detail: Detail = "fine"): Refined {
   const n = raw.length;
   if (!n) return { labels: new Int32Array(0), sizes: [], representative: [], parent: [] };
   const V = centre(raw, keys);
   const order = canonicalOrder(V);
   const Vo = order.map((i) => V[i]);
-  const lab = kmeans(Vo, Math.ceil(2 * Math.sqrt(n)));
+  const lab = kmeans(Vo, Math.ceil(DETAIL_FACTOR[detail] * Math.sqrt(n)));
   const groups = new Map<number, number[]>();
   lab.forEach((g, i) => { if (!groups.has(g)) groups.set(g, []); groups.get(g)!.push(i); });
   const list = [...groups.values()].sort((a, b) => b.length - a.length || a[0] - b[0]);

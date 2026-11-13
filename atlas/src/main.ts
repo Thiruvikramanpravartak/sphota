@@ -3,7 +3,7 @@
 import "./style.css";
 import { SphotaSpace, embed, embedBatch, formatLevels, loadModel, parseCode, precision, type Encoded } from "./encoder";
 import { readMessages, scriptOf, summarize, toCsv, type FileRow, type GroupSummary, type GroupBy } from "./analyze";
-import { LangId, languageKey, refineFile } from "./refine";
+import { LangId, languageKey, refineFile, type Detail } from "./refine";
 
 interface Cell { i: number; code: string; x: number; y: number; n: number; r: number; l: Record<string, string>; ex: string[]; nb: number[] }
 interface Region { k: number; id: string; x: number; y: number; color: string; name: string; full: string; members: number; spread: number }
@@ -839,6 +839,20 @@ let groupNames: string[] = [];
 let groupParent: number[] = [];
 let groupCells = new Map<number, Set<number>>();
 let langid: LangId | null | undefined;
+let fileVecs: Float32Array[] = [];
+let fileKeys: string[] = [];
+let fileDetail: Detail = "fine";
+
+function applyRefinement(texts: string[]) {
+  const ref = refineFile(fileVecs, fileKeys, fileRows.map((r) => r.cell), fileDetail);
+  fileRows.forEach((r, i) => { r.group = ref.labels[i]; });
+  const perParent = new Map<number, number>();
+  groupParent = ref.parent;
+  groupIds = ref.parent.map((p) => { const n = (perParent.get(p) ?? 0) + 1; perParent.set(p, n); return `${data.cells[p].code.slice(0, 4)}.${n}`; });
+  groupNames = ref.representative.map((i) => texts[i]);
+  groupCells = new Map();
+  fileRows.forEach((r) => { if (!groupCells.has(r.group)) groupCells.set(r.group, new Set()); groupCells.get(r.group)!.add(r.cell); });
+}
 const MAX_GROUPS = 25;
 let fileJob: { cancelled: boolean } | null = null;
 
@@ -907,17 +921,12 @@ async function analyzeFile(name: string, src: string, column?: string) {
     });
     // per-file refinement (same algorithm as `sphota analyze`, D-041)
     if (langid === undefined) langid = await LangId.load(DATA).catch(() => null);
-    const keys = texts.map((t, i) => languageKey(t, vecs[i], langid ?? null));
-    const ref = refineFile(vecs, keys, rows.map((r) => r.cell));
-    rows.forEach((r, i) => { r.group = ref.labels[i]; });
-    const perParent = new Map<number, number>();
-    groupParent = ref.parent;
-    groupIds = ref.parent.map((p) => { const n = (perParent.get(p) ?? 0) + 1; perParent.set(p, n); return `${data.cells[p].code.slice(0, 4)}.${n}`; });
-    groupNames = ref.representative.map((i) => texts[i]);
-    fileGroupBy = rows.length >= 200 ? "group" : "cell"; // small files: themes (D-042)
-    groupCells = new Map();
-    rows.forEach((r) => { if (!groupCells.has(r.group)) groupCells.set(r.group, new Set()); groupCells.get(r.group)!.add(r.cell); });
+    fileKeys = texts.map((t, i) => languageKey(t, vecs[i], langid ?? null));
+    fileVecs = vecs;
     fileRows = rows;
+    fileDetail = "fine";
+    applyRefinement(texts);
+    fileGroupBy = rows.length >= 200 ? "group" : "cell"; // small files: themes (D-042)
     fileCounts = new Map();
     for (const r of rows) fileCounts.set(r.cell, (fileCounts.get(r.cell) ?? 0) + 1);
     fileFocus = null;
@@ -956,6 +965,7 @@ function renderReport(columns: string[] = [], column = "") {
       <button type="button" data-by="cell" aria-pressed="${fileGroupBy === "cell"}">Themes (code)</button>
       <button type="button" data-by="region" aria-pressed="${!byCell}">32 regions</button>
     </div>
+    ${byGroup ? `<label class="muted">Detail <select id="file-detail">${(["fine", "medium", "coarse"] as Detail[]).map((d) => `<option value="${d}"${d === fileDetail ? " selected" : ""}>${d === "fine" ? "fine (default)" : d === "medium" ? "medium" : "coarse: fewer, broader groups"}</option>`).join("")}</select></label>` : ""}
     ${colPicker}
     <ol class="regions">${sums.map((s) => {
       const cell = byGroup ? data.cells[groupParent[s.k]] : byCell ? data.cells[s.k] : null;
@@ -1015,6 +1025,14 @@ function renderReport(columns: string[] = [], column = "") {
   $<HTMLButtonElement>("clear-file").onclick = () => {
     fileRows = []; fileCounts = new Map(); fileFocus = null;
     panel.innerHTML = `<p class="muted">Cleared. Drop another file, or type a sentence.</p>`;
+    requestDraw();
+  };
+  const det = document.getElementById("file-detail") as HTMLSelectElement | null;
+  if (det) det.onchange = () => {
+    fileDetail = det.value as Detail;
+    fileFocus = null;
+    applyRefinement(fileRows.map((r) => r.text));
+    renderReport(columns, column);
     requestDraw();
   };
   const sel = document.getElementById("file-col") as HTMLSelectElement | null;

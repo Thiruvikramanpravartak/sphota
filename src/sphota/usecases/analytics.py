@@ -135,11 +135,26 @@ def _lab(key: str, lang: str = "en") -> str:
     return label(key, lang)
 
 
-def refined_groups(texts: Sequence[str], X: np.ndarray, codes: Sequence[Sphota]) -> dict[str, Any]:
+DETAIL = {"fine": "2sqrt", "medium": "sqrt", "coarse": "0.5sqrt"}
+
+
+def refined_groups(
+    texts: Sequence[str],
+    X: np.ndarray,
+    codes: Sequence[Sphota],
+    detail: str = "fine",
+    n_groups: int | None = None,
+) -> dict[str, Any]:
     """Per-file refinement (D-041): groups fitted to this file, each tied to a stable theme code.
 
     Returns ``{"labels": group per text, "names": representative text per group, "ids": group id
-    like 'WJX1.2' per group}``. Deterministic; row order does not matter."""
+    like 'WJX1.2' per group}``. Deterministic; row order does not matter.
+
+    ``detail``: ``"fine"`` (default, ⌈2√n⌉ groups, the evaluated setting), ``"medium"`` (⌈√n⌉) or
+    ``"coarse"`` (⌈√n/2⌉), for files whose natural categories are few and broad; ``n_groups``
+    sets the number of groups exactly."""
+    if detail not in DETAIL:
+        raise ValueError(f"detail must be one of {', '.join(DETAIL)}, not {detail!r}")
     from sphota.codes import from_indices
     from sphota.langid import language_keys
     from sphota.refine import refine
@@ -147,7 +162,15 @@ def refined_groups(texts: Sequence[str], X: np.ndarray, codes: Sequence[Sphota])
     V = X / np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-12)
     l1 = np.array([c.levels[0] for c in codes])
     keys = language_keys(list(texts), X)
-    r = refine(V, "kmeans", scripts=keys, language="centre", k_rule="2sqrt", l1=l1)
+    r = refine(
+        V,
+        "kmeans",
+        scripts=keys,
+        language="centre",
+        k_rule=DETAIL[detail],
+        l1=l1,
+        k_groups=n_groups,
+    )
     per_parent: Counter = Counter()
     ids = []
     for p in r.parent:
@@ -165,6 +188,8 @@ def build_report(
     title: str = "Sphota topic report",
     by: str = "region",
     vectors: np.ndarray | None = None,
+    detail: str = "fine",
+    n_groups: int | None = None,
 ) -> TopicReport:
     """Group texts into a two-level tree. ``by='region'`` (default): 32 cross-language regions,
     then L1 cells; ``by='l1'``: L1 cells, then L2 cells; ``by='theme'``: like ``l1``, but each
@@ -176,7 +201,9 @@ def build_report(
     if by not in ("region", "l1", "theme", "refined"):
         raise ValueError(f"by must be 'refined', 'theme', 'region' or 'l1', not {by!r}")
     if by == "refined":
-        return _refined_report(texts, codes, langs, min_count, samples, title, vectors)
+        return _refined_report(
+            texts, codes, langs, min_count, samples, title, vectors, detail, n_groups
+        )
     codes = list(codes) if codes is not None else encode_batch(list(texts))
     langs = list(langs) if langs is not None else [None] * len(texts)
     roots: dict[str, TopicNode] = {}
@@ -290,14 +317,16 @@ ul{{padding-left:18px}} li{{margin:6px 0}} li .n{{margin-left:6px}}
 </main></body></html>"""
 
 
-def _refined_report(texts, codes, langs, min_count, samples, title, vectors) -> TopicReport:
+def _refined_report(
+    texts, codes, langs, min_count, samples, title, vectors, detail="fine", n_groups=None
+) -> TopicReport:
     from sphota.api import encode_with_vectors
 
     texts = list(texts)
     if codes is None or vectors is None:
         codes, vectors = encode_with_vectors(texts)
     langs = list(langs) if langs is not None else [None] * len(texts)
-    g = refined_groups(texts, vectors, codes)
+    g = refined_groups(texts, vectors, codes, detail=detail, n_groups=n_groups)
     nodes = [TopicNode(gid, name=name[:90]) for gid, name in zip(g["ids"], g["names"])]
     for t, c, lg, lab in zip(texts, codes, langs, g["labels"]):
         n1 = nodes[int(lab)]
@@ -372,6 +401,8 @@ def analyze_file(
     limit: int | None = None,
     by: str = "auto",
     csv_out: str | Path | None = None,
+    detail: str = "fine",
+    n_groups: int | None = None,
 ) -> dict[str, Any]:
     from sphota.api import encode_with_vectors
 
@@ -387,11 +418,18 @@ def analyze_file(
         title=f"Topics in {Path(path).name}",
         by=by,
         vectors=X,
+        detail=detail,
+        n_groups=n_groups,
     )
     Path(out).write_text(render_html(rep, lang), encoding="utf-8")
     if csv_out is not None:
         write_csv(
-            csv_out, texts, codes, refined_groups(texts, X, codes) if by == "refined" else None
+            csv_out,
+            texts,
+            codes,
+            refined_groups(texts, X, codes, detail=detail, n_groups=n_groups)
+            if by == "refined"
+            else None,
         )
     return {"out": str(out), "n": rep.n, "n_l1": len(rep.roots), "report": rep, "by": by}
 
