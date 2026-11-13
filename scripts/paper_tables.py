@@ -115,9 +115,13 @@ def t_v11() -> str:
     ]
     for m, v in d.items():
         a, b = v["v1"], v["v1.1"]
+
+        def first(c, key):  # models added in v1.1 only have no v1 certificate (D-046)
+            return c[key][0] if c else None
+
         rows.append(
-            f"| {m.split('/')[-1]} | {pct(a['agreement_same_text_en'][0])} → {pct(b['agreement_same_text_en'][0])} | "
-            f"{pct(a['agreement_same_text'][0])} → {pct(b['agreement_same_text'][0])} | "
+            f"| {m.split('/')[-1]} | {pct(first(a, 'agreement_same_text_en'))} → {pct(b['agreement_same_text_en'][0])} | "
+            f"{pct(first(a, 'agreement_same_text'))} → {pct(b['agreement_same_text'][0])} | "
             f"{pct(v['retrieval_r10_en']['v1'])} → {pct(v['retrieval_r10_en']['v1.1'])} | {b['grade']} |"
         )
     return "\n".join(rows)

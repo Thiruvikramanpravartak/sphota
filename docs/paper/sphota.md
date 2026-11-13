@@ -320,6 +320,8 @@ certified with the NumPy forward pass, preserve migration recall:
 | gte-small | 5.7% → 33.3% | 3.4% → 9.6% | 99.8% → 100.0% | certified |
 | paraphrase-multilingual-MiniLM-L12-v2 | 23.3% → 35.4% | 24.5% → 32.8% | 100.0% → 100.0% | certified-multilingual |
 | LaBSE | 19.2% → 32.8% | 19.4% → 31.9% | 100.0% → 100.0% | certified-multilingual |
+| multilingual-e5-base | n/a → 52.8% | n/a → 51.0% | n/a → 100.0% | certified-multilingual |
+| bge-base-en-v1.5 | n/a → 41.1% | n/a → 12.4% | n/a → 100.0% | certified |
 <!-- /table -->
 
 We did not re-run the full gate with nonlinear adapters and a strong anchor at GPU scale; given
