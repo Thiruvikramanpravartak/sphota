@@ -104,10 +104,16 @@ there), descriptions and code share a region 77--96\% of the time, and
 codes stay stable across runs. It also shows the limits: short informal
 commands share a region across languages only 36--56\% of the time, far
 below FLORES, and narrow domains (banking intents) need per-dataset
-refinement. We measure 19 Indian languages (13 work well; Santali and
-Manipuri fail, Santali \emph{confidently} wrong), report two practical
-lessons on labels, and release the code, artifacts, gate, negative
-results and every script.
+refinement. Training the space on short parallel commands lifts their
+agreement from 42\% to 72\% at 256 cells but causes language collapse
+elsewhere. A six-round pre-registered study of per-file refinement, each
+round judged once on fresh data, ends short of its bar (final round: 18
+of 26 datasets within 0.05 of an oracle-k reference) yet beats the
+frozen themes on 38 of 42 fresh sets and groups translations together
+about twice as often. We measure 19 Indian languages (13 work well;
+Santali and Manipuri fail, Santali \emph{confidently} wrong), report two
+practical lessons on labels, and release the code, artifacts, gate,
+negative results and every script.
 
 \hypertarget{introduction}{%
 \subsection{1. Introduction}\label{introduction}}
@@ -164,9 +170,13 @@ loophole, and full results across granularity, sample design, anchor and
 data scale (\S{}4--5). 3. A controlled adapter study identifying the linear
 adapter as a major part of the cross-model bottleneck, and nonlinear
 adapters that double agreement (\S{}6). 4. A six-domain evaluation on
-license-clean public data, including code and Indian languages (\S{}7--8).
-5. Practical lessons on labels and on releasing open ML artifacts safely
-(\S{}10), and a fully reproducible release (Appendix A).
+license-clean public data, including code and Indian languages (\S{}7, \S{}9).
+5. A six-round pre-registered study of per-file refinement on fresh data
+each round, reported in full although it does not meet its bar (\S{}8), and
+an experiment showing what training the space on short text buys and
+costs (\S{}5.4). 6. Practical lessons on labels and on releasing open ML
+artifacts safely (\S{}11), and a fully reproducible release with the
+research protocol (Appendices A and C).
 
 \hypertarget{related-work}{%
 \subsection{2. Related work}\label{related-work}}
@@ -401,6 +411,67 @@ Stronger anchors remove language collapse and lift confident translation
 agreement to 88.0\% (bge-m3, 256 cells). Cross-model agreement does not
 follow: 50.2\% at best, falling with each 4$\times$ refinement. \textbf{The
 gate fails}, as predicted.
+
+\textbf{5.4 Can the space learn short text?} \S{}7 shows that short
+informal commands agree across languages far less often than FLORES
+sentences. The canonical space decides what counts as ``the same
+meaning'' through the translation scatter of meaning-LDA (\S{}3.2), which
+so far held only FLORES and Tatoeba. We added parallel MASSIVE
+\emph{train} commands (aligned across the 12 languages; texts that occur
+in the test split removed) and measured held-out MASSIVE \emph{test}
+commands:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+MASSIVE meanings in the scatter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Cells
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Short commands, same cell as English
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Coverage
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Translation, confident
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Cross-model
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Worst collapse
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+0 (baseline) & 32 & 51.9\% & 63.9\% & 78.8\% & 62.3\% & 0.1\% (ar) \\
+0 (baseline) & 256 & 42.4\% & 48.1\% & 75.8\% & 32.9\% & 0.0\% (hi) \\
+0 (baseline) & 1024 & 40.6\% & 37.4\% & 71.7\% & 21.8\% & 51.0\% (pt) \\
+800 & 32 & 69.5\% & 60.9\% & 80.8\% & 64.5\% & 0.1\% (ar) \\
+800 & 256 & 53.5\% & 43.2\% & 75.8\% & 35.7\% & 55.3\% (pt) \\
+800 & 1024 & 49.3\% & 31.1\% & 69.8\% & 21.5\% & 61.5\% (pt) \\
+2,500 & 32 & 62.1\% & 55.7\% & 80.2\% & 62.0\% & 0.0\% (hi) \\
+2,500 & 256 & 55.0\% & 37.6\% & 72.1\% & 35.1\% & 75.2\% (pt) \\
+2,500 & 1024 & 58.4\% & 30.8\% & 64.7\% & 24.0\% & 68.7\% (pt) \\
+11,492 & 32 & 83.8\% & 58.0\% & 77.9\% & 66.5\% & 0.0\% (hi) \\
+11,492 & 256 & 72.3\% & 30.7\% & 70.8\% & 38.6\% & 84.9\% (pt) \\
+11,492 & 1024 & 50.3\% & 19.1\% & 69.2\% & 28.2\% & 77.7\% (pt) \\
+\end{longtable}
+
+The space learns the new text type quickly: at 256 cells, short commands
+land in the same cell as their English version 72\% of the time instead
+of 42\%. But at $\geq$ 256 cells every amount we tried induces language
+collapse elsewhere (Portuguese Wikipedia, the homogeneous sample of
+\S{}5.2), and FLORES coverage falls. At 32 cells, 800 extra meanings is a
+clean gain (all four gate criteria pass, short-command agreement 52\% $\rightarrow$
+69\%), which is evidence for a better coarse layer but not a valid gate
+result. The scatter is a lever, not a free lunch: it moves agreement
+toward the text types it contains.
 
 \hypertarget{the-adapter-bottleneck}{%
 \subsection{6. The adapter bottleneck}\label{the-adapter-bottleneck}}
@@ -751,8 +822,96 @@ region 77--96\% of the time, and the canonical projection costs only
 0--5 points of docstring$\rightarrow$code recall@10 against raw anchor vectors (the
 candidate pool is the 1000 sampled pairs per language).
 
+\hypertarget{per-file-refinement-six-pre-registered-rounds}{%
+\subsection{8. Per-file refinement: six pre-registered
+rounds}\label{per-file-refinement-six-pre-registered-rounds}}
+
+Frozen themes are stable but generic; one file is often narrow (all
+banking support) or mixed (the same complaint in four languages). We
+therefore studied \emph{per-file refinement}: groups fitted to one file,
+each tied to a stable theme code, with every message's own code
+unchanged. Before building anything we fixed four targets (D-033):
+\textbf{R1} grouping quality within 0.05 V-measure of k-means that is
+\emph{told the true number of labels} (or uses our number of groups,
+whichever is better), on every dataset; \textbf{R2} determinism (row
+order cannot change the groups; ARI $\geq$ 0.95); \textbf{R3} in files mixing
+two languages, translations share a refined group at least as often as
+they share a fixed theme; \textbf{R4} $\leq$ 2 s for 3,000 messages.
+
+\textbf{Protocol.} Each dataset was split once into dev (30\%) and test
+(70\%). Candidates were chosen on dev only, and each round evaluated
+\textbf{only the dev winner, once, on data no method had touched}: round
+1 on the test splits, rounds 2--6 on new confirmation sets (more MASSIVE
+languages, the MASSIVE validation split, new Stack Exchange and arXiv
+splits, MasakhaNEWS train, FLORES devtest). Every amendment was
+committed before the run it affected, and a pipeline smoke test that
+accidentally reported test numbers was disclosed (D-034). 95\% bootstrap
+intervals accompany each headline number in the result files.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Round
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Winner (chosen on dev)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Fresh test data
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+R1 quality
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+R2 stable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+R3 mixed languages
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+R4 speed
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & M3\_auto+centre & test splits (22 sets) & 15/22 & fail & 5/8 &
+pass \\
+2 & M4\_kmeans+centre & confirmation set 1 & 16/25 & pass & 7/7 &
+pass \\
+3 & M4\_kmeans\_2sqrt+centre & set 2 (13 new MASSIVE languages) & 12/16
+& pass & 1/4 & pass \\
+4 & M4\_kmeans\_2sqrt{[}canonical,script{]} & set 3 (24 more languages)
+& 26/27 & pass & 2/6 & pass \\
+5 & M4\_kmeans\_2sqrt{[}raw,language\_masked{]} & set 4 (MASSIVE
+validation) & 15/16 & pass & 9/9 & pass \\
+6 & M4\_kmeans\_2sqrt{[}raw,language\_masked{]} & set 5 (Stack Exchange,
+arXiv, MasakhaNEWS train, FLORES) & 18/26 & pass & 11/12 & pass \\
+\end{longtable}
+
+Each round fixed the failure the previous one exposed: an ordering bug
+(R2), a silhouette rule that picked too few groups (R1), script-based
+language correction that cannot tell English from Italian (R3; replaced
+by a 51-language identifier trained on MASSIVE \emph{train}, 94\%
+accurate), and a dev set that lacked same-script pairs and so could not
+see that failure (a methodological lesson: the dev set must contain the
+failure mode being fixed). \textbf{The final method does not meet the
+bar} (round 6: R1 18/26, R3 11/12). The residual R1 failure is
+structural: the reference may use the true number of labels, and no
+label-free rule fits both fine label sets (59--77 intents) and coarse,
+well-separated ones (12--17 Stack Exchange sites, 7 news topics).
+
+Against what users had before (the fixed themes), the refined groups win
+on 38 of 42 fresh sets (mean V-measure gain +0.05 to +0.10; Banking77
+0.42 $\rightarrow$ 0.69--0.74), keep translations together about twice as often, run
+in 0.1 s, and lose only on four languages the anchor barely knows (-0.01
+to -0.02). We ship them as the default for files of $\geq$ 200 messages, in
+the library and in the browser (a TypeScript port that agrees exactly
+with the Python implementation on the same vectors).
+
 \hypertarget{indian-languages}{%
-\subsection{8. Indian languages}\label{indian-languages}}
+\subsection{9. Indian languages}\label{indian-languages}}
 
 FLORES-200 devtest for 19 Indian languages against English (frozen s1
 space):
@@ -814,7 +973,7 @@ on scripts the anchor never saw. The library therefore warns on Ol Chiki
 and Meetei Mayek input.
 
 \hypertarget{why-fine-grained-universal-codes-fail}{%
-\subsection{9. Why fine-grained universal codes
+\subsection{10. Why fine-grained universal codes
 fail}\label{why-fine-grained-universal-codes-fail}}
 
 Three effects compound. (1) \textbf{Boundary mass:} equivalent texts are
@@ -829,7 +988,7 @@ remove it. A code can be calibrated and honest about its uncertainty and
 still not be universal.
 
 \hypertarget{what-works-and-practical-lessons}{%
-\subsection{10. What works, and practical
+\subsection{11. What works, and practical
 lessons}\label{what-works-and-practical-lessons}}
 
 \textbf{Coarse regions and themes.} A frozen first code block is a
@@ -871,7 +1030,7 @@ used Python package shipped a \texttt{.pth} startup hook); publish with
 provenance attestations and no stored tokens.
 
 \hypertarget{limitations}{%
-\subsection{11. Limitations}\label{limitations}}
+\subsection{12. Limitations}\label{limitations}}
 
 Most experiments are CPU-scale ($\leq$ 80k fitting sentences, 12 languages);
 one GPU run reached \textasciitilde450k sentences. We did not combine
@@ -882,10 +1041,15 @@ machine- or human-translated parallel text whose translation process we
 did not audit. Per-dataset k-means is a reference, not a ceiling;
 stronger clustering (e.g.~HDBSCAN) was not tried. FLORES dev was used to
 fit the space, so no FLORES-derived dataset (e.g.~SIB-200) appears in
-\S{}7.
+\S{}7. The refinement study spent six evaluation rounds on related
+benchmark families; although every round used items no method had seen,
+the method was adapted between rounds, so later rounds are less
+independent than the first. The language identifier is trained on
+MASSIVE train, a sibling of the MASSIVE test and validation sets used
+for evaluation.
 
 \hypertarget{conclusion}{%
-\subsection{12. Conclusion}\label{conclusion}}
+\subsection{13. Conclusion}\label{conclusion}}
 
 Can meaning have universal coordinates? At fine resolution, with today's
 small multilingual encoders, our pre-registered answer is \textbf{no}:
@@ -895,11 +1059,16 @@ adapters close half the gap at the gate's granularity with no new data.
 At coarse resolution the answer is a qualified \textbf{yes}, with an
 important caveat measured here for the first time on real text: short
 informal messages agree across languages far less often than parallel
-benchmarks suggest. We recommend that work on semantic IDs and shared
-meaning spaces report held-out, cross-language and cross-model agreement
-\emph{as a function of granularity}, together with language collapse,
-evaluate on real text outside the fitting distribution, and fix the bar
-before running.
+benchmarks suggest. Two levers we measured move these numbers, each with
+a price: teaching the space short parallel text (a 30-point gain for
+short commands, paid for by language collapse elsewhere at fine
+granularity), and fitting groups per file (better than frozen themes on
+38 of 42 fresh sets, but short of an oracle that knows how many
+categories the user has in mind). We recommend that work on semantic IDs
+and shared meaning spaces report held-out, cross-language and
+cross-model agreement \emph{as a function of granularity}, together with
+language collapse, evaluate on real text outside the fitting
+distribution, and fix the bar before running.
 
 \hypertarget{appendix-a.-reproducibility}{%
 \subsection{Appendix A.
@@ -940,13 +1109,36 @@ Result file
 \texttt{adapters-v1.1-small.json} \\
 \S{}7 domains & \texttt{python\ -m\ sphota.build.domains\ -\/-scale\ small}
 & \texttt{domains-small.json} \\
-\S{}8 Indian languages &
+\S{}9 Indian languages &
 \texttt{python\ -m\ sphota.build.indic\ -\/-scale\ small} &
 \texttt{indic-small.json} \\
+\S{}5.4 short text &
+\texttt{python\ -m\ sphota.build.gate\ v2mini\ -\/-scale\ small\ -\/-sizes\ 32\ 256\ 1024\ {[}-\/-extra-parallel\ massive\ -\/-extra-n\ N{]}}
+& \texttt{shorttext-*.json} \\
+\S{}8 refinement &
+\texttt{python\ -m\ sphota.build.refine\_study\ -\/-scale\ small\ {[}-\/-round\ 2..6{]}}
+& \texttt{refine-study-small.json}, \texttt{refine-round*-small.json} \\
 \end{longtable}
 
 Code and artifacts: Apache-2.0. Decisions and their rationale:
 \texttt{DECISIONS.md} (D-015 -- D-032).
+
+\hypertarget{appendix-c.-research-protocol-and-timeline}{%
+\subsection{Appendix C. Research protocol and
+timeline}\label{appendix-c.-research-protocol-and-timeline}}
+
+All bars, splits, candidate sets and selection rules were committed to
+\texttt{DECISIONS.md} before the runs they govern; the git history
+timestamps each entry before its result file. Decision gate: D-017/D-018
+(fixed before any v2 run), D-022 (result). GPU run 2: D-035
+(pre-registered, with a seed-confirmation rule for any pass).
+Refinement: D-033 (targets, protocol), D-034 (amendment and smoke-run
+disclosure), D-036 -- D-041 (rounds 1--6 and the final verdict), D-042
+(shipped implementation; post-hoc implementation check, not a selection
+step). Short-text experiments (exploratory): D-043, D-044, including a
+prediction for GPU run 2 written before its result. Six evaluation
+rounds on fresh data were spent; the full sequence is reported, not the
+best round.
 
 \hypertarget{appendix-b.-datasets-and-licenses}{%
 \subsection{Appendix B. Datasets and
@@ -980,6 +1172,10 @@ Q\&A & CC-BY-SA (Stack Exchange) \\
 arXiv titles, via MTEB & \S{}7 science & CC0-1.0 \\
 IndicReviews (IndicXTREME), via MTEB & \S{}7 reviews & CC0-1.0 \\
 CodeSearchNet (Husain et al., 2019), via MTEB & \S{}7 code & MIT \\
+MASSIVE train / validation splits & \S{}5.4 fitting (train), \S{}8
+confirmation (validation), language identifier (train) & CC-BY-4.0 \\
+MasakhaNEWS (Adelani et al., 2023): MTEB test + original train & \S{}8 &
+AFL-3.0 \\
 \end{longtable}
 
 \hypertarget{references}{%

@@ -212,6 +212,56 @@ def t_code() -> str:
     return "\n".join(rows)
 
 
+def t_refine() -> str:
+    rows = [
+        "| Round | Winner (chosen on dev) | Fresh test data | R1 quality | R2 stable | R3 mixed languages | R4 speed |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    r1 = load("refine-study-small.json")
+    w = r1["winner"]
+    t = r1["test"][w]
+    rows.append(
+        f"| 1 | {w} | test splits (22 sets) | {t['R1_passed']}/{t['datasets']} | "
+        f"{'pass' if t['R2_pass'] else 'fail'} | {sum(x['pass'] for x in t['R3'].values())}/{len(t['R3'])} | "
+        f"{'pass' if r1['R4']['R4_python_pass'] else 'fail'} |"
+    )
+    fresh = {
+        2: "confirmation set 1",
+        3: "set 2 (13 new MASSIVE languages)",
+        4: "set 3 (24 more languages)",
+        5: "set 4 (MASSIVE validation)",
+        6: "set 5 (Stack Exchange, arXiv, MasakhaNEWS train, FLORES)",
+    }
+    for n in range(2, 7):
+        d = load(f"refine-round{n}-small.json")
+        r3 = d["R3"]
+        rows.append(
+            f"| {n} | {d['winner']} | {fresh[n]} | {d['R1_passed']}/{d['R1_sets']} | "
+            f"{'pass' if d['R2_pass'] else 'fail'} | {sum(x['pass'] for x in r3.values())}/{len(r3)} | "
+            f"{'pass' if d['R4']['R4_python_pass'] else 'fail'} |"
+        )
+    return "\n".join(rows)
+
+
+def t_shorttext() -> str:
+    rows = [
+        "| MASSIVE meanings in the scatter | Cells | Short commands, same cell as English | Coverage | Translation, confident | Cross-model | Worst collapse |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for f, label in [
+        ("shorttext-baseline-small.json", "0 (baseline)"),
+        ("shorttext-massive-n800-small.json", "800"),
+        ("shorttext-massive-n2500-small.json", "2,500"),
+        ("shorttext-massive-small.json", "11,492"),
+    ]:
+        for r in load(f)["results"]:
+            rows.append(
+                f"| {label} | {r['K1']} | {pct(r['massive_xling_same_cell']['mean'])} | {pct(r['coverage'])} | "
+                f"{pct(r['translation_confident'])} | {pct(r.get('cross_model'))} | {pct(r['collapse_max'])} ({r['collapse_worst_lang']}) |"
+            )
+    return "\n".join(rows)
+
+
 TABLES = {
     "gpu": t_gpu,
     "adapters": t_adapters,
@@ -222,6 +272,8 @@ TABLES = {
     "xling": t_xling,
     "xmodel": t_xmodel,
     "code": t_code,
+    "refine": t_refine,
+    "shorttext": t_shorttext,
 }
 
 
