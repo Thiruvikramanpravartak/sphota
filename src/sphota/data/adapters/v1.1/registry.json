@@ -211,6 +211,92 @@
         "grade": "certified-multilingual",
         "retrieval_r10_en": 1.0
       }
+    },
+    "intfloat/multilingual-e5-base": {
+      "short": "me5-base",
+      "file": "me5-base.npz",
+      "sha256": "2bdb89783fafc50c15ac4ba2faba5c9bcd67378ad4847e747c76289624a040bf",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": true,
+      "prefix": "query: ",
+      "onnx": {
+        "repo": "Xenova/multilingual-e5-base",
+        "pooling": "mean",
+        "max_length": 512
+      },
+      "temperature_scale": 0.5612,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.5277,
+          0.3132,
+          0.1551,
+          0.0662
+        ],
+        "agreement_same_text": [
+          0.5101,
+          0.3008,
+          0.1424,
+          0.0655
+        ],
+        "l1_top3_en": 0.7836,
+        "l1_neighborhood_en": 0.6957,
+        "l1_top3_all": 0.7626,
+        "agreement_cross_lingual": [
+          0.5072,
+          0.282,
+          0.1506,
+          0.0809
+        ],
+        "fidelity_en": 0.7458,
+        "fidelity_all": 0.7202,
+        "n_per_lang": 1012,
+        "grade": "certified-multilingual",
+        "retrieval_r10_en": 1.0
+      }
+    },
+    "BAAI/bge-base-en-v1.5": {
+      "short": "bge-base-en",
+      "file": "bge-base-en.npz",
+      "sha256": "97ae81e8ccbe831980d40c56bba8d6e3f3b168d452b078616ce18a9cde9b26f1",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/bge-base-en-v1.5",
+        "pooling": "cls",
+        "max_length": 512
+      },
+      "temperature_scale": 1.1225,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.4111,
+          0.1996,
+          0.0702,
+          0.0247
+        ],
+        "agreement_same_text": [
+          0.1245,
+          0.0428,
+          0.0114,
+          0.0031
+        ],
+        "l1_top3_en": 0.6374,
+        "l1_neighborhood_en": 0.6571,
+        "l1_top3_all": 0.2213,
+        "agreement_cross_lingual": [
+          0.1009,
+          0.0336,
+          0.0122,
+          0.004
+        ],
+        "fidelity_en": 0.6409,
+        "fidelity_all": 0.3821,
+        "n_per_lang": 1012,
+        "grade": "certified",
+        "retrieval_r10_en": 1.0
+      }
     }
   }
 }

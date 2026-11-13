@@ -590,3 +590,12 @@ bge-base 16.2 → 41.1 / 35.0 → 64.3 / 67.9 → 75.7; distiluse-v2 28.9 → 36
 68.3 → 69.1. Mean of all 8 models: 17.4 → 37.4 / 34.4 → 58.4 / 66.7 → 73.2. Two of three larger
 models exceed 60% at 256 cells in this setting; the full gate (all criteria, all panel models) is
 what GPU run 2 tests. mxbai-embed-large (335M) is registered but not run on CPU.
+
+## D-046 Larger-model adapters added to the v1.1 set
+`multilingual-e5-base` (certified-multilingual: same first block as the anchor 52.8% English,
+51.0% across 12 languages; migration recall@10 100%) and `bge-base-en-v1.5` (certified: 41.1%
+English; recall@10 100%), trained and certified like the other v1.1 adapters
+(`build/adapters_v11.py`, NumPy forward pass on what ships). Runtime uses pinned, hash-verified
+ONNX exports (Xenova/*), identical to the PyTorch embeddings used for training (cosine 1.00000 on
+200 FLORES sentences). They exist only in v1.1 (no frozen v1 adapter). distiluse-v2 is not added
+(its ONNX export lacks the final dense layer; smaller gain).

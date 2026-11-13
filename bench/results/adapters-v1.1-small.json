@@ -308,5 +308,77 @@
    "v1.1": 1.0
   },
   "seconds": 43
+ },
+ "intfloat/multilingual-e5-base": {
+  "v1.1": {
+   "agreement_same_text_en": [
+    0.5277,
+    0.3132,
+    0.1551,
+    0.0662
+   ],
+   "agreement_same_text": [
+    0.5101,
+    0.3008,
+    0.1424,
+    0.0655
+   ],
+   "l1_top3_en": 0.7836,
+   "l1_neighborhood_en": 0.6957,
+   "l1_top3_all": 0.7626,
+   "agreement_cross_lingual": [
+    0.5072,
+    0.282,
+    0.1506,
+    0.0809
+   ],
+   "fidelity_en": 0.7458,
+   "fidelity_all": 0.7202,
+   "n_per_lang": 1012,
+   "grade": "certified-multilingual",
+   "retrieval_r10_en": 1.0
+  },
+  "v1": null,
+  "retrieval_r10_en": {
+   "v1": null,
+   "v1.1": 1.0
+  },
+  "seconds": 68
+ },
+ "BAAI/bge-base-en-v1.5": {
+  "v1.1": {
+   "agreement_same_text_en": [
+    0.4111,
+    0.1996,
+    0.0702,
+    0.0247
+   ],
+   "agreement_same_text": [
+    0.1245,
+    0.0428,
+    0.0114,
+    0.0031
+   ],
+   "l1_top3_en": 0.6374,
+   "l1_neighborhood_en": 0.6571,
+   "l1_top3_all": 0.2213,
+   "agreement_cross_lingual": [
+    0.1009,
+    0.0336,
+    0.0122,
+    0.004
+   ],
+   "fidelity_en": 0.6409,
+   "fidelity_all": 0.3821,
+   "n_per_lang": 1012,
+   "grade": "certified",
+   "retrieval_r10_en": 1.0
+  },
+  "v1": null,
+  "retrieval_r10_en": {
+   "v1": null,
+   "v1.1": 1.0
+  },
+  "seconds": 453
  }
 }

@@ -36,6 +36,20 @@
     "onnx/model.onnx": "398a29991324e0b383afa13375d681ced3079c83e097fb1ebd9290d7498523b3",
     "tokenizer.json": "da0e79933b9ed51798a3ae27893d3c5fa4a201126cef75586296df9b4d2c62a0"
    }
+  },
+  "Xenova/multilingual-e5-base": {
+   "revision": "1ec9243030a27d1a115d5c340572074c125b58b2",
+   "sha256": {
+    "onnx/model.onnx": "84a4d426f7e87a6bf5bf195f0bae2c4a7d15f675b23ca96f42fab8326d7a77aa",
+    "tokenizer.json": "62c24cdc13d4c9952d63718d6c9fa4c287974249e16b7ade6d5a85e7bbb75626"
+   }
+  },
+  "Xenova/bge-base-en-v1.5": {
+   "revision": "4d6cd88e18e51a5e020c2c305726d76ada9c03cf",
+   "sha256": {
+    "onnx/model.onnx": "9bc579acdba21c253c62a9bf866891355a63ffa3442b52c8a37d75b2ccb91848",
+    "tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+   }
   }
  },
  "torch": {

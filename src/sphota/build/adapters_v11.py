@@ -30,6 +30,24 @@ from sphota.build.common import ROOT, log
 from sphota.build.release import load
 
 OUT = ROOT / "src" / "sphota" / "data" / "adapters" / "v1.1"
+# larger models, v1.1 only (no frozen v1 adapter exists for them; D-046)
+EXTRA_MODELS: dict[str, dict] = {
+    "intfloat/multilingual-e5-base": {
+        "short": "me5-base",
+        "license": "mit",
+        "multilingual": True,
+        "n_train": 40000,
+        "onnx": {"repo": "Xenova/multilingual-e5-base", "pooling": "mean", "max_length": 512},
+    },
+    "BAAI/bge-base-en-v1.5": {
+        "short": "bge-base-en",
+        "license": "mit",
+        "multilingual": False,
+        "n_train": 40000,
+        "onnx": {"repo": "Xenova/bge-base-en-v1.5", "pooling": "cls", "max_length": 512},
+    },
+}
+ALL_MODELS = {**MODELS, **EXTRA_MODELS}
 HIDDEN = 1024
 EPOCHS = 40
 
@@ -105,7 +123,7 @@ def run(scale: str, models: list[str]) -> dict:
     )
     results = {}
     for model in models:
-        cfg = MODELS[model]
+        cfg = ALL_MODELS[model]
         t0 = time.time()
         texts = training_texts(scale, cfg["n_train"])
         Y = anchor_canonical(scale, texts)
@@ -145,11 +163,11 @@ def run(scale: str, models: list[str]) -> dict:
         ad = load_adapter(p)  # certify exactly what ships (float16 weights, numpy forward)
         m = evaluate({lg: ad(test_X[lg]) for lg in langs}, Ya)
         g = grade(m)
-        v1 = get_adapter(model, "v1")
-        r10 = {
-            "v1": recall_at_10(v1(test_X["en"]), Ya["en"]),
-            "v1.1": recall_at_10(ad(test_X["en"]), Ya["en"]),
-        }
+        try:
+            v1_r10: float | None = recall_at_10(get_adapter(model, "v1")(test_X["en"]), Ya["en"])
+        except Exception:  # models without a frozen v1 adapter (D-046)
+            v1_r10 = None
+        r10 = {"v1": v1_r10, "v1.1": recall_at_10(ad(test_X["en"]), Ya["en"])}
         cert = {
             k: m[k]
             for k in [
@@ -180,7 +198,7 @@ def run(scale: str, models: list[str]) -> dict:
         }
         reg_path.write_text(json.dumps(registry, indent=2), encoding="utf-8")
         v1c = json.loads((rel.root / "adapters" / "registry.json").read_text(encoding="utf-8"))
-        old = v1c["adapters"][model]["certificate"]
+        old = v1c["adapters"].get(model, {}).get("certificate")
         results[model] = {
             "v1.1": cert,
             "v1": old,
@@ -188,9 +206,9 @@ def run(scale: str, models: list[str]) -> dict:
             "seconds": round(time.time() - t0),
         }
         log(
-            f"{model}: L1 en {old['agreement_same_text_en'][0]:.3f}→{cert['agreement_same_text_en'][0]:.3f} "
-            f"all {old['agreement_same_text'][0]:.3f}→{cert['agreement_same_text'][0]:.3f} "
-            f"r@10 {r10['v1']:.3f}→{r10['v1.1']:.3f} {g['grade']}"
+            f"{model}: L1 en "
+            f"{(old['agreement_same_text_en'][0] if old else float('nan')):.3f}→{cert['agreement_same_text_en'][0]:.3f} "
+            f"all {cert['agreement_same_text'][0]:.3f} r@10 {r10['v1.1']:.3f} {g['grade']}"
         )
     return results
 
@@ -203,5 +221,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     res = run(a.scale, a.models)
     out = ROOT / "bench" / "results" / f"adapters-v1.1-{a.scale}.json"
+    if out.exists():  # merge: keep models trained in earlier runs
+        res = {**json.loads(out.read_text(encoding="utf-8")), **res}
     out.write_text(json.dumps(res, indent=1), encoding="utf-8")
     log(f"wrote {out}")

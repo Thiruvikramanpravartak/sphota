@@ -37,7 +37,7 @@ Full certificates (exact and neighbourhood agreement, fidelity) are in the
 
 ## Nonlinear adapters (set v1.1, the default)
 
-The same five models also have **v1.1** adapters: the linear map plus a small residual network
+The five registry models, plus multilingual-e5-base and bge-base-en-v1.5 (v1.1 only), have **v1.1** adapters: the linear map plus a small residual network
 (one 1024-unit hidden layer), trained on the same pairs (D-028). They roughly double how often the
 other model's code lands in the anchor's own cell, keep migration recall at ~100%, and pass the
 same certification. Shipped as numpy-only `.npz` (≈ 9.7 MB in total, float16 hidden weights).
@@ -59,6 +59,8 @@ SPHOTA_ADAPTERS=v1 python my_app.py                           # the linear set f
 | gte-small | 5.7% → **33.3%** | 3.4% → 9.6% | 99.8% → 100.0% | certified |
 | paraphrase-multilingual-MiniLM-L12-v2 | 23.3% → **35.4%** | 24.5% → 32.8% | 100.0% → 100.0% | certified-multilingual |
 | LaBSE | 19.2% → **32.8%** | 19.4% → 31.9% | 100.0% → 100.0% | certified-multilingual |
+| multilingual-e5-base | — (v1.1 only) → **52.8%** | — → 51.0% | — → 100.0% | certified-multilingual |
+| bge-base-en-v1.5 | — (v1.1 only) → **41.1%** | — → 12.4% | — → 100.0% | certified |
 
 v1.1 has been the default since D-030 (before the first public release, so no stored codes
 change). The linear `v1` set stays available, frozen inside the release. Codes from the two sets
