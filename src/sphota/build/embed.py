@@ -17,12 +17,14 @@ from sphota.build.common import DATA_DIR, HF_CACHE, log
 PREFIX = {
     "intfloat/multilingual-e5-small": "query: ",
     "intfloat/multilingual-e5-base": "query: ",
+    "intfloat/multilingual-e5-large": "query: ",
     "intfloat/e5-small-v2": "query: ",
 }
 SHORT = {
     "BAAI/bge-m3": "bge-m3",
     "sentence-transformers/LaBSE": "labse",
     "intfloat/multilingual-e5-small": "me5-small",
+    "intfloat/multilingual-e5-large": "me5-large",
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": "pmMiniLM",
     "sentence-transformers/all-MiniLM-L6-v2": "all-MiniLM-L6",
     "BAAI/bge-small-en-v1.5": "bge-small-en",
