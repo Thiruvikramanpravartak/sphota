@@ -87,6 +87,49 @@
         "grade": "certified",
         "retrieval_r10_en": 1.0
       }
+    },
+    "thenlper/gte-small": {
+      "short": "gte-small",
+      "file": "gte-small.npz",
+      "sha256": "932d563af027abdacc4c371c5a172f0f0ccca444eed1fa091760a75e8d9af1bb",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/gte-small",
+        "pooling": "mean",
+        "max_length": 512
+      },
+      "temperature_scale": 1.0,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3508,
+          0.1206,
+          0.0375,
+          0.0119
+        ],
+        "agreement_same_text": [
+          0.0923,
+          0.0264,
+          0.0056,
+          0.0017
+        ],
+        "l1_top3_en": 0.5445,
+        "l1_neighborhood_en": 0.5919,
+        "l1_top3_all": 0.1675,
+        "agreement_cross_lingual": [
+          0.0758,
+          0.0232,
+          0.0096,
+          0.0028
+        ],
+        "fidelity_en": 0.599,
+        "fidelity_all": 0.3157,
+        "n_per_lang": 1012,
+        "grade": "certified",
+        "retrieval_r10_en": 1.0
+      }
     }
   }
 }
