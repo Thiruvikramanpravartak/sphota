@@ -648,3 +648,21 @@ exploratory: one passing on both seeds at ≥ 256 cells is a lead for a new pre-
 gate result. The run also answers, without extra compute: the adapter data-scaling curve at GPU
 scale, the capacity effect, the scatter trade-off with a strong anchor, and how fast agreement
 falls from 256 to 1024 cells. Third gate run; all are reported.
+
+## D-052 v1.2 adapters: v1.1 recipe plus short-command pairs (pre-registered before training)
+D-051 found that adapters trained only on wiki/FLORES sentences map short commands badly, worst
+when the space has command scatter. The shipped v1.1 set was trained that way. **v1.2** is the
+same recipe: same models, frozen s1 space, ridge + residual MLP, h 1024, 40 epochs, seed 0, same
+wiki/FLORES pairs. It adds MASSIVE-train commands (CC BY 4.0; texts that also occur in the test
+split are excluded): every English utterance for every model, plus a fixed sample of 2,000 per
+other language for multilingual models. Nothing is tuned: no ratio or size is chosen on test.
+**Evaluation:** the FLORES devtest certificate (as for v1.1) and held-out **MASSIVE test** commands
+(never used to train or tune adapters). For commands: same L1 cell (4096) and same region (32) as
+the anchor, English for every model and all 12 languages for multilingual models.
+**Decision rule.** v1.2 replaces v1.1 as the default if, averaged over the 7 models, all hold:
+(a) command L1 agreement in English rises by ≥ 5 points, and command region agreement does not
+fall; (b) FLORES `agreement_same_text_en` and `agreement_same_text` each fall by ≤ 1.0 point, and
+no model's grade drops; (c) FLORES retrieval R@10 (English) falls by ≤ 1.0 point. If (a) holds
+but (b) or (c) fails, v1.2 ships opt-in (`adapters="v1.2"`) and v1.1 stays the default. If (a)
+fails, v1.2 is not shipped. Either way the result is reported.
+**Prediction:** command L1 agreement in English +10 to +25 points; FLORES within −1 point.
