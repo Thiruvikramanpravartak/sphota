@@ -130,6 +130,49 @@
         "grade": "certified",
         "retrieval_r10_en": 1.0
       }
+    },
+    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": {
+      "short": "pm-minilm-l12",
+      "file": "pm-minilm-l12.npz",
+      "sha256": "a0acefa05b7c5a97fb39010f6bc92ebedf25c7aaccf023a1e6a72c472a3bf08b",
+      "kind": "mlp2",
+      "model_license": "apache-2.0",
+      "multilingual": true,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+        "pooling": "mean",
+        "max_length": 128
+      },
+      "temperature_scale": 1.1225,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3775,
+          0.1225,
+          0.0474,
+          0.0079
+        ],
+        "agreement_same_text": [
+          0.3368,
+          0.1308,
+          0.0409,
+          0.0135
+        ],
+        "l1_top3_en": 0.5672,
+        "l1_neighborhood_en": 0.6443,
+        "l1_top3_all": 0.524,
+        "agreement_cross_lingual": [
+          0.5299,
+          0.3421,
+          0.2387,
+          0.1586
+        ],
+        "fidelity_en": 0.6233,
+        "fidelity_all": 0.5616,
+        "n_per_lang": 1012,
+        "grade": "certified-multilingual",
+        "retrieval_r10_en": 1.0
+      }
     }
   }
 }
