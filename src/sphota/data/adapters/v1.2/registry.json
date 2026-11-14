@@ -44,6 +44,49 @@
         "grade": "certified",
         "retrieval_r10_en": 0.999
       }
+    },
+    "BAAI/bge-small-en-v1.5": {
+      "short": "bge-small-en",
+      "file": "bge-small-en.npz",
+      "sha256": "f1f453c40b31e8afe880c80365b4939de110cd8958c756f811e23f561aa26000",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/bge-small-en-v1.5",
+        "pooling": "cls",
+        "max_length": 512
+      },
+      "temperature_scale": 1.1225,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3794,
+          0.165,
+          0.0662,
+          0.0198
+        ],
+        "agreement_same_text": [
+          0.0985,
+          0.0317,
+          0.0087,
+          0.0023
+        ],
+        "l1_top3_en": 0.5919,
+        "l1_neighborhood_en": 0.6364,
+        "l1_top3_all": 0.1783,
+        "agreement_cross_lingual": [
+          0.0773,
+          0.0237,
+          0.0079,
+          0.0031
+        ],
+        "fidelity_en": 0.623,
+        "fidelity_all": 0.3419,
+        "n_per_lang": 1012,
+        "grade": "certified",
+        "retrieval_r10_en": 1.0
+      }
     }
   }
 }
