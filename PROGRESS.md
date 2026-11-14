@@ -12,7 +12,8 @@
 - **CI:** fixed (repo made public; Actions minutes were the cause). All 11 jobs green on dispatch.
 - **GPU run: done, FAIL (D-022).** Kaggle T4, medium scale, 3 anchors × 256/1024/4096 regions. Best:
   bge-m3 @256 passes 3/4 (coverage 67.2%, translation 88.0%, collapse 0.1%) but cross-model is 50.2%
-  (bar 60%). The v1.1 positioning is now final; no `s2`.
+  (bar 60%). Superseded by run 3 (D-054): PASS at 256 cells on both replicates, narrow and not yet
+  confirmed on unused data; positioning unchanged until a confirmation run passes.
 - **Atlas "Analyze a file"** (2026-11-06): drop a CSV/TSV/TXT/JSONL (≤ 3,000 rows), encoded in the
   browser, grouped by theme (first code block) or region, CSV download, bundled multilingual sample.
   Themes beat regions on single-domain data (83% vs 29% purity, D-020).
@@ -34,8 +35,11 @@
 - **v1.2 adapters, now the default (D-051 – D-053):** the v1.1 recipe plus short-command pairs.
   Held-out MASSIVE commands: same cell +23.2 points, region +15.2 (7 models); FLORES +1.7 (en) /
   +0.4 (all); R@10 unchanged. Passed its pre-registered rule.
-- **GPU run 3 (D-050, D-051):** one planned sweep (126 + 4 rows, 2 independent replicates, CIs),
-  premortem-amended before running; owner running it on Kaggle.
+- **GPU run 3 (D-050, D-051, D-054): PASS.** One planned sweep, 130 + 24 evaluations in 3.7 h on a
+  free T4. Primary (bge-m3, all-MASSIVE scatter, MLP + commands, 256 cells): 61.4/65.3 coverage,
+  86.8/85.8 translation, 61.8/61.5 cross-model (CIs touch 60), 0.0/0.1 collapse on both replicates.
+  Fails at 512/1024 cells and with e5-large. Best exploratory: no scatter + MLP + commands (cross-model
+  65.0/64.1, commands 70.9/72.0). Next: pre-registered confirmation run 4 on unused data (owner's call).
 - **Six-domain evaluation (D-032):** MASSIVE, Banking77, Stack Exchange, arXiv, IndicReviews,
   CodeSearchNet. Themes competitive on science/technical/reviews; short commands agree across
   languages only 36–56% (region); code and its description share a region 77–96%.

@@ -684,3 +684,65 @@ release, so no stored codes change meaning. Package size +15 MB; the v1.1 set is
 paper's §6 tables and D-030 refer to it. One scale only (small), one training seed: this is a
 pre-registered single comparison, not a seed study. The GPU sweep (D-051) tests the same idea at
 medium scale with a second replicate.
+
+## D-054 GPU run 3 result: the pre-registered primary PASSES the gate on both replicates
+Kaggle T4, medium scale, git 79e1c84, 163 min (phase 1) + 58 min (phase 2, e5-large).
+Results: `bench/results/v3-sweep-medium-bge-m3.json` and `…-me5-large-anchor2.json`. Both were
+**reconstructed from the run log**: every row is printed there, so all four criteria, the CI, the
+command metric and the second panel are recovered. Missing: the gate panel's per-model breakdown
+and the provenance block. The cause was my error: the notebook's summary cell imported the package
+inside the kernel, which started before the editable install. That cell crashed after all compute
+had finished, and the crash stopped the zip cell. Fixed: the summary runs as a subprocess, the zip
+runs first, the smoke test now runs the summary too, and a CI test forbids in-kernel imports.
+
+**Primary** (massive_full, D 256, `mlp-120000-h1024+cmd`, 256 cells):
+
+| replicate | coverage | translation (conf.) | cross-model [95% CI] | collapse | pass |
+|---|---|---|---|---|---|
+| 0 | 61.4% | 86.8% | 61.8% [59.7–64.0] | 0.0% | 4/4 |
+| 1 | 65.3% | 85.8% | 61.5% [59.4–63.8] | 0.1% | 4/4 |
+
+**Verdict under D-017/D-018/D-050/D-051: PASS, confirmed by both replicates.**
+Qualifications, stated with the result:
+1. The margin is thin. Both CIs include 60%. The rule is the point estimate (D-017), but a
+   replication could fall below.
+2. The pass holds at exactly 256 cells. At 512 and 1024 cells the primary fails (cross-model
+   53–57% and 49–53%; coverage 56–61% and 53–56%). The fine levels below L1 are not covered.
+3. **Short commands: the D-051 claim is not made.** Primary command cross-model was 73.7% and
+   59.0%; replicate 1 is below the pre-registered 60%.
+4. It is anchor-specific. With multilingual-e5-large the MASSIVE-scatter space collapses languages
+   (79–80% worst collapse), and the plain space misses coverage (57–60%). bge-m3 (568M parameters,
+   2.2 GB) is far heavier than the frozen anchor (e5-small, 118M).
+5. FLORES devtest has now judged three gate runs. The primary was fixed before this run, but the
+   series adapted between runs. A confirmation on held-out data never used by any run is required
+   before any change to the standard.
+
+**Predictions:** primary cross-model 61–63% held (61.8 / 61.5). "Other criteria within ±2 points of
+run 2" held for replicate 0, which reproduces run 2's space and codebook exactly (same seed: 61.4 /
+86.8 / 0.0). For replicate 1, coverage was +3.9 (outside the band, favourable). Command cross-model
+≥ 60% on the primary failed on replicate 1. "No-command variant ≤ 10% on massive_full" was
+**falsified** (56.6 / 44.9%): the near-zero value of D-051 was a tiny-scale artifact and did not
+reproduce at medium scale. Command pairs still add 14–17 points there.
+
+**Exploratory findings** (none can change the verdict; leads only):
+* *No MASSIVE scatter is better.* Space `none` + `mlp-120000-h1024+cmd` at 256 cells: coverage
+  67.2 / 65.1, translation 88.0 / 87.7, cross-model 65.0 / 64.1, collapse 0.1 / 0.2, commands
+  70.9 / 72.0. That is 4/4 on both replicates, with the command claim met too, and it is the
+  strongest configuration in the run. With command-trained adapters, the space no longer needs
+  command scatter.
+* Adapter capacity and data: ridge 44–50%, MLP 40k → 80k → 120k pairs 59.2 → 60.9 → 61.7 (massive_full),
+  hidden 2048 +0.3 to +0.9. Command pairs change FLORES cross-model by −0.4 to +0.9 and add 14–20
+  points on commands.
+* Unseen models (second panel: e5-base, bge-base, distiluse, mxbai-large; never used to design
+  anything): 67.5 / 67.7% at 256 cells, above the gate panel.
+* Space width: D 128 and 384 both below D 256 (58.7–60.0%).
+* Twelve combinations pass 4/4 on both replicates at 256 cells (listed in the result file).
+
+**Next step (owner's decision): GPU run 4, a confirmation run, pre-registered before it runs.**
+* Fresh held-out evaluation data never used by any run, e.g. NTREX-128 news, CC BY-SA 4.0, for the
+  same four criteria.
+* Two configurations, both fixed now: the D-051 primary, and `none + mlp-120000-h1024+cmd`.
+* Three new replicates.
+
+Until it passes, the positioning and the frozen v1 standard do not change. If it passes, the
+D-017 consequence applies: an RFC for space `s2`.

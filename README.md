@@ -201,15 +201,18 @@ Design decisions and the experiments behind them (including negative results) ar
 ## Roadmap
 
 **North star: a GPS for meaning.** One frozen, open address for any text, in any language, from
-any embedding model, at fine resolution. Today that holds only at the coarse levels (regions,
-themes); the GPU gate (D-022) showed the bottleneck is agreement *between models*, not languages
-or data size. Research on that bottleneck continues in the open (`bench/results/adapter-study-*.json`,
+any embedding model, at fine resolution. Today that holds at the coarse levels (regions, themes),
+and the third GPU run (D-054) passed the gate at 256 cells with a strong anchor, pending confirmation.
+The bottleneck was agreement *between models*, and nonlinear adapters closed most of it. Research on that bottleneck continues in the open (`bench/results/adapter-study-*.json`,
 D-028), and a future space `s2` will be proposed only if it passes the pre-registered bar.
 
 **Research: universal fine-grained coordinates.** Decision gate D-017 (+ D-018: ≥ 256 regions):
 coverage ≥ 60%, confident translation agreement ≥ 80%, cross-model ≥ 60%, no language collapse.
-Result (GPU, medium scale, D-022): **FAIL**. Best: bge-m3 at 256 regions, 67.2% / 88.0% / 50.2% / 0.1%;
-cross-model agreement is the obstacle. Rerun: `scripts/gpu_build_v2.sh`, `docs/gpu-run.md`.
+GPU runs 1–2 (D-022, D-048): **FAIL**; cross-model agreement was the obstacle (best 59.2%). GPU run 3
+(D-054, pre-registered, bge-m3 anchor + nonlinear adapters): **PASS at 256 regions on both
+replicates** (61.4–65.3% / 85.8–86.8% / 61.5–61.8% / ≤ 0.1%). The pass is narrow: it fails at 512+
+regions and its confidence intervals touch the bar. It must be confirmed on unused data before any
+`s2` space is proposed. Notebook: `notebooks/kaggle_gpu_gate.ipynb`; results `bench/results/v3-sweep-*.json`.
 
 
 1. Cross-model agreement: nonlinear / jointly trained adapters (the measured bottleneck, D-022)

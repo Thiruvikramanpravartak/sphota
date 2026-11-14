@@ -917,7 +917,8 @@ def print_report(res: dict) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["sweep", "anchors", "v2mini", "v3sweep"])
+    ap.add_argument("cmd", choices=["sweep", "anchors", "v2mini", "v3sweep", "v3summary"])
+    ap.add_argument("files", nargs="*", help="v3summary: result files (default: medium sweeps)")
     ap.add_argument("--grid", choices=list(GRIDS), default="full", help="v3sweep grid (D-051)")
     ap.add_argument("--extra-models", nargs="*", default=None, help="v3sweep second panel")
     ap.add_argument("--scale", default="small")
@@ -943,6 +944,17 @@ def main() -> None:
         (ROOT / "bench" / "results" / "anchor-check.json").write_text(
             json.dumps(res, indent=1), encoding="utf-8"
         )
+    elif a.cmd == "v3summary":  # notebook-safe: runs in a fresh process after the editable install
+        files = [Path(f) for f in a.files] or sorted(
+            (ROOT / "bench" / "results").glob(f"v3-sweep-{a.scale}-*.json")
+        )
+        for f in files:
+            res = json.loads(f.read_text(encoding="utf-8"))
+            print("=" * 100, f"\n{f.name}")
+            if "primary_gate" not in res:
+                print(f"INCOMPLETE (session stopped mid-run): {len(res['rows'])} rows so far")
+                continue
+            print_sweep(res)
     elif a.cmd == "v3sweep":
         res = v3sweep(
             a.scale,

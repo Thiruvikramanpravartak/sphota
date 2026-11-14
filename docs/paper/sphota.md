@@ -1,5 +1,5 @@
 ---
-title: "Can Meaning Have Universal Coordinates? Pre-Registered Negative Results, an Adapter Bottleneck, and What a Frozen Multilingual Code Can Still Do"
+title: "Can Meaning Have Universal Coordinates? A Pre-Registered Gate, an Adapter Bottleneck, a Narrow Pass at 256 Cells, and What a Frozen Multilingual Code Can Still Do"
 author: "The Sphota Authors"
 date: "November 2026 (preprint draft, not yet submitted; cs.CL, cross-list cs.IR)"
 ---
@@ -11,20 +11,28 @@ We tried to build a *universal coordinate system for meaning*: a frozen, open, h
 models through adapters, so that translations, paraphrases and different models agree on the same
 address. Before the decisive experiments we fixed a four-part pass/fail gate on held-out data
 (coverage, translation agreement, cross-model agreement, language collapse) and amended it to
-require at least 256 top-level cells. **No configuration passes.** The frozen release (4096 cells,
-multilingual-e5-small anchor) fails all four criteria; a GPU run at ~450k sentences with LaBSE and
-bge-m3 anchors removes language collapse and reaches 88% confident translation agreement at 256
-cells, but cross-model agreement peaks at 50% (bar: 60%). A controlled adapter study then shows that
-much of this bottleneck is the *linear* adapter: a small residual MLP trained on the same pairs
+require at least 256 top-level cells. The frozen release (4096 cells, multilingual-e5-small anchor)
+fails all four criteria; a GPU run at ~450k sentences with LaBSE and bge-m3 anchors removes language
+collapse and reaches 88% confident translation agreement at 256 cells, but cross-model agreement
+peaks at 50% (bar: 60%). A controlled adapter study then shows that much of this bottleneck is the
+*linear* adapter: a small residual MLP trained on the same pairs
 roughly doubles same-cell agreement with the anchor (five small models: 16.0% → 34.1% at 4096
 cells, 32.6% → 56.1% at 256 cells; multilingual-e5-base: 30.9% → 70.5% at 256 cells), keeps cross-model retrieval at ~100% recall@10, and is still improving at 40k training
-pairs, while ridge is flat. An evaluation on six public domains (multilingual commands, banking
+pairs, while ridge is flat. A third, pre-registered GPU run (bge-m3 anchor, nonlinear adapters on
+120k pairs, 130 evaluations planned as one sweep with two independent replicates) **passes the gate
+at 256 cells on both replicates** (cross-model 61.8% and 61.5%, both 95% intervals touching 60%).
+The pass is narrow: it fails at 512 and 1024 cells and with a multilingual-e5-large anchor, and it
+still needs confirmation on held-out data no run has used. An exploratory configuration without
+command scatter reaches 64–65% cross-model and 71–72% on short commands. Models never used in the
+design agree with the anchor 67–68% of the time. An evaluation on six public domains (multilingual commands, banking
 support, technical Q&A, science, Indian-language reviews and code) shows what a frozen code can
 still do: its themes are a competitive zero-setup grouping (V-measure within 0.05–0.09 of per-dataset
 k-means on science, technical and review text, and 0.25–0.29 above TF-IDF there), descriptions and
 code share a region 77–96% of the time, and codes stay stable across runs. It also shows the limits:
 short informal commands share a region across languages only 36–56% of the time, far below FLORES,
-and narrow domains (banking intents) need per-dataset refinement. Training the space on short
+and narrow domains (banking intents) need per-dataset refinement. Adapters trained without short
+text map it poorly; adding 11.5k commands to adapter training lifts held-out same-cell agreement by
+23 points without hurting sentences. Training the space on short
 parallel commands lifts their agreement from 42% to 72% at 256 cells but causes language collapse
 elsewhere. A six-round pre-registered study of per-file refinement, each round judged once on
 fresh data, ends short of its bar (final round: 18 of 26 datasets within 0.05 of an oracle-k
@@ -207,8 +215,88 @@ commands in the scatter (§5.4). bge-m3 at 256 cells then passes coverage (61.4%
 (86.8%) and collapse (0.0%) and misses cross-model by 0.8 points (59.2%; per panel model 55.8–
 62.0%). We had predicted, from the CPU experiment of §5.4, that the extra scatter would cause
 language collapse; it did not with these anchors, so that prediction was wrong. **The gate fails
-in both runs.** Run 3 (one change: adapters trained on 120k instead of 40k pairs, motivated by the
-scaling curve in §6) was registered before it ran (Appendix C).
+in both runs.**
+
+**Run 3: one planned sweep.** Run 3 was redesigned to get the most information from one GPU
+session (D-050). The expensive step, embedding the corpus and 120k adapter pairs with bge-m3 and
+nine other models, was done once. Every cheap factor was swept on top: scatter {none, 800, all
+11.5k MASSIVE meanings} × 7 adapter variants × {256, 512, 1024} cells × 2 replicates. Each replicate
+re-draws both the k-means and the adapter-training seed. A premortem before the run (D-051) found
+that adapters trained only on sentences map short commands poorly. It therefore made the primary
+adapter `mlp-120000-h1024+cmd` (MLP, 120k sentence pairs plus 11.5k MASSIVE-train English commands)
+and added a command cross-model metric (held-out MASSIVE test). Exactly one combination was the
+gate test: all MASSIVE meanings, that adapter, 256 cells; both replicates had to pass.
+
+<!-- table:sweep -->
+| Scatter | Adapter | Coverage | Translation, confident | Cross-model | Commands, cross-model | Worst collapse | Pass |
+|---|---|---|---|---|---|---|---|
+| + all MASSIVE | mlp-120000-h1024+cmd **(primary)** | 61.4% / 65.3% | 86.8% / 85.8% | 61.8% / 61.5% | 73.7% / 59.0% | 0.0% / 0.1% | 4 / 4 |
+| + all MASSIVE | mlp-120000-h1024 | 61.4% / 65.3% | 86.8% / 85.8% | 61.6% / 61.6% | 56.6% / 44.9% | 0.0% / 0.1% | 4 / 4 |
+| + all MASSIVE | ridge-40000 | 61.4% / 65.3% | 86.8% / 85.8% | 44.8% / 45.6% | 48.4% / 35.0% | 0.0% / 0.1% | 3 / 3 |
+| + all MASSIVE | ridge-120000+cmd | 61.4% / 65.3% | 86.8% / 85.8% | 43.6% / 44.2% | 59.9% / 40.4% | 0.0% / 0.1% | 3 / 3 |
+| + all MASSIVE | mlp-40000-h1024+cmd | 61.4% / 65.3% | 86.8% / 85.8% | 59.2% / 59.3% | 72.7% / 57.8% | 0.0% / 0.1% | 3 / 3 |
+| + all MASSIVE | mlp-80000-h1024+cmd | 61.4% / 65.3% | 86.8% / 85.8% | 60.9% / 60.9% | 73.3% / 58.7% | 0.0% / 0.1% | 4 / 4 |
+| + all MASSIVE | mlp-120000-h2048+cmd | 61.4% / 65.3% | 86.8% / 85.8% | 62.1% / 62.4% | 74.4% / 60.7% | 0.0% / 0.1% | 4 / 4 |
+| + 800 MASSIVE | mlp-120000-h1024+cmd | 64.5% / 66.7% | 87.4% / 86.4% | 62.6% / 62.2% | 67.0% / 68.3% | 0.1% / 0.1% | 4 / 4 |
+| + 800 MASSIVE | mlp-120000-h1024 | 64.5% / 66.7% | 87.4% / 86.4% | 62.1% / 62.6% | 52.2% / 51.3% | 0.1% / 0.1% | 4 / 4 |
+| + 800 MASSIVE | ridge-40000 | 64.5% / 66.7% | 87.4% / 86.4% | 45.1% / 47.0% | 41.1% / 38.8% | 0.1% / 0.1% | 3 / 3 |
+| + 800 MASSIVE | ridge-120000+cmd | 64.5% / 66.7% | 87.4% / 86.4% | 44.6% / 46.1% | 47.4% / 48.9% | 0.1% / 0.1% | 3 / 3 |
+| + 800 MASSIVE | mlp-40000-h1024+cmd | 64.5% / 66.7% | 87.4% / 86.4% | 59.5% / 60.0% | 66.3% / 67.6% | 0.1% / 0.1% | 3 / 3 |
+| + 800 MASSIVE | mlp-80000-h1024+cmd | 64.5% / 66.7% | 87.4% / 86.4% | 61.5% / 61.6% | 66.5% / 67.9% | 0.1% / 0.1% | 4 / 4 |
+| + 800 MASSIVE | mlp-120000-h2048+cmd | 64.5% / 66.7% | 87.4% / 86.4% | 62.9% / 63.1% | 68.0% / 69.5% | 0.1% / 0.1% | 4 / 4 |
+| none | mlp-120000-h1024+cmd | 67.2% / 65.1% | 88.0% / 87.7% | 65.0% / 64.1% | 70.9% / 72.0% | 0.1% / 0.2% | 4 / 4 |
+| none | mlp-120000-h1024 | 67.2% / 65.1% | 88.0% / 87.7% | 64.1% / 63.7% | 51.1% / 55.6% | 0.1% / 0.2% | 4 / 4 |
+| none | ridge-40000 | 67.2% / 65.1% | 88.0% / 87.7% | 50.1% / 50.2% | 34.7% / 41.6% | 0.1% / 0.2% | 3 / 3 |
+| none | ridge-120000+cmd | 67.2% / 65.1% | 88.0% / 87.7% | 50.3% / 49.7% | 51.7% / 55.0% | 0.1% / 0.2% | 3 / 3 |
+| none | mlp-40000-h1024+cmd | 67.2% / 65.1% | 88.0% / 87.7% | 62.8% / 61.7% | 70.2% / 72.0% | 0.1% / 0.2% | 4 / 4 |
+| none | mlp-80000-h1024+cmd | 67.2% / 65.1% | 88.0% / 87.7% | 64.1% / 63.2% | 71.0% / 72.4% | 0.1% / 0.2% | 4 / 4 |
+| none | mlp-120000-h2048+cmd | 67.2% / 65.1% | 88.0% / 87.7% | 65.5% / 65.0% | 71.9% / 73.4% | 0.1% / 0.2% | 4 / 4 |
+<!-- /table -->
+
+**The primary passes all four criteria on both replicates** (D-054): coverage 61.4% / 65.3%,
+confident translation 86.8% / 85.8%, cross-model 61.8% / 61.5%, worst collapse 0.0% / 0.1%. The
+predicted cross-model range (61–63%, written before the run) held. Replicate 0 reproduces run 2's
+space and codebook exactly, so the 59.2% → 61.8% gain is the adapter alone. We report the pass with
+five qualifications:
+
+1. **Thin margin.** Both 95% intervals (59.7–64.0%, 59.4–63.8%) include the bar.
+2. **Only 256 cells.** At 512 and 1024 cells the same configuration fails.
+3. **Short commands not confirmed.** Command cross-model agreement was 73.7% and 59.0%; the
+   pre-registered 60% for a command claim failed on replicate 1.
+4. **Anchor-specific.** The multilingual-e5-large anchor collapses languages with MASSIVE scatter
+   (79–80%) and misses coverage without it.
+5. **Adaptive use of one test set.** FLORES devtest has now judged three runs. A confirmation on
+   unused data comes before any change to the frozen standard.
+
+<!-- table:sweepk -->
+| Anchor | Scatter | Width D | Cells | Coverage | Translation, confident | Cross-model [95% CI, rep 0] | Worst collapse | Pass |
+|---|---|---|---|---|---|---|---|---|
+| bge-m3 | massive_full | 256 | 256 | 61.4% / 65.3% | 86.8% / 85.8% | 61.8% / 61.5% [59.7%–64.0%] | 0.0% / 0.1% | 4 / 4 |
+| bge-m3 | massive_full | 256 | 512 | 56.4% / 61.3% | 84.8% / 84.1% | 53.1% / 56.7% [50.9%–55.2%] | 0.1% / 0.2% | 2 / 3 |
+| bge-m3 | massive_full | 256 | 1024 | 52.9% / 56.0% | 82.2% / 82.8% | 48.8% / 52.6% [46.4%–51.1%] | 0.2% / 0.1% | 2 / 2 |
+| bge-m3 | none | 256 | 256 | 67.2% / 65.1% | 88.0% / 87.7% | 65.0% / 64.1% [62.7%–67.2%] | 0.1% / 0.2% | 4 / 4 |
+| bge-m3 | none | 256 | 512 | 65.6% / 65.9% | 85.5% / 84.9% | 59.4% / 58.9% [57.1%–61.6%] | 0.1% / 0.1% | 3 / 3 |
+| bge-m3 | none | 256 | 1024 | 62.8% / 60.4% | 82.6% / 83.7% | 55.4% / 54.9% [53.1%–57.7%] | 0.1% / 0.1% | 3 / 3 |
+| bge-m3 | massive_full | 128 | 256 | 66.1% / 60.9% | 83.7% / 84.2% | 58.7% / 59.4% [56.6%–60.9%] | 0.2% / 0.0% | 3 / 3 |
+| bge-m3 | massive_full | 384 | 256 | 62.8% / 65.8% | 84.5% / 84.1% | 58.8% / 60.0% [56.6%–61.0%] | 0.1% / 0.2% | 3 / 4 |
+| multilingual-e5-large | massive_full | 256 | 256 | 45.3% / 57.0% | 80.8% / 80.3% | 63.6% / 63.7% [61.4%–66.0%] | 79.7% / 79.0% | 2 / 2 |
+| multilingual-e5-large | massive_full | 256 | 512 | 50.0% / 45.1% | 75.5% / 78.2% | 59.6% / 60.1% [57.2%–61.6%] | 78.3% / 79.2% | 0 / 1 |
+| multilingual-e5-large | none | 256 | 256 | 59.8% / 57.1% | 82.5% / 83.4% | 60.8% / 61.6% [58.6%–63.0%] | 0.1% / 0.2% | 3 / 3 |
+| multilingual-e5-large | none | 256 | 512 | 58.3% / 59.6% | 80.4% / 80.9% | 56.3% / 57.7% [54.1%–58.7%] | 0.1% / 0.0% | 2 / 2 |
+<!-- /table -->
+
+**Exploratory findings** (leads, not gate results):
+* **No scatter, command-trained adapters** gives the strongest row: 65.0% / 64.1% cross-model,
+  70.9% / 72.0% on commands, 4/4 on both replicates.
+* **Adapters matter most.** Ridge reaches 44–50%. The MLP reaches 59.2% → 60.9% → 61.7% at
+  40k → 80k → 120k pairs.
+* **Models never used in the design** (e5-base, bge-base, distiluse, mxbai-large) agree with the
+  anchor 67.5% / 67.7% of the time, above the gate panel.
+* **Width 256 beats 128 and 384.**
+
+The near-zero command agreement that motivated the premortem (a tiny-scale diagnostic) did not
+reproduce at medium scale (56.6% / 44.9% without command pairs). It was a scale artifact, and we
+report the falsified prediction.
 
 **5.4 Can the space learn short text?** §7 shows that short informal commands agree across
 languages far less often than FLORES sentences. The canonical space decides what counts as "the
@@ -586,8 +674,11 @@ publish with provenance attestations and no stored tokens.
 
 ## 12. Limitations
 
-Most experiments are CPU-scale (≤ 80k fitting sentences, 12 languages); one GPU run reached
-~450k sentences. We did not combine nonlinear adapters with a strong anchor at GPU scale. Region
+Most experiments are CPU-scale (≤ 80k fitting sentences, 12 languages); three GPU runs reached
+~450k sentences. The only gate pass (§5.3) is at exactly 256 cells with one heavy anchor (bge-m3,
+568M parameters). Its 95% intervals touch the bar, and the held-out FLORES devtest set has judged
+all three GPU runs, so the pass needs confirmation on unused data. Run 3's result file was
+reconstructed from the run log after a notebook error; every reported number was printed there. Region
 and cell labels are machine-generated and not natively reviewed. The six domains are English-heavy
 outside MASSIVE and IndicReviews; IndicReviews is machine- or human-translated parallel text whose
 translation process we did not audit. Per-dataset k-means is a reference, not a ceiling; stronger
@@ -599,10 +690,12 @@ trained on MASSIVE train, a sibling of the MASSIVE test and validation sets used
 
 ## 13. Conclusion
 
-Can meaning have universal coordinates? At fine resolution, with today's small multilingual encoders,
-our pre-registered answer is **no**: no build passes a fixed, held-out gate at ≥ 256 cells. But the
-failure is not a wall: a large part of it is the linear adapter, and nonlinear adapters close half
-the gap at the gate's granularity with no new data. At coarse resolution the answer is a qualified
+Can meaning have universal coordinates? With today's small multilingual encoders, our pre-registered
+answer is **no**: the frozen release and every build in two GPU runs fail a fixed, held-out gate at
+≥ 256 cells. The failure was not a wall. Most of it was the linear adapter, and a third run with a
+strong anchor (bge-m3) and nonlinear adapters **passes at 256 cells on both replicates**, narrowly
+and not yet confirmed on unused data. At 512 cells and beyond, and with a smaller anchor, it still
+fails. At coarse resolution the answer is a qualified
 **yes**, with an important caveat measured here for the first time on real text: short informal
 messages agree across languages far less often than parallel benchmarks suggest. Two levers we
 measured move these numbers, each with a price: teaching the space short parallel text (a 30-point
@@ -621,7 +714,8 @@ are built by `scripts/build_paper.py`. Commands (all accept `--scale {tiny,small
 | Section | Command | Result file |
 |---|---|---|
 | §5.1 sweep | `python -m sphota.build.gate sweep --scale small` | `l1-sweep.json`, `anchor-check.json` |
-| §5.3 GPU gate | `notebooks/kaggle_gpu_gate.ipynb` or `bash scripts/gpu_build_v2.sh --scale medium` | `v2-gate-medium-*.json` |
+| §5.3 GPU gate (runs 1–2) | `bash scripts/gpu_build_v2.sh --scale medium` | `v2-gate-medium-*.json` |
+| §5.3 GPU run 3 | `notebooks/kaggle_gpu_gate.ipynb` (`python -m sphota.build.gate v3sweep --scale medium`) | `v3-sweep-medium-*.json` |
 | §6 adapters | `python -m sphota.build.adapter_study --scale small` | `adapter-study-small.json` |
 | §6 v1.1 | `python -m sphota.build.adapters_v11 --scale small` | `adapters-v1.1-small.json` |
 | §6 v1.2 | `python -m sphota.build.adapters_v11 --scale small --set v1.2` | `adapters-v1.2-small.json` |
@@ -637,7 +731,8 @@ Code and artifacts: Apache-2.0. Decisions and their rationale: `DECISIONS.md` (D
 All bars, splits, candidate sets and selection rules were committed to `DECISIONS.md` before the
 runs they govern; the git history timestamps each entry before its result file. Decision gate:
 D-017/D-018 (fixed before any v2 run), D-022 (result). GPU run 2: D-035 (pre-registered, with a
-seed-confirmation rule for any pass). Refinement: D-033 (targets, protocol), D-034 (amendment and
+seed-confirmation rule for any pass). GPU run 3: D-049/D-050 (design and primary), D-051 (premortem
+amendments, before the run), D-054 (result). Adapter set v1.2: D-052 (rule), D-053 (result). Refinement: D-033 (targets, protocol), D-034 (amendment and
 smoke-run disclosure), D-036 – D-041 (rounds 1–6 and the final verdict), D-042 (shipped
 implementation; post-hoc implementation check, not a selection step). Short-text experiments
 (exploratory): D-043, D-044, including a prediction for GPU run 2 written before its result.

@@ -1,0 +1,462 @@
+{
+ "design": "D-050 + D-051",
+ "grid": "anchor2",
+ "gate_test": false,
+ "anchor": "intfloat/multilingual-e5-large",
+ "scale": "medium",
+ "primary": null,
+ "sizes": [
+  256,
+  512
+ ],
+ "seeds": [
+  0,
+  1
+ ],
+ "source": "reconstructed from the Kaggle run log (owner upload, 2026-11-14): every printed row and the second-panel lines. Not in the log, so missing here: per-model cross-model breakdown for the gate panel, collapse_worst_lang, provenance block. Replace with the run's own JSON if it is recovered.",
+ "provenance": {
+  "git": "79e1c84",
+  "gpu": "Tesla T4 (Kaggle T4 x2, one GPU used)",
+  "kaggle_image": "Latest Container Image",
+  "minutes": 58
+ },
+ "rows": [
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 256,
+   "seed": 0,
+   "coverage": 0.453,
+   "translation_confident": 0.808,
+   "cross_model": 0.636,
+   "cross_model_ci95": [
+    0.614,
+    0.66
+   ],
+   "cross_model_commands": 0.756,
+   "collapse_max": 0.797,
+   "massive_same_cell": 0.78,
+   "passes": 2
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 512,
+   "seed": 0,
+   "coverage": 0.5,
+   "translation_confident": 0.755,
+   "cross_model": 0.596,
+   "cross_model_ci95": [
+    0.572,
+    0.616
+   ],
+   "cross_model_commands": 0.666,
+   "collapse_max": 0.783,
+   "massive_same_cell": 0.696,
+   "passes": 0
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 256,
+   "seed": 1,
+   "coverage": 0.57,
+   "translation_confident": 0.803,
+   "cross_model": 0.637,
+   "cross_model_ci95": [
+    0.614,
+    0.659
+   ],
+   "cross_model_commands": 0.708,
+   "collapse_max": 0.79,
+   "massive_same_cell": 0.739,
+   "passes": 2
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 512,
+   "seed": 1,
+   "coverage": 0.451,
+   "translation_confident": 0.782,
+   "cross_model": 0.601,
+   "cross_model_ci95": [
+    0.579,
+    0.623
+   ],
+   "cross_model_commands": 0.648,
+   "collapse_max": 0.792,
+   "massive_same_cell": 0.686,
+   "passes": 1
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 256,
+   "seed": 0,
+   "coverage": 0.453,
+   "translation_confident": 0.808,
+   "cross_model": 0.637,
+   "cross_model_ci95": [
+    0.616,
+    0.66
+   ],
+   "cross_model_commands": 0.554,
+   "collapse_max": 0.797,
+   "massive_same_cell": 0.78,
+   "passes": 2
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 512,
+   "seed": 0,
+   "coverage": 0.5,
+   "translation_confident": 0.755,
+   "cross_model": 0.596,
+   "cross_model_ci95": [
+    0.574,
+    0.617
+   ],
+   "cross_model_commands": 0.447,
+   "collapse_max": 0.783,
+   "massive_same_cell": 0.696,
+   "passes": 0
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 256,
+   "seed": 1,
+   "coverage": 0.57,
+   "translation_confident": 0.803,
+   "cross_model": 0.636,
+   "cross_model_ci95": [
+    0.613,
+    0.658
+   ],
+   "cross_model_commands": 0.482,
+   "collapse_max": 0.79,
+   "massive_same_cell": 0.739,
+   "passes": 2
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 512,
+   "seed": 1,
+   "coverage": 0.451,
+   "translation_confident": 0.782,
+   "cross_model": 0.601,
+   "cross_model_ci95": [
+    0.58,
+    0.624
+   ],
+   "cross_model_commands": 0.426,
+   "collapse_max": 0.792,
+   "massive_same_cell": 0.686,
+   "passes": 1
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 256,
+   "seed": 0,
+   "coverage": 0.453,
+   "translation_confident": 0.808,
+   "cross_model": 0.47,
+   "cross_model_ci95": [
+    0.446,
+    0.495
+   ],
+   "cross_model_commands": 0.466,
+   "collapse_max": 0.797,
+   "massive_same_cell": 0.78,
+   "passes": 1
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 512,
+   "seed": 0,
+   "coverage": 0.5,
+   "translation_confident": 0.755,
+   "cross_model": 0.411,
+   "cross_model_ci95": [
+    0.387,
+    0.435
+   ],
+   "cross_model_commands": 0.349,
+   "collapse_max": 0.783,
+   "massive_same_cell": 0.696,
+   "passes": 0
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 256,
+   "seed": 1,
+   "coverage": 0.57,
+   "translation_confident": 0.803,
+   "cross_model": 0.467,
+   "cross_model_ci95": [
+    0.443,
+    0.49
+   ],
+   "cross_model_commands": 0.399,
+   "collapse_max": 0.79,
+   "massive_same_cell": 0.739,
+   "passes": 1
+  },
+  {
+   "space": "massive_full",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 512,
+   "seed": 1,
+   "coverage": 0.451,
+   "translation_confident": 0.782,
+   "cross_model": 0.409,
+   "cross_model_ci95": [
+    0.385,
+    0.434
+   ],
+   "cross_model_commands": 0.308,
+   "collapse_max": 0.792,
+   "massive_same_cell": 0.686,
+   "passes": 0
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 256,
+   "seed": 0,
+   "coverage": 0.598,
+   "translation_confident": 0.825,
+   "cross_model": 0.608,
+   "cross_model_ci95": [
+    0.586,
+    0.63
+   ],
+   "cross_model_commands": 0.573,
+   "collapse_max": 0.001,
+   "massive_same_cell": 0.499,
+   "passes": 3
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 512,
+   "seed": 0,
+   "coverage": 0.583,
+   "translation_confident": 0.804,
+   "cross_model": 0.563,
+   "cross_model_ci95": [
+    0.541,
+    0.587
+   ],
+   "cross_model_commands": 0.54,
+   "collapse_max": 0.001,
+   "massive_same_cell": 0.48,
+   "passes": 2
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 256,
+   "seed": 1,
+   "coverage": 0.571,
+   "translation_confident": 0.834,
+   "cross_model": 0.616,
+   "cross_model_ci95": [
+    0.594,
+    0.637
+   ],
+   "cross_model_commands": 0.567,
+   "collapse_max": 0.002,
+   "massive_same_cell": 0.518,
+   "passes": 3
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024+cmd",
+   "K1": 512,
+   "seed": 1,
+   "coverage": 0.596,
+   "translation_confident": 0.809,
+   "cross_model": 0.577,
+   "cross_model_ci95": [
+    0.557,
+    0.599
+   ],
+   "cross_model_commands": 0.586,
+   "collapse_max": 0.0,
+   "massive_same_cell": 0.517,
+   "passes": 2
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 256,
+   "seed": 0,
+   "coverage": 0.598,
+   "translation_confident": 0.825,
+   "cross_model": 0.602,
+   "cross_model_ci95": [
+    0.58,
+    0.624
+   ],
+   "cross_model_commands": 0.372,
+   "collapse_max": 0.001,
+   "massive_same_cell": 0.499,
+   "passes": 3
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 512,
+   "seed": 0,
+   "coverage": 0.583,
+   "translation_confident": 0.804,
+   "cross_model": 0.56,
+   "cross_model_ci95": [
+    0.536,
+    0.583
+   ],
+   "cross_model_commands": 0.342,
+   "collapse_max": 0.001,
+   "massive_same_cell": 0.48,
+   "passes": 2
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 256,
+   "seed": 1,
+   "coverage": 0.571,
+   "translation_confident": 0.834,
+   "cross_model": 0.613,
+   "cross_model_ci95": [
+    0.59,
+    0.635
+   ],
+   "cross_model_commands": 0.379,
+   "collapse_max": 0.002,
+   "massive_same_cell": 0.518,
+   "passes": 3
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "mlp-120000-h1024",
+   "K1": 512,
+   "seed": 1,
+   "coverage": 0.596,
+   "translation_confident": 0.809,
+   "cross_model": 0.576,
+   "cross_model_ci95": [
+    0.555,
+    0.598
+   ],
+   "cross_model_commands": 0.387,
+   "collapse_max": 0.0,
+   "massive_same_cell": 0.517,
+   "passes": 2
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 256,
+   "seed": 0,
+   "coverage": 0.598,
+   "translation_confident": 0.825,
+   "cross_model": 0.348,
+   "cross_model_ci95": [
+    0.322,
+    0.371
+   ],
+   "cross_model_commands": 0.172,
+   "collapse_max": 0.001,
+   "massive_same_cell": 0.499,
+   "passes": 2
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 512,
+   "seed": 0,
+   "coverage": 0.583,
+   "translation_confident": 0.804,
+   "cross_model": 0.305,
+   "cross_model_ci95": [
+    0.282,
+    0.329
+   ],
+   "cross_model_commands": 0.135,
+   "collapse_max": 0.001,
+   "massive_same_cell": 0.48,
+   "passes": 2
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 256,
+   "seed": 1,
+   "coverage": 0.571,
+   "translation_confident": 0.834,
+   "cross_model": 0.352,
+   "cross_model_ci95": [
+    0.326,
+    0.378
+   ],
+   "cross_model_commands": 0.177,
+   "collapse_max": 0.002,
+   "massive_same_cell": 0.518,
+   "passes": 2
+  },
+  {
+   "space": "none",
+   "D": 256,
+   "adapter": "ridge-40000",
+   "K1": 512,
+   "seed": 1,
+   "coverage": 0.596,
+   "translation_confident": 0.809,
+   "cross_model": 0.306,
+   "cross_model_ci95": [
+    0.283,
+    0.329
+   ],
+   "cross_model_commands": 0.177,
+   "collapse_max": 0.0,
+   "massive_same_cell": 0.517,
+   "passes": 2
+  }
+ ],
+ "skipped": [],
+ "primary_rows": [],
+ "primary_gate": "not a gate test (exploratory grid)",
+ "exploratory_confirmed": [],
+ "seconds": 3480
+}

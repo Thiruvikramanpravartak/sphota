@@ -54,12 +54,6 @@ def t_gpu() -> str:
             "bge-m3 (+ MASSIVE scatter)",
             "MLP, 40k pairs",
         ),
-        (
-            "3",
-            "v2-gate-medium-bge-m3-mlp-massive-a120000.json",
-            "bge-m3 (+ MASSIVE scatter)",
-            "MLP, 120k pairs",
-        ),
     ]
     for run, f, name, kind in runs:
         if not (RES / f).exists():
@@ -288,6 +282,73 @@ def t_shorttext() -> str:
     return "\n".join(rows)
 
 
+def _sweep_rows(res: dict, k: int, d: int = 256) -> dict:
+    out: dict = {}
+    for r in res["rows"]:
+        if r["K1"] == k and r["D"] == d:
+            out.setdefault((r["space"], r["adapter"]), []).append(r)
+    return out
+
+
+def _pair(rs: list, key: str) -> str:
+    return " / ".join(pct(r[key]) for r in sorted(rs, key=lambda r: r["seed"]))
+
+
+def t_sweep() -> str:
+    """GPU run 3 (D-050/D-051/D-054): every space x adapter at 256 cells, both replicates."""
+    res = load("v3-sweep-medium-bge-m3.json")
+    names = {"massive_full": "+ all MASSIVE", "massive800": "+ 800 MASSIVE", "none": "none"}
+    rows = [
+        "| Scatter | Adapter | Coverage | Translation, confident | Cross-model | Commands, cross-model | Worst collapse | Pass |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for (sp, ad), rs in _sweep_rows(res, 256).items():
+        star = (
+            " **(primary)**"
+            if (sp, ad) == (res["primary"]["space"], res["primary"]["adapter"])
+            else ""
+        )
+        rows.append(
+            f"| {names[sp]} | {ad}{star} | {_pair(rs, 'coverage')} | {_pair(rs, 'translation_confident')} | "
+            f"{_pair(rs, 'cross_model')} | {_pair(rs, 'cross_model_commands')} | "
+            f"{_pair(rs, 'collapse_max')} | {' / '.join(str(r['passes']) for r in rs)} |"
+        )
+    return "\n".join(rows)
+
+
+def t_sweep_k() -> str:
+    """Run 3: the primary adapter across cell counts and widths, plus the e5-large anchor."""
+    res = load("v3-sweep-medium-bge-m3.json")
+    rows = [
+        "| Anchor | Scatter | Width D | Cells | Coverage | Translation, confident | Cross-model [95% CI, rep 0] | Worst collapse | Pass |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    ad = res["primary"]["adapter"]
+
+    def add(anchor, r_all, sp, d, k):
+        rs = [r for r in r_all if (r["space"], r["adapter"], r["D"], r["K1"]) == (sp, ad, d, k)]
+        if not rs:
+            return
+        lo, hi = sorted(rs, key=lambda r: r["seed"])[0]["cross_model_ci95"]
+        rows.append(
+            f"| {anchor} | {sp} | {d} | {k} | {_pair(rs, 'coverage')} | {_pair(rs, 'translation_confident')} | "
+            f"{_pair(rs, 'cross_model')} [{pct(lo)}–{pct(hi)}] | {_pair(rs, 'collapse_max')} | "
+            f"{' / '.join(str(r['passes']) for r in rs)} |"
+        )
+
+    for sp in ("massive_full", "none"):
+        for k in (256, 512, 1024):
+            add("bge-m3", res["rows"], sp, 256, k)
+    for d in (128, 384):
+        add("bge-m3", res["rows"], "massive_full", d, 256)
+    if (RES / "v3-sweep-medium-me5-large-anchor2.json").exists():
+        e5 = load("v3-sweep-medium-me5-large-anchor2.json")
+        for sp in ("massive_full", "none"):
+            for k in (256, 512):
+                add("multilingual-e5-large", e5["rows"], sp, 256, k)
+    return "\n".join(rows)
+
+
 def t_v12() -> str:
     """v1.1 -> v1.2 (D-052): held-out MASSIVE commands and the FLORES certificate."""
     d = load("adapters-v1.2-small.json")
@@ -317,6 +378,8 @@ TABLES = {
     "scaling": t_scaling,
     "v11": t_v11,
     "v12": t_v12,
+    "sweep": t_sweep,
+    "sweepk": t_sweep_k,
     "indic": t_indic,
     "domains": t_domains,
     "xling": t_xling,
