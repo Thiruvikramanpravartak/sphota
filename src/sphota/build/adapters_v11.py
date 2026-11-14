@@ -52,7 +52,14 @@ HIDDEN = 1024
 EPOCHS = 40
 
 
-def fit_mlp2(model: str, X: np.ndarray, Y: np.ndarray, meta: dict | None = None, seed: int = 0):
+def fit_mlp2(
+    model: str,
+    X: np.ndarray,
+    Y: np.ndarray,
+    meta: dict | None = None,
+    seed: int = 0,
+    hidden: int = HIDDEN,
+):
     """Ridge + residual GELU(tanh) MLP, trained with MSE; returns a numpy ``Adapter``."""
     import torch
 
@@ -66,8 +73,8 @@ def fit_mlp2(model: str, X: np.ndarray, Y: np.ndarray, meta: dict | None = None,
     xt = torch.tensor(Xn, dtype=torch.float32, device=dev)
     bt = torch.tensor(Xn @ base.A + base.b, dtype=torch.float32, device=dev)
     yt = torch.tensor(Y, dtype=torch.float32, device=dev)
-    l1 = torch.nn.Linear(X.shape[1], HIDDEN).to(dev)
-    l2 = torch.nn.Linear(HIDDEN, Y.shape[1]).to(dev)
+    l1 = torch.nn.Linear(X.shape[1], hidden).to(dev)
+    l2 = torch.nn.Linear(hidden, Y.shape[1]).to(dev)
     torch.nn.init.zeros_(l2.weight)
     torch.nn.init.zeros_(l2.bias)
     act = torch.nn.GELU(approximate="tanh")
@@ -90,7 +97,7 @@ def fit_mlp2(model: str, X: np.ndarray, Y: np.ndarray, meta: dict | None = None,
         c1 = l1.bias.cpu().numpy().astype(np.float16)
         W2 = l2.weight.T.cpu().numpy().astype(np.float16)
         c2 = l2.bias.cpu().numpy().astype(np.float32)
-    m = {**base.meta, "kind": "mlp2", "set": "v1.1", "hidden": HIDDEN, "activation": "gelu_tanh"}
+    m = {**base.meta, "kind": "mlp2", "set": "v1.1", "hidden": hidden, "activation": "gelu_tanh"}
     m["train"] = {
         **base.meta.get("train", {}),
         "method": "ridge + residual MLP (MSE)",

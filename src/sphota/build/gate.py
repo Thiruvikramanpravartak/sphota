@@ -495,6 +495,192 @@ def v2mini(
     }
 
 
+# ------------------------------------------------------------------ v3 sweep (D-050)
+
+SWEEP_SPACES = ("none", "massive800", "massive_full")
+SWEEP_ADAPTERS = (
+    ("ridge", 40000, 0),
+    ("mlp", 40000, 1024),
+    ("mlp", 80000, 1024),
+    ("mlp", 120000, 1024),
+    ("mlp", 120000, 2048),
+)
+PRIMARY = {"space": "massive_full", "adapter": "mlp-120000-h1024", "K1": 256}
+
+
+def v3sweep(
+    scale: str,
+    anchor: str = "BAAI/bge-m3",
+    adapter_models: list[str] | None = None,
+    sizes: tuple[int, ...] = (256, 512, 1024),
+    seeds: tuple[int, ...] = (0, 1),
+    n_max: int = 120000,
+    out: Path | None = None,
+) -> dict:
+    """One planned GPU run (D-050): embed once, evaluate the gate for every combination of
+    meaning-space scatter x adapter variant x cell count x k-means seed. Only the pre-registered
+    PRIMARY combination can produce a gate result (both seeds must pass); every other combination
+    is exploratory. Results are written after each block, so a crash loses at most one block."""
+    from sphota.build.adapters import training_texts
+    from sphota.build.adapters_v11 import fit_mlp2
+    from sphota.build.common import SCALES
+    from sphota.build.release import SPLIT_MEANING, embeddings, load, tatoeba_split
+    from sphota.certify import fit_adapter
+
+    t_start = time.time()
+    out = out or ROOT / "bench" / "results" / f"v3-sweep-{scale}-{embed.short(anchor)}.json"
+    langs, dev, test, wiki, tat = load(scale)
+    E = embeddings(scale, model=anchor)
+    keep = diversify(wiki, E["wiki"], max_per_lang=SCALES[scale].get("max_per_lang", 8000))
+    fit_ids = np.arange(SPLIT_MEANING)
+    cal_ids = np.arange(SPLIT_MEANING, len(dev))
+    tr, ca = tatoeba_split(len(tat))
+    base_groups = [np.stack([E[("dev", lg)][i] for lg in langs]) for i in fit_ids]
+    base_groups += [np.stack([E["tat_x"][i], E["tat_en"][i]]) for i in tr]
+    corpus = np.concatenate([E["wiki"][keep]] + [E[("dev", lg)][fit_ids] for lg in langs])
+    corpus_langs = np.concatenate(
+        [wiki["lang"].values[keep]] + [[lg] * len(fit_ids) for lg in langs]
+    )
+    mp = massive_parallel(scale, langs, anchor)
+    massive_groups = [np.stack([mp["E"][lg][i] for lg in langs]) for i in range(len(mp["ids"]))]
+    sub800 = np.sort(
+        np.random.default_rng(0).choice(
+            len(massive_groups), min(800, len(massive_groups)), replace=False
+        )
+    )
+    # adapter training pairs: one sample of n_max texts, embedded once per model; smaller training
+    # sizes are prefixes of one fixed permutation of it (so 40k is a subset of 80k of 120k)
+    texts = training_texts(scale, n_max)
+    perm = np.random.default_rng(0).permutation(len(texts))
+    X_anchor_tr = embed.cached(anchor, f"adapter-train-{len(texts)}", texts, scale)
+    panel = [m for m in (adapter_models or ADAPTER_MODELS) if m != anchor]
+    X_tr = {m: embed.cached(m, f"adapter-train-{len(texts)}", texts, scale) for m in panel}
+    X_te = {m: embed.cached(m, "flores_devtest_en", test["en"].tolist(), scale) for m in panel}
+    log(
+        f"v3 sweep: embeddings ready ({time.time() - t_start:.0f}s); panel {len(panel)} models, "
+        f"{len(texts)} adapter pairs, {len(massive_groups)} MASSIVE meanings"
+    )
+    res: dict = {
+        "design": "D-050",
+        "anchor": anchor,
+        "scale": scale,
+        "primary": PRIMARY,
+        "sizes": list(sizes),
+        "seeds": list(seeds),
+        "spaces": list(SWEEP_SPACES),
+        "adapters": [f"{k}-{n}" + (f"-h{h}" if h else "") for k, n, h in SWEEP_ADAPTERS],
+        "rows": [],
+    }
+    for space_name in SWEEP_SPACES:
+        groups = list(base_groups)
+        if space_name == "massive800":
+            groups += [massive_groups[i] for i in sub800]
+        elif space_name == "massive_full":
+            groups += massive_groups
+        sp = fit_space(corpus, groups, D=256, P=384, reg=0.05)
+        Yc = sp(corpus)
+        Ya = np.concatenate(
+            [sp(E[("dev", "en")][cal_ids])] * (len(langs) - 1) + [sp(E["tat_en"][ca])]
+        )
+        Yb = np.concatenate(
+            [sp(E[("dev", lg)][cal_ids]) for lg in langs[1:]] + [sp(E["tat_x"][ca])]
+        )
+        Ytest = {lg: sp(E[("test", lg)]) for lg in langs}
+        Ytr = sp(X_anchor_tr)
+        cells = {}
+        for k in sizes:
+            for seed in seeds:
+                C = kmeans(Yc, k, seed=seed, iters=40)
+                T = calibrate_T(C, Ya, Yb)
+                xl = massive_xling(sp, C, scale, langs, anchor)
+                cells[(k, seed)] = (C, T, xl)
+        log(f"space {space_name}: fitted, k-means done ({time.time() - t_start:.0f}s)")
+        for kind, n, h in SWEEP_ADAPTERS:
+            idx = np.sort(perm[:n])
+            Yad = {}
+            for m in panel:
+                ad = (
+                    fit_mlp2(m, X_tr[m][idx], Ytr[idx], hidden=h)
+                    if kind == "mlp"
+                    else fit_adapter(m, X_tr[m][idx], Ytr[idx])
+                )
+                Yad[m] = ad(X_te[m])
+            aname = f"{kind}-{n}" + (f"-h{h}" if h else "")
+            for (k, seed), (C, T, xl) in cells.items():
+                met = gate_metrics(C, T, Ytest, Yc, corpus_langs, Yad)
+                v = verdict(met)
+                row = {
+                    "space": space_name,
+                    "adapter": aname,
+                    "K1": k,
+                    "seed": seed,
+                    "coverage": met["coverage"],
+                    "translation_confident": met["translation_confident"],
+                    "cross_model": met["cross_model"],
+                    "cross_model_per_model": met["cross_model_per_model"],
+                    "collapse_max": met["collapse_max"],
+                    "collapse_worst_lang": met["collapse_worst_lang"],
+                    "massive_same_cell": xl["mean"],
+                    "verdict": {k2: {"value": x[0], "pass": bool(x[1])} for k2, x in v.items()},
+                }
+                row["passes"] = sum(x["pass"] for x in row["verdict"].values())
+                res["rows"].append(row)
+            log(f"  {space_name} / {aname}: done ({time.time() - t_start:.0f}s)")
+            out.write_text(json.dumps(res, indent=1), encoding="utf-8")  # partial results
+    prim = [
+        r
+        for r in res["rows"]
+        if r["space"] == PRIMARY["space"]
+        and r["adapter"] == PRIMARY["adapter"]
+        and r["K1"] == PRIMARY["K1"]
+    ]
+    res["primary_rows"] = prim
+    res["primary_gate"] = (
+        "PASS (confirmed by both seeds)"
+        if prim and all(r["passes"] == 4 for r in prim)
+        else "PASS on one seed only (not confirmed)"
+        if any(r["passes"] == 4 for r in prim)
+        else "FAIL"
+    )
+    combos: dict[tuple, list[int]] = collections.defaultdict(list)
+    for r in res["rows"]:
+        combos[(r["space"], r["adapter"], r["K1"])].append(r["passes"])
+    res["exploratory_confirmed"] = [  # all four criteria on every seed; not the primary
+        {"space": c[0], "adapter": c[1], "K1": c[2]}
+        for c, p in combos.items()
+        if all(x == 4 for x in p)
+        and len(p) == len(seeds)
+        and c != (PRIMARY["space"], PRIMARY["adapter"], PRIMARY["K1"])
+        and c[2] >= 256
+    ]
+    res["seconds"] = round(time.time() - t_start)
+    out.write_text(json.dumps(res, indent=1), encoding="utf-8")
+    return res
+
+
+def print_sweep(res: dict) -> None:
+    pct = lambda x: f"{100 * x:5.1f}%"
+    print(
+        f"\nv3 sweep ({res['anchor']}, {res['scale']}): {len(res['rows'])} gate evaluations, "
+        f"{res.get('seconds', 0) // 60} min"
+    )
+    print(
+        "space          adapter            K1   seed  coverage translat cross-mdl collapse  MASSIVE  pass"
+    )
+    for r in res["rows"]:
+        star = " <- PRIMARY" if r in res.get("primary_rows", []) else ""
+        print(
+            f"{r['space']:<14} {r['adapter']:<18} {r['K1']:<5} {r['seed']:<5} {pct(r['coverage'])}   "
+            f"{pct(r['translation_confident'])}   {pct(r['cross_model'])}   {pct(r['collapse_max'])}  "
+            f"{pct(r['massive_same_cell'])}  {r['passes']}/4{star}"
+        )
+    print(f"\nPRIMARY (D-050): {res['primary_gate']}")
+    if res["exploratory_full_passes"]:
+        print(
+            f"exploratory combinations passing all four (need their own confirmation): {res['exploratory_full_passes']}"
+        )
+
+
 def print_report(res: dict) -> None:
     """D-017 PASS/FAIL table for the kept build."""
     r = next(x for x in res["results"] if x["K1"] == res["kept_K1"])
@@ -521,7 +707,7 @@ def print_report(res: dict) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["sweep", "anchors", "v2mini"])
+    ap.add_argument("cmd", choices=["sweep", "anchors", "v2mini", "v3sweep"])
     ap.add_argument("--scale", default="small")
     ap.add_argument("--anchor", default=ANCHOR)
     ap.add_argument("--sizes", type=int, nargs="*", default=[32, 64])
@@ -545,6 +731,15 @@ def main() -> None:
         (ROOT / "bench" / "results" / "anchor-check.json").write_text(
             json.dumps(res, indent=1), encoding="utf-8"
         )
+    elif a.cmd == "v3sweep":
+        res = v3sweep(
+            a.scale,
+            anchor=a.anchor,
+            adapter_models=a.adapter_models,
+            sizes=tuple(a.sizes),
+            n_max=a.n_adapter,
+        )
+        print_sweep(res)
     elif a.cmd == "v2mini":
         out = Path(a.out) if a.out else None
         res = v2mini(

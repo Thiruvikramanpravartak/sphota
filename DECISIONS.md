@@ -632,3 +632,19 @@ passes only if all four criteria pass; a pass counts only after a confirmation r
 seed 1 also passes (D-035 rule); otherwise "passed once, not confirmed". This is the third gate
 run (runs 1–3 are all reported). A confirmed pass would open an RFC for a space s2; it would not
 change the frozen s1 space.
+
+## D-050 GPU run 3 redesigned as one planned sweep (supersedes the single-change plan of D-049, before any run)
+The owner asked for maximum information per unit of compute. The expensive step (embedding the
+corpus, 120k adapter pairs and MASSIVE with bge-m3 and the panel models) is done once; everything
+cheap is swept on top: meaning-space scatter {none, 800 MASSIVE meanings, all 11.5k} × adapters
+{ridge 40k, MLP 40k, MLP 80k, MLP 120k, MLP-2048 120k} × cells {256, 512, 1024} × k-means seeds
+{0, 1} = 90 gate evaluations (`python -m sphota.build.gate v3sweep`, bench/results/v3-sweep-medium-bge-m3.json,
+written after every block). Smaller adapter sizes are prefixes of one fixed permutation of the 120k
+pairs. 4096 cells and LaBSE are dropped (runs 1–2: far from the bar).
+**PRIMARY (the only gate test in this run): MASSIVE full scatter + MLP adapters on 120k pairs +
+256 cells; a gate PASS requires all four criteria on both seeds.** D-049's prediction stands:
+primary cross-model 61–63%, other criteria within ±2 points of run 2. Every other combination is
+exploratory: one passing on both seeds at ≥ 256 cells is a lead for a new pre-registered run, not a
+gate result. The run also answers, without extra compute: the adapter data-scaling curve at GPU
+scale, the capacity effect, the scatter trade-off with a strong anchor, and how fast agreement
+falls from 256 to 1024 cells. Third gate run; all are reported.
