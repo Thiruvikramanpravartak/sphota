@@ -1,0 +1,49 @@
+{
+  "space": "s1",
+  "set": "v1.2",
+  "adapters": {
+    "sentence-transformers/all-MiniLM-L6-v2": {
+      "short": "minilm-l6",
+      "file": "minilm-l6.npz",
+      "sha256": "23d06be58bf4f5b237ebeabc02d2550142e77aa98b4e8b21e3609aaaab1f75b1",
+      "kind": "mlp2",
+      "model_license": "apache-2.0",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "pooling": "mean",
+        "max_length": 256
+      },
+      "temperature_scale": 1.0,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.3577,
+          0.1215,
+          0.0405,
+          0.0138
+        ],
+        "agreement_same_text": [
+          0.0874,
+          0.0231,
+          0.0059,
+          0.0016
+        ],
+        "l1_top3_en": 0.5435,
+        "l1_neighborhood_en": 0.6008,
+        "l1_top3_all": 0.1613,
+        "agreement_cross_lingual": [
+          0.0589,
+          0.0183,
+          0.007,
+          0.0032
+        ],
+        "fidelity_en": 0.5953,
+        "fidelity_all": 0.335,
+        "n_per_lang": 1012,
+        "grade": "certified",
+        "retrieval_r10_en": 0.999
+      }
+    }
+  }
+}
