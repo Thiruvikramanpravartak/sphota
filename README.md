@@ -96,7 +96,7 @@ sphota certify --model sentence-transformers/all-MiniLM-L6-v2
 |---|---|---|
 | **Never re-index again** | `CodeIndex().add_texts(docs, model="A")` … `.search(q, model="B")` | items store code + canonical vector; switching models changes only queries ([benchmark](docs/benchmark.md#6-never-re-index-cross-model-retrieval)) |
 | Topic analytics | `sphota analyze data.csv` or drop the file in the [Atlas](atlas/) | groups fitted to your file + stable theme codes, across languages; named by your own messages; HTML report + per-message CSV |
-| Use your existing embeddings | `encode(text, model="intfloat/multilingual-e5-base")` | 7 certified adapters (MiniLM, bge-small/base, gte, LaBSE, multilingual MiniLM, e5-base); nonlinear v1.1 set by default ([adapters](docs/adapters.md)) |
+| Use your existing embeddings | `encode(text, model="intfloat/multilingual-e5-base")` | 7 certified adapters (MiniLM, bge-small/base, gte, LaBSE, multilingual MiniLM, e5-base); nonlinear v1.2 set by default (sentences and short commands) ([adapters](docs/adapters.md)) |
 | Cross-lingual search & dedupe | `cross_lingual_search(q, docs)`, `dedupe(texts)` | Tamil query → Hindi, Spanish, English docs |
 | Semantic cache | `SemanticCache(depth=2).get_or_compute(q, llm)` | hits across paraphrases and languages |
 | Routing | `PrefixRouter().fit(examples, routes).route(text)` | rules written once apply to every language |

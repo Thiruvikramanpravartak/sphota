@@ -102,5 +102,5 @@ Status legend: `[x]` done, `[~]` partial (see PROGRESS.md), `[ ]` todo.
 - [ ] Short-text fix at the root: research space fitted with short parallel data (not the frozen v1)
 - [ ] GPU gate re-run with strong anchors + nonlinear adapters (Kaggle notebook, owner runs it)
   - run 3 = one planned sweep (D-050), premortem-amended before running (D-051)
-- [ ] v1.2 adapters: retrain the shipped adapters with short-command pairs (D-051 follow-up, CPU)
+- [x] v1.2 adapters: retrain the shipped adapters with short-command pairs (D-052 → D-053: default)
 - [ ] Paper: methodology section, all new results

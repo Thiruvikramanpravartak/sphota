@@ -288,11 +288,35 @@ def t_shorttext() -> str:
     return "\n".join(rows)
 
 
+def t_v12() -> str:
+    """v1.1 -> v1.2 (D-052): held-out MASSIVE commands and the FLORES certificate."""
+    d = load("adapters-v1.2-small.json")
+    rows = [
+        "| Model | Commands, same cell, English | Commands, same cell, 12 languages | Commands, same region, English | FLORES same cell, English | Grade |",
+        "|---|---|---|---|---|---|",
+    ]
+    for m, v in d.items():
+        c, a, b = v["commands"], v["v1.1"], v["v1.2"]
+        ml = len(c["v1.2"]["per_lang"]) > 1
+        rows.append(
+            f"| {m.split('/')[-1]} | {pct(c['v1.1']['l1_en'])} → {pct(c['v1.2']['l1_en'])} | "
+            + (
+                f"{pct(c['v1.1']['l1_all'])} → {pct(c['v1.2']['l1_all'])}"
+                if ml
+                else "n/a (English model)"
+            )
+            + f" | {pct(c['v1.1']['region_en'])} → {pct(c['v1.2']['region_en'])} | "
+            f"{pct(a['agreement_same_text_en'][0])} → {pct(b['agreement_same_text_en'][0])} | {b['grade']} |"
+        )
+    return "\n".join(rows)
+
+
 TABLES = {
     "gpu": t_gpu,
     "adapters": t_adapters,
     "scaling": t_scaling,
     "v11": t_v11,
+    "v12": t_v12,
     "indic": t_indic,
     "domains": t_domains,
     "xling": t_xling,

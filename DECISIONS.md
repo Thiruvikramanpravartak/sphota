@@ -666,3 +666,21 @@ no model's grade drops; (c) FLORES retrieval R@10 (English) falls by ≤ 1.0 poi
 but (b) or (c) fails, v1.2 ships opt-in (`adapters="v1.2"`) and v1.1 stays the default. If (a)
 fails, v1.2 is not shipped. Either way the result is reported.
 **Prediction:** command L1 agreement in English +10 to +25 points; FLORES within −1 point.
+
+## D-053 v1.2 adapters pass their pre-registered rule and become the default
+Result of D-052 (`bench/results/adapters-v1.2-small.json`, 7 models, held-out MASSIVE test and
+FLORES devtest). Means of v1.2 − v1.1:
+(a) commands, same L1 cell, English **+23.2 points** (bar ≥ +5); same region, English **+15.2**
+(bar ≥ 0). For the multilingual models, 12-language command L1 also rose: +14.5, +32.8, +9.0.
+(b) FLORES `agreement_same_text_en` **+1.7**, `agreement_same_text` **+0.4** (bar ≥ −1.0);
+grades unchanged for all 7.
+(c) FLORES R@10 (English) **±0.0** (bar ≥ −1.0).
+Prediction (+10 to +25; FLORES within −1) held. Smallest gain: multilingual-e5-base (+10.6), the
+anchor's own family, already best on commands. Largest gain: LaBSE (+36.7).
+Two models lost a little 12-language FLORES agreement: gte-small −0.3 and multilingual-e5-base
+−0.3 points (within the bar). Every other per-model measure was equal or better.
+**Decision:** `DEFAULT_SET = "v1.2"`; v1.1 and v1 stay selectable. Still before the first public
+release, so no stored codes change meaning. Package size +15 MB; the v1.1 set is kept because the
+paper's §6 tables and D-030 refer to it. One scale only (small), one training seed: this is a
+pre-registered single comparison, not a seed study. The GPU sweep (D-051) tests the same idea at
+medium scale with a second replicate.

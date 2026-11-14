@@ -16,9 +16,10 @@ Optional (``kind == "mlp2"``, adapter set v1.1, D-028): ``W1`` (d_model, H), ``c
 ``y = x @ A + b + gelu(x @ W1 + c1) @ W2 + c2`` (tanh-approximated GELU, numpy only).
 Arrays may be stored as float16; they are used as float32. Loaded with ``allow_pickle=False``.
 
-Adapter sets: ``v1.1`` (default since D-030: nonlinear, roughly double the same-cell agreement with
-the anchor, D-028) and ``v1`` (the original linear registry frozen inside the release; choose it
-with ``adapters="v1"`` or ``SPHOTA_ADAPTERS=v1``).
+Adapter sets: ``v1.2`` (default since D-053: the v1.1 recipe plus short-command training pairs;
+same-cell agreement on held-out commands +23 points, sentences unchanged, D-052), ``v1.1``
+(nonlinear, sentences only, D-028/D-030) and ``v1`` (the original linear registry frozen inside the
+release). Choose with ``adapters="v1.1"`` or ``SPHOTA_ADAPTERS=v1.1``.
 """
 
 from __future__ import annotations
@@ -118,8 +119,10 @@ def load_adapter(path: str | Path, sha256: str | None = None) -> Adapter:
     )
 
 
-ADAPTER_SETS = ("v1", "v1.1")
-DEFAULT_SET = "v1.1"  # D-030 (no users yet, so the better set became the default before 1.0)
+ADAPTER_SETS = ("v1", "v1.1", "v1.2")
+# D-053: v1.2 (v1.1 + short-command training pairs) passed its pre-registered rule (D-052); still
+# before the first public release, so no stored codes change meaning
+DEFAULT_SET = "v1.2"
 
 
 def _set_name(adapters: str | None) -> str:
@@ -136,7 +139,8 @@ def _set_dir(name: str) -> Path:
 
 
 def registry(release_root: Path | None = None, adapters: str | None = None) -> dict[str, Any]:
-    """Adapter registry of a set (``v1``: frozen, inside the release; ``v1.1``: nonlinear)."""
+    """Adapter registry of a set (``v1``: frozen, inside the release; ``v1.1`` / ``v1.2``:
+    nonlinear)."""
     name = _set_name(adapters)
     if release_root is not None and name == "v1":
         p = load_release(str(release_root)).root / "adapters" / "registry.json"
@@ -165,7 +169,8 @@ def registry_entry(model: str) -> dict[str, Any] | None:
 def get_adapter(model: str, adapters: str | None = None) -> Adapter:
     """Registry adapter for ``model`` (HF id, short name, or path to an ``.npz``).
 
-    ``adapters`` picks the set: ``"v1.1"`` (default, nonlinear) or ``"v1"`` (frozen, linear);
+    ``adapters`` picks the set: ``"v1.2"`` (default, nonlinear, trained with short commands too),
+    ``"v1.1"`` (nonlinear, sentences only) or ``"v1"`` (frozen, linear);
     ``SPHOTA_ADAPTERS`` sets the default for a process.
     """
     return _get_adapter(model, _set_name(adapters))

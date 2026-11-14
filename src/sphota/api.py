@@ -411,8 +411,9 @@ def encode(
             perturbations (fewer flips across models/paraphrases).
         model: encode with another model through its certified adapter
             (e.g. ``"sentence-transformers/all-MiniLM-L6-v2"``). Default: the v1 anchor.
-        adapters: adapter set for ``model``: ``"v1.1"`` (default; nonlinear, about twice the
-            same-cell agreement with the anchor, D-028) or ``"v1"`` (frozen, linear).
+        adapters: adapter set for ``model``: ``"v1.2"`` (default; nonlinear, trained on
+            sentences and short commands, D-053), ``"v1.1"`` (nonlinear, sentences only, D-028)
+            or ``"v1"`` (frozen, linear).
     """
     if not isinstance(text, str):
         raise TypeError(
@@ -438,7 +439,7 @@ def from_vector(
     adapters: str | None = None,
 ) -> Sphota | list[Sphota]:
     """Code(s) for precomputed embedding(s). ``model`` names the model that produced them;
-    ``adapters`` picks the adapter set (``"v1.1"`` default, nonlinear; ``"v1"`` linear).
+    ``adapters`` picks the adapter set (``"v1.2"`` default; ``"v1.1"``; ``"v1"`` linear).
 
     A 1-d vector returns one :class:`Sphota`; a 2-d array returns a list.
     """

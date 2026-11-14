@@ -5,7 +5,7 @@
     "sentence-transformers/all-MiniLM-L6-v2": {
       "short": "minilm-l6",
       "file": "minilm-l6.npz",
-      "sha256": "23d06be58bf4f5b237ebeabc02d2550142e77aa98b4e8b21e3609aaaab1f75b1",
+      "sha256": "bed5bceac249d8c30c6851ebfaeaa3e6c251ebf7d19af116ca81f2c54cb9566e",
       "kind": "mlp2",
       "model_license": "apache-2.0",
       "multilingual": false,
@@ -48,7 +48,7 @@
     "BAAI/bge-small-en-v1.5": {
       "short": "bge-small-en",
       "file": "bge-small-en.npz",
-      "sha256": "f1f453c40b31e8afe880c80365b4939de110cd8958c756f811e23f561aa26000",
+      "sha256": "fbeea482eec650344412cbfe23ce8274f6e4e639dc5c9608cadf09ce2d7e4ee9",
       "kind": "mlp2",
       "model_license": "mit",
       "multilingual": false,
@@ -91,7 +91,7 @@
     "thenlper/gte-small": {
       "short": "gte-small",
       "file": "gte-small.npz",
-      "sha256": "932d563af027abdacc4c371c5a172f0f0ccca444eed1fa091760a75e8d9af1bb",
+      "sha256": "8f8b7331078769bc46620ab7982106d31933b2a0b4b091eb782f0379d5d0aa6b",
       "kind": "mlp2",
       "model_license": "mit",
       "multilingual": false,
@@ -134,7 +134,7 @@
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": {
       "short": "pm-minilm-l12",
       "file": "pm-minilm-l12.npz",
-      "sha256": "a0acefa05b7c5a97fb39010f6bc92ebedf25c7aaccf023a1e6a72c472a3bf08b",
+      "sha256": "9ca1359cf6dd70caa0a66c27f016c1cc8eefc1b7c20f4ae2d791b51a4d592c10",
       "kind": "mlp2",
       "model_license": "apache-2.0",
       "multilingual": true,
@@ -177,7 +177,7 @@
     "sentence-transformers/LaBSE": {
       "short": "labse",
       "file": "labse.npz",
-      "sha256": "732e755e6243340ddf955bc4cc3954009ebd8369d7effa1351ddd617031dbd42",
+      "sha256": "0c061e83c327dab07b1daef49380e3ce45b535a60f21cee5ae119287dbbe831e",
       "kind": "mlp2",
       "model_license": "apache-2.0",
       "multilingual": true,
@@ -215,7 +215,7 @@
     "intfloat/multilingual-e5-base": {
       "short": "me5-base",
       "file": "me5-base.npz",
-      "sha256": "fc26b486812a1b914db854d167b2600c33fb26ba2edaaa3b75c45315fa1e819e",
+      "sha256": "4cbc0ad5e1f3686c07d4bf597d714fb8209effe2c3206c749add20f508872758",
       "kind": "mlp2",
       "model_license": "mit",
       "multilingual": true,
@@ -252,6 +252,49 @@
         "fidelity_all": 0.7212,
         "n_per_lang": 1012,
         "grade": "certified-multilingual",
+        "retrieval_r10_en": 1.0
+      }
+    },
+    "BAAI/bge-base-en-v1.5": {
+      "short": "bge-base-en",
+      "file": "bge-base-en.npz",
+      "sha256": "4ce63e4fdebf2c2a30c42bbea7cdd1516ec5c752ae083d1d572430e3c4609098",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": false,
+      "prefix": "",
+      "onnx": {
+        "repo": "Xenova/bge-base-en-v1.5",
+        "pooling": "cls",
+        "max_length": 512
+      },
+      "temperature_scale": 1.1225,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.4249,
+          0.2144,
+          0.0751,
+          0.0188
+        ],
+        "agreement_same_text": [
+          0.1253,
+          0.0433,
+          0.0109,
+          0.0026
+        ],
+        "l1_top3_en": 0.6512,
+        "l1_neighborhood_en": 0.6561,
+        "l1_top3_all": 0.2208,
+        "agreement_cross_lingual": [
+          0.0911,
+          0.0296,
+          0.0107,
+          0.0034
+        ],
+        "fidelity_en": 0.6496,
+        "fidelity_all": 0.3822,
+        "n_per_lang": 1012,
+        "grade": "certified",
         "retrieval_r10_en": 1.0
       }
     }

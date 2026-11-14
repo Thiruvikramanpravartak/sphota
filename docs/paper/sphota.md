@@ -339,6 +339,28 @@ certified with the NumPy forward pass, preserve migration recall:
 We did not re-run the full gate with nonlinear adapters and a strong anchor at GPU scale; given
 §5.3 and this section, that is the most promising open experiment.
 
+**Short commands (v1.2, D-051–D-053).** A premortem of the GPU sweep showed that adapters trained
+only on sentences map short commands poorly: the other model's vector lands in the anchor's cell
+far less often for a voice-assistant command than for a FLORES sentence. Set *v1.2* uses the same
+recipe and seed, and adds MASSIVE-train commands (11,492 English, plus 2,000 per other language for
+multilingual models; test texts excluded). Nothing was tuned, and the decision rule was registered
+before training. Measured on held-out MASSIVE test commands, same-cell agreement in English rises
+by **+23.2 points** on average over the 7 models (region +15.2). FLORES agreement does not fall
+(English +1.7, all languages +0.4), retrieval R@10 is unchanged, and no grade changes. v1.2 met all
+three conditions and became the default.
+
+<!-- table:v12 -->
+| Model | Commands, same cell, English | Commands, same cell, 12 languages | Commands, same region, English | FLORES same cell, English | Grade |
+|---|---|---|---|---|---|
+| all-MiniLM-L6-v2 | 27.4% → 49.8% | n/a (English model) | 49.4% → 64.0% | 35.8% → 35.8% | certified |
+| bge-small-en-v1.5 | 25.3% → 52.3% | n/a (English model) | 47.0% → 66.9% | 36.6% → 37.9% | certified |
+| gte-small | 27.9% → 46.9% | n/a (English model) | 53.3% → 63.4% | 33.3% → 35.1% | certified |
+| paraphrase-multilingual-MiniLM-L12-v2 | 31.6% → 52.2% | 28.9% → 43.4% | 56.4% → 67.7% | 35.4% → 37.8% | certified-multilingual |
+| LaBSE | 18.0% → 54.6% | 16.7% → 49.5% | 43.8% → 67.3% | 32.8% → 36.5% | certified-multilingual |
+| multilingual-e5-base | 49.6% → 60.2% | 48.3% → 57.3% | 69.2% → 74.5% | 52.8% → 53.8% | certified-multilingual |
+| bge-base-en-v1.5 | 28.0% → 53.8% | n/a (English model) | 47.2% → 69.0% | 41.1% → 42.5% | certified |
+<!-- /table -->
+
 ## 7. Beyond FLORES: six domains
 
 FLORES sentences are formal, parallel and close to the Wikipedia fitting corpus. We therefore
@@ -602,6 +624,7 @@ are built by `scripts/build_paper.py`. Commands (all accept `--scale {tiny,small
 | §5.3 GPU gate | `notebooks/kaggle_gpu_gate.ipynb` or `bash scripts/gpu_build_v2.sh --scale medium` | `v2-gate-medium-*.json` |
 | §6 adapters | `python -m sphota.build.adapter_study --scale small` | `adapter-study-small.json` |
 | §6 v1.1 | `python -m sphota.build.adapters_v11 --scale small` | `adapters-v1.1-small.json` |
+| §6 v1.2 | `python -m sphota.build.adapters_v11 --scale small --set v1.2` | `adapters-v1.2-small.json` |
 | §7 domains | `python -m sphota.build.domains --scale small` | `domains-small.json` |
 | §9 Indian languages | `python -m sphota.build.indic --scale small` | `indic-small.json` |
 | §5.4 short text | `python -m sphota.build.gate v2mini --scale small --sizes 32 256 1024 [--extra-parallel massive --extra-n N]` | `shorttext-*.json` |

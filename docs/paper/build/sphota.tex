@@ -688,6 +688,61 @@ We did not re-run the full gate with nonlinear adapters and a strong
 anchor at GPU scale; given \S{}5.3 and this section, that is the most
 promising open experiment.
 
+\textbf{Short commands (v1.2, D-051--D-053).} A premortem of the GPU
+sweep showed that adapters trained only on sentences map short commands
+poorly: the other model's vector lands in the anchor's cell far less
+often for a voice-assistant command than for a FLORES sentence. Set
+\emph{v1.2} uses the same recipe and seed, and adds MASSIVE-train
+commands (11,492 English, plus 2,000 per other language for multilingual
+models; test texts excluded). Nothing was tuned, and the decision rule
+was registered before training. Measured on held-out MASSIVE test
+commands, same-cell agreement in English rises by \textbf{+23.2 points}
+on average over the 7 models (region +15.2). FLORES agreement does not
+fall (English +1.7, all languages +0.4), retrieval R@10 is unchanged,
+and no grade changes. v1.2 met all three conditions and became the
+default.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Model
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Commands, same cell, English
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Commands, same cell, 12 languages
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Commands, same region, English
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+FLORES same cell, English
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Grade
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+all-MiniLM-L6-v2 & 27.4\% $\rightarrow$ 49.8\% & n/a (English model) & 49.4\% $\rightarrow$
+64.0\% & 35.8\% $\rightarrow$ 35.8\% & certified \\
+bge-small-en-v1.5 & 25.3\% $\rightarrow$ 52.3\% & n/a (English model) & 47.0\% $\rightarrow$
+66.9\% & 36.6\% $\rightarrow$ 37.9\% & certified \\
+gte-small & 27.9\% $\rightarrow$ 46.9\% & n/a (English model) & 53.3\% $\rightarrow$ 63.4\% &
+33.3\% $\rightarrow$ 35.1\% & certified \\
+paraphrase-multilingual-MiniLM-L12-v2 & 31.6\% $\rightarrow$ 52.2\% & 28.9\% $\rightarrow$
+43.4\% & 56.4\% $\rightarrow$ 67.7\% & 35.4\% $\rightarrow$ 37.8\% & certified-multilingual \\
+LaBSE & 18.0\% $\rightarrow$ 54.6\% & 16.7\% $\rightarrow$ 49.5\% & 43.8\% $\rightarrow$ 67.3\% & 32.8\% $\rightarrow$
+36.5\% & certified-multilingual \\
+multilingual-e5-base & 49.6\% $\rightarrow$ 60.2\% & 48.3\% $\rightarrow$ 57.3\% & 69.2\% $\rightarrow$
+74.5\% & 52.8\% $\rightarrow$ 53.8\% & certified-multilingual \\
+bge-base-en-v1.5 & 28.0\% $\rightarrow$ 53.8\% & n/a (English model) & 47.2\% $\rightarrow$
+69.0\% & 41.1\% $\rightarrow$ 42.5\% & certified \\
+\end{longtable}
+
 \hypertarget{beyond-flores-six-domains}{%
 \subsection{7. Beyond FLORES: six
 domains}\label{beyond-flores-six-domains}}
@@ -1174,6 +1229,9 @@ Result file
 \S{}6 v1.1 &
 \texttt{python\ -m\ sphota.build.adapters\_v11\ -\/-scale\ small} &
 \texttt{adapters-v1.1-small.json} \\
+\S{}6 v1.2 &
+\texttt{python\ -m\ sphota.build.adapters\_v11\ -\/-scale\ small\ -\/-set\ v1.2}
+& \texttt{adapters-v1.2-small.json} \\
 \S{}7 domains & \texttt{python\ -m\ sphota.build.domains\ -\/-scale\ small}
 & \texttt{domains-small.json} \\
 \S{}9 Indian languages &

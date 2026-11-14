@@ -29,8 +29,13 @@
 - **Security (D-026, D-027):** pinned + hash-verified models, pinned CI actions, isolated release
   with wheel-content check and attestations, CodeQL/Scorecard/zizmor/pip-audit/npm audit, Atlas
   without third-party code.
-- **v1.1 adapters, now the default (D-029, D-030):** English same-cell agreement with the
-  anchor roughly doubles for all five models; certification and migration recall unchanged.
+- **v1.1 adapters (D-029, D-030):** English same-cell agreement with the anchor roughly doubles
+  for all five models; certification and migration recall unchanged.
+- **v1.2 adapters, now the default (D-051 – D-053):** the v1.1 recipe plus short-command pairs.
+  Held-out MASSIVE commands: same cell +23.2 points, region +15.2 (7 models); FLORES +1.7 (en) /
+  +0.4 (all); R@10 unchanged. Passed its pre-registered rule.
+- **GPU run 3 (D-050, D-051):** one planned sweep (126 + 4 rows, 2 independent replicates, CIs),
+  premortem-amended before running; owner running it on Kaggle.
 - **Six-domain evaluation (D-032):** MASSIVE, Banking77, Stack Exchange, arXiv, IndicReviews,
   CodeSearchNet. Themes competitive on science/technical/reviews; short commands agree across
   languages only 36–56% (region); code and its description share a region 77–96%.

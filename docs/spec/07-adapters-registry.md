@@ -67,7 +67,9 @@ present (`kind: "mlp2"`): `y = h + gelu(x̂·W1 + c1)·W2 + c2` with the tanh ap
   adapters). `v1.1` (`sphota/data/adapters/v1.1/`, D-028) holds `mlp2` adapters
   for the same models, certified against the same Part 8 procedure. Sets map into the same
   canonical space; codes from different sets for the same model may differ, so stored codes
-  SHOULD record the set (`model@set`). The reference implementation defaults to `v1.1` (D-030); `v1` remains available.
+  SHOULD record the set (`model@set`). `v1.2` (`sphota/data/adapters/v1.2/`, D-052) holds `mlp2`
+  adapters trained with short-command pairs as well. The reference implementation defaults to
+  `v1.2` (D-053); `v1.1` and `v1` remain available.
 * Only models whose weights are under an OSI-approved (or comparably open) license are
   admitted to the default registry. Adapters for other models (e.g. CC-BY-NC weights or
   proprietary APIs) MAY be trained by users with `sphota train-adapter`; they are not

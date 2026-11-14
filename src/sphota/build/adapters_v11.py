@@ -121,6 +121,7 @@ def fit_mlp2(
     meta: dict | None = None,
     seed: int = 0,
     hidden: int = HIDDEN,
+    set_name: str = "v1.1",
 ):
     """Ridge + residual GELU(tanh) MLP, trained with MSE; returns a numpy ``Adapter``."""
     import torch
@@ -159,10 +160,11 @@ def fit_mlp2(
         c1 = l1.bias.cpu().numpy().astype(np.float16)
         W2 = l2.weight.T.cpu().numpy().astype(np.float16)
         c2 = l2.bias.cpu().numpy().astype(np.float32)
-    m = {**base.meta, "kind": "mlp2", "set": "v1.1", "hidden": hidden, "activation": "gelu_tanh"}
+    m = {**base.meta, "kind": "mlp2", "set": set_name, "hidden": hidden, "activation": "gelu_tanh"}
     m["train"] = {
         **base.meta.get("train", {}),
-        "method": "ridge + residual MLP (MSE)",
+        "method": "ridge + residual MLP (MSE)"
+        + (" + short-command pairs (D-052)" if set_name == "v1.2" else ""),
         "epochs": EPOCHS,
     }
     return Adapter(model, base.A, base.b, m, W1=W1, c1=c1, W2=W2, c2=c2)
@@ -232,7 +234,7 @@ def run(scale: str, models: list[str], set_name: str = "v1.1") -> dict:
             "train": {"pairs": len(X), "data": data},
         }
         ts = calibrate_temperature_scale(rel, X, Y, fit=lambda a, b: fit_mlp2("tmp", a, b))
-        ad = fit_mlp2(model, X, Y, meta={**meta, "temperature_scale": ts})
+        ad = fit_mlp2(model, X, Y, meta={**meta, "temperature_scale": ts}, set_name=set_name)
         fname = f"{cfg['short']}.npz"
         p = ad.save(out_dir / fname)
         ad = load_adapter(p)  # certify exactly what ships (float16 weights, numpy forward)

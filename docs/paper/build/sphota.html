@@ -1203,6 +1203,99 @@ preserve migration recall:</p>
 <p>We did not re-run the full gate with nonlinear adapters and a strong
 anchor at GPU scale; given §5.3 and this section, that is the most
 promising open experiment.</p>
+<p><strong>Short commands (v1.2, D-051–D-053).</strong> A premortem of
+the GPU sweep showed that adapters trained only on sentences map short
+commands poorly: the other model’s vector lands in the anchor’s cell far
+less often for a voice-assistant command than for a FLORES sentence. Set
+<em>v1.2</em> uses the same recipe and seed, and adds MASSIVE-train
+commands (11,492 English, plus 2,000 per other language for multilingual
+models; test texts excluded). Nothing was tuned, and the decision rule
+was registered before training. Measured on held-out MASSIVE test
+commands, same-cell agreement in English rises by <strong>+23.2
+points</strong> on average over the 7 models (region +15.2). FLORES
+agreement does not fall (English +1.7, all languages +0.4), retrieval
+R@10 is unchanged, and no grade changes. v1.2 met all three conditions
+and became the default.</p>
+<!-- table:v12 -->
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Commands, same cell, English</th>
+<th>Commands, same cell, 12 languages</th>
+<th>Commands, same region, English</th>
+<th>FLORES same cell, English</th>
+<th>Grade</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>all-MiniLM-L6-v2</td>
+<td>27.4% → 49.8%</td>
+<td>n/a (English model)</td>
+<td>49.4% → 64.0%</td>
+<td>35.8% → 35.8%</td>
+<td>certified</td>
+</tr>
+<tr class="even">
+<td>bge-small-en-v1.5</td>
+<td>25.3% → 52.3%</td>
+<td>n/a (English model)</td>
+<td>47.0% → 66.9%</td>
+<td>36.6% → 37.9%</td>
+<td>certified</td>
+</tr>
+<tr class="odd">
+<td>gte-small</td>
+<td>27.9% → 46.9%</td>
+<td>n/a (English model)</td>
+<td>53.3% → 63.4%</td>
+<td>33.3% → 35.1%</td>
+<td>certified</td>
+</tr>
+<tr class="even">
+<td>paraphrase-multilingual-MiniLM-L12-v2</td>
+<td>31.6% → 52.2%</td>
+<td>28.9% → 43.4%</td>
+<td>56.4% → 67.7%</td>
+<td>35.4% → 37.8%</td>
+<td>certified-multilingual</td>
+</tr>
+<tr class="odd">
+<td>LaBSE</td>
+<td>18.0% → 54.6%</td>
+<td>16.7% → 49.5%</td>
+<td>43.8% → 67.3%</td>
+<td>32.8% → 36.5%</td>
+<td>certified-multilingual</td>
+</tr>
+<tr class="even">
+<td>multilingual-e5-base</td>
+<td>49.6% → 60.2%</td>
+<td>48.3% → 57.3%</td>
+<td>69.2% → 74.5%</td>
+<td>52.8% → 53.8%</td>
+<td>certified-multilingual</td>
+</tr>
+<tr class="odd">
+<td>bge-base-en-v1.5</td>
+<td>28.0% → 53.8%</td>
+<td>n/a (English model)</td>
+<td>47.2% → 69.0%</td>
+<td>41.1% → 42.5%</td>
+<td>certified</td>
+</tr>
+</tbody>
+</table>
+<!-- /table -->
 <h2 id="beyond-flores-six-domains">7. Beyond FLORES: six domains</h2>
 <p>FLORES sentences are formal, parallel and close to the Wikipedia
 fitting corpus. We therefore evaluated on public, license-clean datasets
@@ -2103,21 +2196,26 @@ outside the fitting distribution, and fix the bar before running.</p>
 <td><code>adapters-v1.1-small.json</code></td>
 </tr>
 <tr class="odd">
+<td>§6 v1.2</td>
+<td><code>python -m sphota.build.adapters_v11 --scale small --set v1.2</code></td>
+<td><code>adapters-v1.2-small.json</code></td>
+</tr>
+<tr class="even">
 <td>§7 domains</td>
 <td><code>python -m sphota.build.domains --scale small</code></td>
 <td><code>domains-small.json</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>§9 Indian languages</td>
 <td><code>python -m sphota.build.indic --scale small</code></td>
 <td><code>indic-small.json</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>§5.4 short text</td>
 <td><code>python -m sphota.build.gate v2mini --scale small --sizes 32 256 1024 [--extra-parallel massive --extra-n N]</code></td>
 <td><code>shorttext-*.json</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>§8 refinement</td>
 <td><code>python -m sphota.build.refine_study --scale small [--round 2..6]</code></td>
 <td><code>refine-study-small.json</code>,

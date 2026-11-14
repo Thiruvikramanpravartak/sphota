@@ -35,7 +35,28 @@ full-scale adapter.
 Full certificates (exact and neighbourhood agreement, fidelity) are in the
 [benchmark](benchmark.md) and the [leaderboard](https://github.com/thiruvikramanpravartak/sphota/blob/main/bench/leaderboard/index.html).
 
-## Nonlinear adapters (set v1.1, the default)
+## Short commands too (set v1.2, the default)
+
+**v1.2** is the v1.1 recipe with one change: the training pairs also include short voice-assistant
+commands (MASSIVE train; 11,492 English, plus 2,000 per other language for multilingual models).
+On held-out MASSIVE test commands, the other model's code lands in the anchor's own cell **+23
+points more often** on average (region +15). Full sentences (FLORES) do not get worse, and migration
+recall is unchanged (D-052, D-053).
+
+| model | commands, same cell, English: v1.1 → v1.2 | commands, same region, English | FLORES same cell, English |
+|---|---|---|---|
+| all-MiniLM-L6-v2 | 27.4% → **49.8%** | 49.4% → 64.0% | 35.8% → 35.8% |
+| bge-small-en-v1.5 | 25.3% → **52.3%** | 47.0% → 66.9% | 36.6% → 37.9% |
+| gte-small | 27.9% → **46.9%** | 53.3% → 63.4% | 33.3% → 35.1% |
+| paraphrase-multilingual-MiniLM-L12-v2 | 31.6% → **52.2%** | 56.4% → 67.7% | 35.4% → 37.8% |
+| LaBSE | 18.0% → **54.6%** | 43.8% → 67.3% | 32.8% → 36.5% |
+| multilingual-e5-base | 49.6% → **60.2%** | 69.2% → 74.5% | 52.8% → 53.8% |
+| bge-base-en-v1.5 | 28.0% → **53.8%** | 47.2% → 69.0% | 41.1% → 42.5% |
+
+`adapters="v1.1"` (or `SPHOTA_ADAPTERS=v1.1`) selects the previous set. Rebuild:
+`python -m sphota.build.adapters_v11 --scale small --set v1.2`.
+
+## Nonlinear adapters (set v1.1)
 
 The five registry models, plus multilingual-e5-base and bge-base-en-v1.5 (v1.1 only), have **v1.1** adapters: the linear map plus a small residual network
 (one 1024-unit hidden layer), trained on the same pairs (D-028). They roughly double how often the
@@ -43,12 +64,13 @@ other model's code lands in the anchor's own cell, keep migration recall at ~100
 same certification. Shipped as numpy-only `.npz` (≈ 9.7 MB in total, float16 hidden weights).
 
 ```python
-encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2")              # v1.1
+encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2")              # v1.2 (default)
+encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2", adapters="v1.1")
 encode("The CEO resigned", model="sentence-transformers/all-MiniLM-L6-v2", adapters="v1")  # linear
 ```
 
 ```bash
-sphota encode -m minilm-l6 "The CEO resigned"                 # v1.1
+sphota encode -m minilm-l6 "The CEO resigned"                 # v1.2 (default)
 SPHOTA_ADAPTERS=v1 python my_app.py                           # the linear set for a process
 ```
 
@@ -62,8 +84,8 @@ SPHOTA_ADAPTERS=v1 python my_app.py                           # the linear set f
 | multilingual-e5-base | — (v1.1 only) → **52.8%** | — → 51.0% | — → 100.0% | certified-multilingual |
 | bge-base-en-v1.5 | — (v1.1 only) → **41.1%** | — → 12.4% | — → 100.0% | certified |
 
-v1.1 has been the default since D-030 (before the first public release, so no stored codes
-change). The linear `v1` set stays available, frozen inside the release. Codes from the two sets
+v1.1 was the default from D-030 until v1.2 (D-053), both before the first public release, so no
+stored codes change. The linear `v1` set stays available, frozen inside the release. Codes from the two sets
 can differ for the same model, so record which set produced a stored code. Rebuild:
 `python -m sphota.build.adapters_v11 --scale small`.
 

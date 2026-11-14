@@ -45,9 +45,23 @@ def test_linear_adapter_unchanged_without_hidden_layer():
 
 def test_adapter_set_selection(monkeypatch):
     monkeypatch.delenv("SPHOTA_ADAPTERS", raising=False)
-    assert _set_name(None) == "v1.1"
+    assert _set_name(None) == "v1.2"
     assert _set_name("v1") == "v1"
     monkeypatch.setenv("SPHOTA_ADAPTERS", "v1")
     assert _set_name(None) == "v1"
     with pytest.raises(AdapterError, match="unknown adapter set"):
         _set_name("v9")
+
+
+def test_v12_registry_verifies_and_runs():
+    """Every shipped v1.2 adapter is checksum-verified, records its set and maps into s1."""
+    from sphota.adapters import get_adapter, registry
+
+    reg = registry(adapters="v1.2")
+    assert reg["set"] == "v1.2" and len(reg["adapters"]) == 7
+    rng = np.random.default_rng(0)
+    for model, entry in reg["adapters"].items():
+        ad = get_adapter(model, "v1.2")
+        assert ad.meta["set"] == "v1.2" and entry["kind"] == "mlp2"
+        y = ad(rng.normal(size=(2, ad.in_dim)).astype(np.float32))
+        assert y.shape == (2, 256) and np.isfinite(y).all()
