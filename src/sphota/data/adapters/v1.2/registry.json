@@ -211,6 +211,49 @@
         "grade": "certified-multilingual",
         "retrieval_r10_en": 1.0
       }
+    },
+    "intfloat/multilingual-e5-base": {
+      "short": "me5-base",
+      "file": "me5-base.npz",
+      "sha256": "fc26b486812a1b914db854d167b2600c33fb26ba2edaaa3b75c45315fa1e819e",
+      "kind": "mlp2",
+      "model_license": "mit",
+      "multilingual": true,
+      "prefix": "query: ",
+      "onnx": {
+        "repo": "Xenova/multilingual-e5-base",
+        "pooling": "mean",
+        "max_length": 512
+      },
+      "temperature_scale": 0.7937,
+      "certificate": {
+        "agreement_same_text_en": [
+          0.5385,
+          0.3172,
+          0.1571,
+          0.0662
+        ],
+        "agreement_same_text": [
+          0.5073,
+          0.2981,
+          0.1425,
+          0.0664
+        ],
+        "l1_top3_en": 0.7777,
+        "l1_neighborhood_en": 0.7065,
+        "l1_top3_all": 0.7537,
+        "agreement_cross_lingual": [
+          0.5011,
+          0.2684,
+          0.1485,
+          0.0766
+        ],
+        "fidelity_en": 0.749,
+        "fidelity_all": 0.7212,
+        "n_per_lang": 1012,
+        "grade": "certified-multilingual",
+        "retrieval_r10_en": 1.0
+      }
     }
   }
 }
