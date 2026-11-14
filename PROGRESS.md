@@ -39,8 +39,9 @@
 - **Per-file refinement (D-033 – D-042):** six pre-registered rounds on fresh data; fails the
   bar (final R1 18/26, R3 11/12), beats fixed themes on 38/42 fresh sets; shipped as the default
   for files of 200+ messages in `sphota analyze` and the Atlas (exact TS/Python parity).
-- **GPU run 2 (D-035):** running on the owner's Kaggle (T4 ×2), LaBSE + bge-m3, nonlinear adapters,
-  MASSIVE short commands in meaning-LDA.
+- **GPU run 2 (D-048): FAIL by 0.8 points.** bge-m3 @256: coverage 61.4%, translation 86.8%,
+  collapse 0.0% all pass; cross-model 59.2% (bar 60%). Collapse prediction (D-043) was wrong.
+  Run 3 pre-registered (D-049): adapters on 120k pairs, otherwise identical; notebook cell 4.
 - **Next (unchanged plan):** fix Actions billing → native-speaker label review (regions first: only
   32 names) → GPU run (`PROGRESS.md` command) → decide on publishing the Atlas.
 

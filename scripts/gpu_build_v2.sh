@@ -24,6 +24,7 @@ while [[ $# -gt 0 ]]; do
     --sizes) SIZES="$2"; shift 2 ;;
     --adapter-kind) ADAPTER_KIND="$2"; shift 2 ;;
     --extra-parallel) EXTRA="--extra-parallel $2"; shift 2 ;;
+    --n-adapter) NADAPT_OVERRIDE="$2"; shift 2 ;;
     *) echo "unknown option $1"; exit 2 ;;
   esac
 done
@@ -38,7 +39,7 @@ if [[ $DRY == 1 ]]; then
   SIZES="16 32"
 else
   ADAPTERS="sentence-transformers/all-MiniLM-L6-v2 BAAI/bge-small-en-v1.5 thenlper/gte-small sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 sentence-transformers/LaBSE"
-  NADAPT=40000
+  NADAPT=${NADAPT_OVERRIDE:-40000}
 fi
 export SPHOTA_THREADS="${SPHOTA_THREADS:-8}"
 echo "== [1/4] data ($SCALE)"

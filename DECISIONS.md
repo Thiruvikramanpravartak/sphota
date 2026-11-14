@@ -606,3 +606,29 @@ the same "Detail" selector in the Atlas (re-groups instantly from the vectors al
 `fine` stays the default because it is the evaluated setting (D-040/D-041); the others let a user
 who knows their file has few, broad categories avoid the over-splitting that caused the R1 misses.
 Example (600 MASSIVE validation commands, en + hi): 49 / 25 / 13 groups.
+
+## D-048 GPU gate run 2 result (D-035): FAIL, cross-model 0.8 points short; my collapse prediction was wrong
+Kaggle T4, medium scale, 6 configurations (LaBSE, bge-m3 × 256/1024/4096), nonlinear adapters,
+MASSIVE train commands in the meaning-LDA scatter (`bench/results/v2-gate-medium-*-mlp-massive.json`).
+**No configuration passes all four criteria; no confirmation run is triggered.** Best: bge-m3 at
+256 cells — coverage 61.4% PASS, confident translation 86.8% PASS, cross-model **59.2% FAIL** (bar
+60%; per model 55.8–62.0%: MiniLM-L6 55.8, gte 59.5, bge-small 59.7, LaBSE 58.9 (adapter capped at
+20k pairs), multilingual MiniLM 62.0), collapse 0.0% PASS. Against run 1 (same anchor and cells,
+ridge adapters, no MASSIVE): cross-model 50.2% → 59.2%, coverage 67.2% → 61.4%, translation
+88.0% → 86.8%. Held-out MASSIVE commands in the same cell as English: bge-m3 75% / 71% / 58%
+(256 / 1024 / 4096), LaBSE 88% / 73% / 62%. **The prediction in D-043 (collapse would fail) was
+wrong:** collapse stayed ≤ 0.3% with LaBSE and bge-m3; the collapse seen on CPU belongs to the
+e5-small anchor. The bar is not lowered: run 2 fails.
+
+## D-049 Pre-registration: GPU gate run 3, recorded before it is run
+Rationale fixed in advance: the only failing criterion is cross-model agreement, and the adapter
+study (D-028, recorded before run 2) showed nonlinear adapters still improving at 40k pairs while
+linear ones are flat. **One change from run 2:** adapter training pairs 40k → 120k for every panel
+model, and the CPU-era cap of 20k pairs for LaBSE is lifted on GPU. Everything else as run 2:
+anchor bge-m3 only, medium scale, MLP adapters, MASSIVE scatter, cells 256 / 1024 / 4096, same
+held-out FLORES devtest, same bars (D-017/D-018). Prediction written now: cross-model at 256 cells
+61–63%; coverage, translation and collapse within ±2 points of run 2. Rules: a configuration
+passes only if all four criteria pass; a pass counts only after a confirmation run with k-means
+seed 1 also passes (D-035 rule); otherwise "passed once, not confirmed". This is the third gate
+run (runs 1–3 are all reported). A confirmed pass would open an RFC for a space s2; it would not
+change the frozen s1 space.

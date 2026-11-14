@@ -403,7 +403,14 @@ def v2mini(
     Yad = {}
     for m in [x for x in (adapter_models or ADAPTER_MODELS) if x != anchor]:
         # use the adapter training set already embedded for this model (LaBSE: 20k, others: 40k)
-        n_m = 20000 if "LaBSE" in m and n_adapter > 20000 else n_adapter
+        # LaBSE was capped at 20k pairs to save CPU time; on a GPU every model uses n_adapter (D-049)
+        try:
+            import torch
+
+            on_gpu = bool(torch.cuda.is_available())
+        except ImportError:
+            on_gpu = False
+        n_m = 20000 if "LaBSE" in m and n_adapter > 20000 and not on_gpu else n_adapter
         texts_m = texts if n_m == len(texts) else training_texts(scale, n_m)
         Xm = embed.cached(m, f"adapter-train-{len(texts_m)}", texts_m, scale)
         Ytr_m = (
@@ -557,6 +564,7 @@ def main() -> None:
             + (f"-{a.extra_parallel}" if a.extra_parallel else "")
             + (f"-seed{a.seed}" if a.seed else "")
             + (f"-n{a.extra_n}" if a.extra_n else "")
+            + (f"-a{a.n_adapter}" if a.n_adapter != 40000 else "")
         )
         name = (
             "v2-mini-gate.json"

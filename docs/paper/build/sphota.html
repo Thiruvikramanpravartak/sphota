@@ -360,17 +360,21 @@ against the pre-registered bar:</p>
 <!-- table:gpu -->
 <table style="width:100%;">
 <colgroup>
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
 </colgroup>
 <thead>
 <tr class="header">
+<th>Run</th>
 <th>Anchor</th>
+<th>Adapters</th>
 <th>L1 cells</th>
 <th>Coverage (≥ 60%)</th>
 <th>Translation, confident (≥ 80%)</th>
@@ -381,7 +385,9 @@ against the pre-registered bar:</p>
 </thead>
 <tbody>
 <tr class="odd">
+<td>1</td>
 <td>multilingual-e5-small</td>
+<td>linear</td>
 <td>256</td>
 <td>46.3%</td>
 <td>74.4%</td>
@@ -390,7 +396,9 @@ against the pre-registered bar:</p>
 <td>0/4</td>
 </tr>
 <tr class="even">
+<td>1</td>
 <td>multilingual-e5-small</td>
+<td>linear</td>
 <td>1024</td>
 <td>39.3%</td>
 <td>71.6%</td>
@@ -399,7 +407,9 @@ against the pre-registered bar:</p>
 <td>0/4</td>
 </tr>
 <tr class="odd">
+<td>1</td>
 <td>multilingual-e5-small</td>
+<td>linear</td>
 <td>4096</td>
 <td>26.7%</td>
 <td>66.0%</td>
@@ -408,7 +418,9 @@ against the pre-registered bar:</p>
 <td>0/4</td>
 </tr>
 <tr class="even">
+<td>1</td>
 <td>LaBSE</td>
+<td>linear</td>
 <td>256</td>
 <td>69.4%</td>
 <td>83.5%</td>
@@ -417,7 +429,9 @@ against the pre-registered bar:</p>
 <td>3/4</td>
 </tr>
 <tr class="odd">
+<td>1</td>
 <td>LaBSE</td>
+<td>linear</td>
 <td>1024</td>
 <td>55.2%</td>
 <td>83.9%</td>
@@ -426,7 +440,9 @@ against the pre-registered bar:</p>
 <td>2/4</td>
 </tr>
 <tr class="even">
+<td>1</td>
 <td>LaBSE</td>
+<td>linear</td>
 <td>4096</td>
 <td>46.9%</td>
 <td>78.4%</td>
@@ -435,7 +451,9 @@ against the pre-registered bar:</p>
 <td>1/4</td>
 </tr>
 <tr class="odd">
+<td>1</td>
 <td>bge-m3</td>
+<td>linear</td>
 <td>256</td>
 <td>67.2%</td>
 <td>88.0%</td>
@@ -444,7 +462,9 @@ against the pre-registered bar:</p>
 <td>3/4</td>
 </tr>
 <tr class="even">
+<td>1</td>
 <td>bge-m3</td>
+<td>linear</td>
 <td>1024</td>
 <td>62.8%</td>
 <td>82.6%</td>
@@ -453,7 +473,9 @@ against the pre-registered bar:</p>
 <td>3/4</td>
 </tr>
 <tr class="odd">
+<td>1</td>
 <td>bge-m3</td>
+<td>linear</td>
 <td>4096</td>
 <td>54.5%</td>
 <td>78.6%</td>
@@ -461,13 +483,88 @@ against the pre-registered bar:</p>
 <td>0.2%</td>
 <td>1/4</td>
 </tr>
+<tr class="even">
+<td>2</td>
+<td>LaBSE (+ MASSIVE scatter)</td>
+<td>MLP, 20k–40k pairs</td>
+<td>256</td>
+<td>56.0%</td>
+<td>82.0%</td>
+<td>45.6%</td>
+<td>0.2%</td>
+<td>2/4</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>LaBSE (+ MASSIVE scatter)</td>
+<td>MLP, 20k–40k pairs</td>
+<td>1024</td>
+<td>47.0%</td>
+<td>77.6%</td>
+<td>35.0%</td>
+<td>0.3%</td>
+<td>1/4</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>LaBSE (+ MASSIVE scatter)</td>
+<td>MLP, 20k–40k pairs</td>
+<td>4096</td>
+<td>27.4%</td>
+<td>80.1%</td>
+<td>26.2%</td>
+<td>0.1%</td>
+<td>2/4</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>bge-m3 (+ MASSIVE scatter)</td>
+<td>MLP, 40k pairs</td>
+<td>256</td>
+<td>61.4%</td>
+<td>86.8%</td>
+<td>59.2%</td>
+<td>0.0%</td>
+<td>3/4</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>bge-m3 (+ MASSIVE scatter)</td>
+<td>MLP, 40k pairs</td>
+<td>1024</td>
+<td>52.9%</td>
+<td>82.2%</td>
+<td>46.2%</td>
+<td>0.2%</td>
+<td>2/4</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>bge-m3 (+ MASSIVE scatter)</td>
+<td>MLP, 40k pairs</td>
+<td>4096</td>
+<td>38.0%</td>
+<td>80.6%</td>
+<td>35.8%</td>
+<td>0.3%</td>
+<td>2/4</td>
+</tr>
 </tbody>
 </table>
 <!-- /table -->
-<p>Stronger anchors remove language collapse and lift confident
-translation agreement to 88.0% (bge-m3, 256 cells). Cross-model
-agreement does not follow: 50.2% at best, falling with each 4×
-refinement. <strong>The gate fails</strong>, as predicted.</p>
+<p>Run 1 (linear adapters): stronger anchors remove language collapse
+and lift confident translation agreement to 88.0% (bge-m3, 256 cells),
+but cross-model agreement peaks at 50.2%. Run 2, registered after the
+adapter study of §6, changed two things at once: nonlinear adapters and
+short parallel commands in the scatter (§5.4). bge-m3 at 256 cells then
+passes coverage (61.4%), translation (86.8%) and collapse (0.0%) and
+misses cross-model by 0.8 points (59.2%; per panel model 55.8– 62.0%).
+We had predicted, from the CPU experiment of §5.4, that the extra
+scatter would cause language collapse; it did not with these anchors, so
+that prediction was wrong. <strong>The gate fails in both runs.</strong>
+Run 3 (one change: adapters trained on 120k instead of 40k pairs,
+motivated by the scaling curve in §6) was registered before it ran
+(Appendix C).</p>
 <p><strong>5.4 Can the space learn short text?</strong> §7 shows that
 short informal commands agree across languages far less often than
 FLORES sentences. The canonical space decides what counts as “the same

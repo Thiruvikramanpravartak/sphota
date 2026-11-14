@@ -35,19 +35,40 @@ def load(name: str) -> dict:
 
 def t_gpu() -> str:
     rows = [
-        "| Anchor | L1 cells | Coverage (≥ 60%) | Translation, confident (≥ 80%) | Cross-model (≥ 60%) | Worst collapse (≤ 5%) | Pass |",
-        "|---|---|---|---|---|---|---|",
+        "| Run | Anchor | Adapters | L1 cells | Coverage (≥ 60%) | Translation, confident (≥ 80%) | Cross-model (≥ 60%) | Worst collapse (≤ 5%) | Pass |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
-    for f, name in [
-        ("v2-gate-medium-me5-small.json", "multilingual-e5-small"),
-        ("v2-gate-medium-labse.json", "LaBSE"),
-        ("v2-gate-medium-bge-m3.json", "bge-m3"),
-    ]:
+    runs = [
+        ("1", "v2-gate-medium-me5-small.json", "multilingual-e5-small", "linear"),
+        ("1", "v2-gate-medium-labse.json", "LaBSE", "linear"),
+        ("1", "v2-gate-medium-bge-m3.json", "bge-m3", "linear"),
+        (
+            "2",
+            "v2-gate-medium-labse-mlp-massive.json",
+            "LaBSE (+ MASSIVE scatter)",
+            "MLP, 20k–40k pairs",
+        ),
+        (
+            "2",
+            "v2-gate-medium-bge-m3-mlp-massive.json",
+            "bge-m3 (+ MASSIVE scatter)",
+            "MLP, 40k pairs",
+        ),
+        (
+            "3",
+            "v2-gate-medium-bge-m3-mlp-massive-a120000.json",
+            "bge-m3 (+ MASSIVE scatter)",
+            "MLP, 120k pairs",
+        ),
+    ]
+    for run, f, name, kind in runs:
+        if not (RES / f).exists():
+            continue
         for r in load(f)["results"]:
             v = r["verdict"]
             n = sum(x["pass"] for x in v.values())
             rows.append(
-                f"| {name} | {r['K1']} | {pct(v['1_coverage']['value'])} | "
+                f"| {run} | {name} | {kind} | {r['K1']} | {pct(v['1_coverage']['value'])} | "
                 f"{pct(v['2_translation_confident']['value'])} | {pct(v['3_cross_model']['value'])} | "
                 f"{pct(v['4_collapse_max']['value'])} | {n}/4 |"
             )

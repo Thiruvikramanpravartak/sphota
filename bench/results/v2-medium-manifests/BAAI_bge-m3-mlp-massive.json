@@ -1,0 +1,73 @@
+{
+  "status": "EXPERIMENTAL \u2014 not a frozen space; do not use for stored codes",
+  "built_from": "medium scale, diversified per-language Wikipedia sample",
+  "anchor": "BAAI/bge-m3",
+  "sizes": [
+    256,
+    256
+  ],
+  "temperature_l1": 27.778656007656398,
+  "label_filter": {
+    "kept_cells": 255,
+    "review_cells": 194
+  },
+  "gate": [
+    {
+      "1_coverage": {
+        "value": 0.6139,
+        "pass": true
+      },
+      "2_translation_confident": {
+        "value": 0.8676,
+        "pass": true
+      },
+      "3_cross_model": {
+        "value": 0.5917,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.0,
+        "pass": true
+      },
+      "K1": 256
+    },
+    {
+      "1_coverage": {
+        "value": 0.529,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.8223,
+        "pass": true
+      },
+      "3_cross_model": {
+        "value": 0.4617,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.002,
+        "pass": true
+      },
+      "K1": 1024
+    },
+    {
+      "1_coverage": {
+        "value": 0.3796,
+        "pass": false
+      },
+      "2_translation_confident": {
+        "value": 0.806,
+        "pass": true
+      },
+      "3_cross_model": {
+        "value": 0.3579,
+        "pass": false
+      },
+      "4_collapse_max": {
+        "value": 0.003,
+        "pass": true
+      },
+      "K1": 4096
+    }
+  ]
+}

@@ -181,22 +181,34 @@ Collapse is invisible in average agreement and should be reported separately.
 diversified per-language sample), against the pre-registered bar:
 
 <!-- table:gpu -->
-| Anchor | L1 cells | Coverage (≥ 60%) | Translation, confident (≥ 80%) | Cross-model (≥ 60%) | Worst collapse (≤ 5%) | Pass |
-|---|---|---|---|---|---|---|
-| multilingual-e5-small | 256 | 46.3% | 74.4% | 31.3% | 40.9% | 0/4 |
-| multilingual-e5-small | 1024 | 39.3% | 71.6% | 24.7% | 31.6% | 0/4 |
-| multilingual-e5-small | 4096 | 26.7% | 66.0% | 16.2% | 34.2% | 0/4 |
-| LaBSE | 256 | 69.4% | 83.5% | 40.1% | 0.2% | 3/4 |
-| LaBSE | 1024 | 55.2% | 83.9% | 29.3% | 0.1% | 2/4 |
-| LaBSE | 4096 | 46.9% | 78.4% | 17.7% | 0.4% | 1/4 |
-| bge-m3 | 256 | 67.2% | 88.0% | 50.2% | 0.1% | 3/4 |
-| bge-m3 | 1024 | 62.8% | 82.6% | 38.0% | 0.1% | 3/4 |
-| bge-m3 | 4096 | 54.5% | 78.6% | 25.3% | 0.2% | 1/4 |
+| Run | Anchor | Adapters | L1 cells | Coverage (≥ 60%) | Translation, confident (≥ 80%) | Cross-model (≥ 60%) | Worst collapse (≤ 5%) | Pass |
+|---|---|---|---|---|---|---|---|---|
+| 1 | multilingual-e5-small | linear | 256 | 46.3% | 74.4% | 31.3% | 40.9% | 0/4 |
+| 1 | multilingual-e5-small | linear | 1024 | 39.3% | 71.6% | 24.7% | 31.6% | 0/4 |
+| 1 | multilingual-e5-small | linear | 4096 | 26.7% | 66.0% | 16.2% | 34.2% | 0/4 |
+| 1 | LaBSE | linear | 256 | 69.4% | 83.5% | 40.1% | 0.2% | 3/4 |
+| 1 | LaBSE | linear | 1024 | 55.2% | 83.9% | 29.3% | 0.1% | 2/4 |
+| 1 | LaBSE | linear | 4096 | 46.9% | 78.4% | 17.7% | 0.4% | 1/4 |
+| 1 | bge-m3 | linear | 256 | 67.2% | 88.0% | 50.2% | 0.1% | 3/4 |
+| 1 | bge-m3 | linear | 1024 | 62.8% | 82.6% | 38.0% | 0.1% | 3/4 |
+| 1 | bge-m3 | linear | 4096 | 54.5% | 78.6% | 25.3% | 0.2% | 1/4 |
+| 2 | LaBSE (+ MASSIVE scatter) | MLP, 20k–40k pairs | 256 | 56.0% | 82.0% | 45.6% | 0.2% | 2/4 |
+| 2 | LaBSE (+ MASSIVE scatter) | MLP, 20k–40k pairs | 1024 | 47.0% | 77.6% | 35.0% | 0.3% | 1/4 |
+| 2 | LaBSE (+ MASSIVE scatter) | MLP, 20k–40k pairs | 4096 | 27.4% | 80.1% | 26.2% | 0.1% | 2/4 |
+| 2 | bge-m3 (+ MASSIVE scatter) | MLP, 40k pairs | 256 | 61.4% | 86.8% | 59.2% | 0.0% | 3/4 |
+| 2 | bge-m3 (+ MASSIVE scatter) | MLP, 40k pairs | 1024 | 52.9% | 82.2% | 46.2% | 0.2% | 2/4 |
+| 2 | bge-m3 (+ MASSIVE scatter) | MLP, 40k pairs | 4096 | 38.0% | 80.6% | 35.8% | 0.3% | 2/4 |
 <!-- /table -->
 
-Stronger anchors remove language collapse and lift confident translation agreement to 88.0%
-(bge-m3, 256 cells). Cross-model agreement does not follow: 50.2% at best, falling with each 4×
-refinement. **The gate fails**, as predicted.
+Run 1 (linear adapters): stronger anchors remove language collapse and lift confident translation
+agreement to 88.0% (bge-m3, 256 cells), but cross-model agreement peaks at 50.2%. Run 2, registered
+after the adapter study of §6, changed two things at once: nonlinear adapters and short parallel
+commands in the scatter (§5.4). bge-m3 at 256 cells then passes coverage (61.4%), translation
+(86.8%) and collapse (0.0%) and misses cross-model by 0.8 points (59.2%; per panel model 55.8–
+62.0%). We had predicted, from the CPU experiment of §5.4, that the extra scatter would cause
+language collapse; it did not with these anchors, so that prediction was wrong. **The gate fails
+in both runs.** Run 3 (one change: adapters trained on 120k instead of 40k pairs, motivated by the
+scaling curve in §6) was registered before it ran (Appendix C).
 
 **5.4 Can the space learn short text?** §7 shows that short informal commands agree across
 languages far less often than FLORES sentences. The canonical space decides what counts as "the
