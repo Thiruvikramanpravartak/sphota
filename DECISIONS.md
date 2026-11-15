@@ -746,3 +746,62 @@ reproduce at medium scale. Command pairs still add 14–17 points there.
 
 Until it passes, the positioning and the frozen v1 standard do not change. If it passes, the
 D-017 consequence applies: an RFC for space `s2`.
+
+## D-055 GPU run 4: confirmation on unused data + improvement sweep (pre-registered before any run)
+Run 3 passed narrowly on FLORES devtest, which three runs have now used (D-054). Run 4 asks whether
+the pass holds on data no run has seen. It is again one session that embeds once.
+
+**Part A — confirmation (the only gate tests).** Grid `confirm4`.
+* **Evaluation data, new:** NTREX-128 (newstest2019 English and human translations; CC BY-SA 4.0;
+  `davidstap/NTREX` pinned to revision fd20d54), all 12 languages, rows present in all 12. No file
+  in this repository used NTREX before. FLORES devtest is still computed, for continuity only.
+* **Commands, new:** MASSIVE *validation*, English, for the command claim. No gate run and no
+  adapter ever used it; the refinement study used it once (D-041, clustering, not codes). Disclosed.
+* **Two configurations, fixed now.** Both use the D-051 adapter: MLP h1024, 40 epochs, 120k
+  wiki/FLORES pairs plus 11,492 MASSIVE-train English commands. The 120k is a prefix of a fresh
+  400k sample, so the texts differ from run 3's.
+  **C2:** no MASSIVE scatter, 256 cells. **C1:** all-MASSIVE scatter (run 3's primary), 256 cells.
+* **Replicates:** three new ones, seeds 2, 3, 4, each re-drawing the k-means and the
+  adapter-training seed.
+* **Rule:** a configuration is **CONFIRMED** if all four D-017 criteria pass on NTREX on all three
+  replicates. If both are confirmed, C2 is the one an `s2` RFC would use (simpler, larger run-3
+  margins; fixed now). If neither is, run 3's pass is reported as **not replicated**, and the
+  positioning and v1 standard stay as they are.
+* **Command claim** (per configuration): command cross-model ≥ 60% on MASSIVE validation on all
+  three replicates.
+* **Reported, not decisive:** 95% CIs, FLORES numbers, and the second panel on NTREX.
+* **Predictions (before the run).** NTREX is news, longer and further from the Wikipedia fitting
+  corpus than FLORES. I expect cross-model 2–5 points below FLORES and coverage a few points
+  lower. **C1:** cross-model 57–60%, so it probably fails. **C2:** 60–63%, a borderline pass.
+  Command claim: met for C2, uncertain for C1.
+
+**Part C — improvement (exploratory; owner asked for more training data and > 256 cells).** Grid
+`improve4`, replicates 2 and 3, cells 256 / 512 / 1024, evaluated on NTREX and FLORES.
+* Space none: MLP adapters with 120k, 240k and 400k pairs (h1024), 400k h2048, and 400k h2048 with
+  commands in all 12 languages for multilingual models (`+cmdml`, second panel on that one).
+* Space massive_full: 400k h2048.
+
+Question: does more data or capacity reach the bar at 512 or 1024 cells? Run 3's best at 512 was
+59.4–60.2%. Nothing here is a gate result. Part C also uses NTREX, so any lead it finds needs a
+further unused evaluation set before it can be confirmed.
+Prediction: 400k pairs add 1–3 points over 120k; 512 cells passes for at least one config on both
+replicates; 1024 does not.
+
+## D-056 v1.3 adapters for the frozen s1 standard (pre-registered before training)
+The adapter study and run 3 both show MLP adapters still improve with data. **v1.3** is the v1.2
+recipe with more data: 400k wiki/FLORES pairs for every model (LaBSE uncapped), plus every
+MASSIVE-train command (English, 11,492, for every model; all 12 languages, about 138k, for
+multilingual models). Training runs on the Kaggle GPU, medium scale (part B of run 4, after part A).
+Size: h1024 as before, so the files are no bigger.
+**Decision basis:** a local CPU re-certification (`--certify-only --scale small`) of v1.3 against
+v1.2 on identical CPU fp32 embeddings of FLORES devtest and MASSIVE test, which is how users run
+it. GPU fp16 training embeddings differ slightly.
+**Rule:** v1.3 replaces v1.2 as the default if, averaged over the 7 models:
+(a) FLORES same-cell agreement (English) **or** command same-cell agreement (English) rises by
+≥ 2.0 points;
+(b) none of FLORES same-cell (English), FLORES same-cell (12 languages), command same-cell
+(English) or command region (English) falls by more than 1.0 point;
+(c) R@10 falls by ≤ 1.0 point, and no grade drops.
+Otherwise v1.2 stays the default (v1.3 opt-in if (a) holds; not shipped if (a) fails).
+**Prediction:** FLORES same-cell (English) +3 to +8 points; English commands +0 to +4 (the same
+English command pairs); 12-language commands up for multilingual models.

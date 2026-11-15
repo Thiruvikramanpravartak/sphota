@@ -346,11 +346,13 @@ def massive_parallel(scale: str, langs: list[str], anchor: str, split: str = "tr
     return {"ids": list(range(n)), "E": E}
 
 
-def massive_xling(sp, C: np.ndarray, scale: str, langs: list[str], anchor: str) -> dict:
-    """Held-out MASSIVE test commands: share in the same top-level cell as the English version."""
+def massive_xling(
+    sp, C: np.ndarray, scale: str, langs: list[str], anchor: str, split: str = "test"
+) -> dict:
+    """Held-out MASSIVE commands: share in the same top-level cell as the English version."""
     from sphota.build.domains import nearest
 
-    m = massive_parallel(scale, langs, anchor, split="test")
+    m = massive_parallel(scale, langs, anchor, split=split)
     cell = {lg: nearest(sp(m["E"][lg]), C) for lg in langs}
     per = {lg: round(float((cell[lg] == cell["en"]).mean()), 4) for lg in langs if lg != "en"}
     return {"mean": round(float(np.mean(list(per.values()))), 4), "per_lang": per}
@@ -506,12 +508,12 @@ def v2mini(
     }
 
 
-# ------------------------------------------------------------------ v3 sweep (D-050, D-051)
+# ------------------------------------------------------------------ v3 / v4 sweeps (D-050 – D-055)
 
 # Order matters (D-051): the pre-registered primary runs first, so a session that dies early
 # still produces the gate result.
 SWEEP_SPACES = ("massive_full", "massive800", "none")
-# (kind, wiki/FLORES pairs, hidden width, + MASSIVE-train English command pairs)
+# (kind, wiki/FLORES pairs, hidden width, command pairs: False | True (English) | "ml" (D-055))
 SWEEP_ADAPTERS = (
     ("mlp", 120000, 1024, True),  # primary adapter (D-051)
     ("mlp", 120000, 1024, False),  # D-050's original primary: no command pairs
@@ -530,28 +532,141 @@ EXTRA_PANEL = [
     "mixedbread-ai/mxbai-embed-large-v1",
 ]
 SWEEP_DIMS = (128, 384)  # exploratory meaning-space widths (frozen s1 uses 256)
-GRIDS = {
+_A120 = ("mlp", 120000, 1024, True)
+# run 4 (D-055): the two configurations confirmed on unused data; C2 is preferred if both pass
+C2 = {"name": "C2", "space": "none", "spec": list(_A120), "K1": 256, "D": 256}
+C1 = {"name": "C1", "space": "massive_full", "spec": list(_A120), "K1": 256, "D": 256}
+_V3 = {"seeds": (0, 1), "evals": ("flores",), "commands_split": "test", "prefix": "v3-sweep"}
+GRIDS: dict[str, dict] = {
     # the planned run 3: everything above
-    "full": {"spaces": SWEEP_SPACES, "adapters": SWEEP_ADAPTERS, "dims": SWEEP_DIMS, "extra": True},
+    "full": {
+        **_V3,
+        "spaces": SWEEP_SPACES,
+        "adapters": SWEEP_ADAPTERS,
+        "dims": SWEEP_DIMS,
+        "extra_on": [("massive_full", SWEEP_ADAPTERS[0])],
+        "primaries": [PRIMARY],
+        "gate": True,
+    },
     # a second anchor in the same session (exploratory): reuses every panel embedding
     "anchor2": {
+        **_V3,
         "spaces": ("massive_full", "none"),
-        "adapters": (
-            ("mlp", 120000, 1024, True),
-            ("mlp", 120000, 1024, False),
-            ("ridge", 40000, 0, False),
-        ),
+        "adapters": (_A120, ("mlp", 120000, 1024, False), ("ridge", 40000, 0, False)),
         "dims": (),
-        "extra": False,
+        "extra_on": [],
+        "primaries": [],
+        "gate": False,
     },
-    # GPU smoke test at tiny scale: every code path, a few minutes
+    # GPU smoke test of run 3 at tiny scale
     "smoke": {
+        **_V3,
         "spaces": ("massive_full",),
-        "adapters": (("mlp", 120000, 1024, True), ("ridge", 40000, 0, False)),
+        "adapters": (_A120, ("ridge", 40000, 0, False)),
         "dims": (128,),
-        "extra": True,
+        "extra_on": [("massive_full", _A120)],
+        "primaries": [],
+        "gate": False,
+    },
+    # run 4, part A (D-055): confirmation on data no run has used. NTREX-128 decides; FLORES is
+    # reported for continuity; commands on MASSIVE validation. Three fresh replicates.
+    "confirm4": {
+        "spaces": ("none", "massive_full"),
+        "adapters": (_A120,),
+        "dims": (),
+        "extra_on": [("none", _A120), ("massive_full", _A120)],
+        "seeds": (2, 3, 4),
+        "sizes": (256,),
+        "evals": ("ntrex", "flores"),
+        "commands_split": "validation",
+        "primaries": [C2, C1],
+        "gate": True,
+        "n_pool": 400000,
+        "prefix": "v4-confirm",
+    },
+    # run 4, part C (exploratory): more adapter data and capacity, 256 / 512 / 1024 cells
+    "improve4": {
+        "spaces": ("none", "massive_full"),
+        "adapters": {
+            "none": (
+                ("mlp", 400000, 2048, True),
+                ("mlp", 400000, 2048, "ml"),
+                ("mlp", 400000, 1024, True),
+                ("mlp", 240000, 1024, True),
+                _A120,
+            ),
+            "massive_full": (("mlp", 400000, 2048, True),),
+        },
+        "dims": (),
+        "extra_on": [("none", ("mlp", 400000, 2048, "ml"))],
+        "seeds": (2, 3),
+        "sizes": (256, 512, 1024),
+        "evals": ("ntrex", "flores"),
+        "commands_split": "validation",
+        "primaries": [],
+        "gate": False,
+        "n_pool": 400000,
+        "prefix": "v4-improve",
+    },
+    # GPU smoke test of run 4 at tiny scale: every new code path (NTREX, validation commands,
+    # multilingual command pairs, several primaries, second panel)
+    "smoke4": {
+        "spaces": ("none",),
+        "adapters": (_A120, ("mlp", 400000, 1024, "ml")),
+        "dims": (),
+        "extra_on": [("none", _A120)],
+        "seeds": (2, 3),
+        "sizes": (16,),
+        "evals": ("ntrex", "flores"),
+        "commands_split": "validation",
+        "primaries": [{"name": "S", "space": "none", "spec": list(_A120), "K1": 16, "D": 256}],
+        "gate": True,
+        "prefix": "v4-smoke",
     },
 }
+
+# NTREX-128 (CC BY-SA 4.0): newstest2019 English and human translations; never used before run 4
+NTREX_REPO = "davidstap/NTREX"
+NTREX_REVISION = "fd20d54141b6da952d5c68a2989472892489da0f"
+NTREX_CODES = {
+    "en": "eng_Latn/newstest2019-ref.eng",
+    "hi": "hin_Deva/newstest2019-ref.hin",
+    "ta": "tam_Taml/newstest2019-ref.tam",
+    "es": "spa_Latn/newstest2019-ref.spa",
+    "fr": "fra_Latn/newstest2019-ref.fra",
+    "de": "deu_Latn/newstest2019-ref.deu",
+    "zh": "zho_Hans/newstest2019-ref.zho",
+    "ar": "arb_Arab/newstest2019-ref.arb",
+    "ru": "rus_Cyrl/newstest2019-ref.rus",
+    "ja": "jpn_Jpan/newstest2019-ref.jpn",
+    "pt": "por_Latn/newstest2019-ref.por",
+    "bn": "ben_Beng/newstest2019-ref.ben",
+    "te": "tel_Telu/newstest2019-ref.tel",
+}
+
+
+def ntrex_texts(langs: list[str], scale: str) -> dict[str, list[str]]:
+    """NTREX-128 sentences aligned across ``langs`` (rows empty in any language dropped)."""
+    from huggingface_hub import hf_hub_download
+
+    from sphota.build.common import HF_CACHE
+
+    cols = {}
+    for lg in langs:
+        p = hf_hub_download(
+            NTREX_REPO,
+            f"data/{NTREX_CODES[lg]}.txt",
+            repo_type="dataset",
+            revision=NTREX_REVISION,
+            cache_dir=str(HF_CACHE),
+        )
+        with open(p, encoding="utf-8") as f:
+            cols[lg] = [line.strip() for line in f]
+    n = min(len(v) for v in cols.values())
+    keep = [i for i in range(n) if all(cols[lg][i] for lg in langs)]
+    if scale == "tiny":
+        keep = keep[:300]
+    return {lg: [cols[lg][i] for i in keep] for lg in langs}
 
 
 def _bootstrap_ci(agree: np.ndarray, n_boot: int = 1000, seed: int = 0) -> list[float]:
@@ -597,33 +712,50 @@ def _deadline_passed() -> bool:
     return bool(d) and time.time() > float(d)
 
 
+def _multilingual(model: str) -> bool:
+    from sphota.build.adapter_study import MODELS_ALL
+
+    return bool(MODELS_ALL.get(model, {}).get("multilingual", False))
+
+
 def v3sweep(
     scale: str,
     anchor: str = "BAAI/bge-m3",
     adapter_models: list[str] | None = None,
-    sizes: tuple[int, ...] = (256, 512, 1024),
-    seeds: tuple[int, ...] = (0, 1),
-    n_max: int = 120000,
+    sizes: tuple[int, ...] | None = None,
+    seeds: tuple[int, ...] | None = None,
+    n_max: int | None = None,
     grid: str = "full",
     extra_models: list[str] | None = None,
     out: Path | None = None,
 ) -> dict:
-    """One planned GPU run (D-050, amended by D-051 before any run): embed once, then evaluate
-    the gate for every combination of meaning-space scatter x adapter variant x cell count x
-    replicate. Replicate r uses k-means seed r AND adapter-training seed r, so the two replicates
-    are independent in both random parts. Only the pre-registered PRIMARY combination (grid
-    "full", the bge-m3 anchor) is a gate test; both replicates must pass all four criteria.
-    Everything else is exploratory. Results are written after every block."""
+    """One planned GPU run: embed once, then evaluate the gate for every combination of
+    meaning-space scatter x adapter variant x cell count x replicate (runs 3 and 4: D-050, D-051,
+    D-055). Replicate r uses k-means seed r AND adapter-training seed r. Only the grid's
+    pre-registered primaries are gate tests; each must pass all four criteria on every replicate,
+    judged on the grid's first evaluation set. Everything else is exploratory. Results are written
+    after every block."""
     from sphota.build.adapters import training_texts
-    from sphota.build.adapters_v11 import fit_mlp2
+    from sphota.build.adapters_v11 import command_texts, fit_mlp2
     from sphota.build.common import SCALES
     from sphota.build.release import SPLIT_MEANING, embeddings, load, tatoeba_split
     from sphota.certify import fit_adapter
 
     G = GRIDS[grid]
+    sizes = tuple(sizes or G.get("sizes") or (256, 512, 1024))
+    seeds = tuple(seeds or G["seeds"])
     t_start = time.time()
-    tag = "" if grid == "full" else f"-{grid}"
-    out = out or ROOT / "bench" / "results" / f"v3-sweep-{scale}-{embed.short(anchor)}{tag}.json"
+    tag = "" if grid in ("full", "confirm4", "improve4") else f"-{grid}"
+    out = (
+        out or ROOT / "bench" / "results" / f"{G['prefix']}-{scale}-{embed.short(anchor)}{tag}.json"
+    )
+    adapters_of = (
+        (lambda sp: G["adapters"].get(sp, ()))
+        if isinstance(G["adapters"], dict)
+        else (lambda sp: G["adapters"])
+    )
+    all_specs = [a for sp in G["spaces"] for a in adapters_of(sp)]
+    n_max = n_max or G.get("n_pool") or max(a[1] for a in all_specs)
     langs, dev, test, wiki, tat = load(scale)
     E = embeddings(scale, model=anchor)
     keep = diversify(wiki, E["wiki"], max_per_lang=SCALES[scale].get("max_per_lang", 8000))
@@ -643,62 +775,101 @@ def v3sweep(
             len(massive_groups), min(800, len(massive_groups)), replace=False
         )
     )
-    # cross-model agreement on short commands (D-051): MASSIVE test, English (held out; the
-    # anchor's vectors come from the same cache massive_xling uses)
-    mt = massive_parallel(scale, langs, anchor, split="test")
-    mt_en = massive_texts(langs, "test", scale)["en"]
-    # command pairs for adapter training (D-051): MASSIVE train, English, test texts excluded
+    # cross-model agreement on short commands (D-051): held-out MASSIVE (test in run 3,
+    # validation in run 4), English; same cache as massive_xling
+    csplit = G["commands_split"]
+    mt = massive_parallel(scale, langs, anchor, split=csplit)
+    mt_en = massive_texts(langs, csplit, scale)["en"]
+    # command pairs for adapter training: MASSIVE train (test texts excluded). True: English
+    # (D-051); "ml": English plus every other language for multilingual models (D-055)
     cmd_en = massive_texts(langs, "train", scale)["en"]
+    need_ml = any(a[3] == "ml" for a in all_specs)
+    cmd_ml = command_texts(scale, True, per_lang=None) if need_ml else []
     # adapter training pairs: one sample of n_max texts, embedded once per model; smaller training
-    # sizes are prefixes of one fixed permutation of it (so 40k is a subset of 80k of 120k)
+    # sizes are prefixes of one fixed permutation of it (so 120k is a subset of 240k of 400k)
     texts = training_texts(scale, n_max)
     perm = np.random.default_rng(0).permutation(len(texts))
     X_anchor_tr = embed.cached(anchor, f"adapter-train-{len(texts)}", texts, scale)
+    X_anchor_ml = (
+        embed.cached(anchor, f"cmd-train-ml-{len(cmd_ml)}", cmd_ml, scale) if need_ml else None
+    )
     panel = [m for m in (adapter_models or ADAPTER_MODELS) if m != anchor]
-    extra = [m for m in (extra_models or EXTRA_PANEL) if m != anchor] if G["extra"] else []
-    X_tr, X_te, X_mt, X_cmd = {}, {}, {}, {}
+    extra = [m for m in (extra_models or EXTRA_PANEL) if m != anchor] if G["extra_on"] else []
+    # evaluation sets: anchor vectors in every language, panel vectors of the English side
+    ev_anchor: dict[str, dict] = {"flores": {lg: E[("test", lg)] for lg in langs}}
+    ev_en: dict[str, list[str]] = {"flores": test["en"].tolist()}
+    if "ntrex" in G["evals"]:
+        nt = ntrex_texts(langs, scale)
+        n_nt = len(nt["en"])
+        ev_anchor["ntrex"] = {
+            lg: embed.cached(anchor, f"ntrex-{lg}-{n_nt}", nt[lg], scale) for lg in langs
+        }
+        ev_en["ntrex"] = nt["en"]
+    X_tr, X_ev, X_mt, X_cmd, X_ml = {}, {}, {}, {}, {}
     for m in panel + extra:
         X_cmd[m] = embed.cached(m, f"massive-train-en-{len(cmd_en)}", cmd_en, scale)
+        if need_ml and _multilingual(m):
+            X_ml[m] = embed.cached(m, f"cmd-train-ml-{len(cmd_ml)}", cmd_ml, scale)
         X_tr[m] = embed.cached(m, f"adapter-train-{len(texts)}", texts, scale)
-        X_te[m] = embed.cached(m, "flores_devtest_en", test["en"].tolist(), scale)
-        X_mt[m] = embed.cached(m, f"massive-test-en-{len(mt_en)}", mt_en, scale)
+        X_ev[m] = {
+            "flores": embed.cached(m, "flores_devtest_en", ev_en["flores"], scale),
+            **(
+                {"ntrex": embed.cached(m, f"ntrex-en-{len(ev_en['ntrex'])}", ev_en["ntrex"], scale)}
+                if "ntrex" in G["evals"]
+                else {}
+            ),
+        }
+        X_mt[m] = embed.cached(m, f"massive-{csplit}-en-{len(mt_en)}", mt_en, scale)
     log(
-        f"v3 sweep [{grid}]: embeddings ready ({time.time() - t_start:.0f}s); panel {len(panel)}"
+        f"sweep [{grid}]: embeddings ready ({time.time() - t_start:.0f}s); panel {len(panel)}"
         f" (+{len(extra)} extra) models, {len(texts)} adapter pairs, "
-        f"{len(massive_groups)} MASSIVE meanings"
+        f"{len(massive_groups)} MASSIVE meanings, eval {list(G['evals'])}"
     )
-    is_gate = grid == "full" and anchor == "BAAI/bge-m3" and 256 in sizes
+    is_gate = bool(G["gate"]) and (anchor == "BAAI/bge-m3" or grid.startswith("smoke"))
     res: dict = {
-        "design": "D-050 + D-051",
+        "design": "D-050 + D-051" if G["prefix"] == "v3-sweep" else "D-055",
         "grid": grid,
         "gate_test": is_gate,
         "anchor": anchor,
         "scale": scale,
-        "primary": PRIMARY if is_gate else None,
+        "primary": G["primaries"][0] if is_gate and len(G["primaries"]) == 1 else None,
+        "primaries": G["primaries"] if is_gate else [],
+        "decisive_eval": G["evals"][0],
+        "evals": list(G["evals"]),
+        "commands_split": csplit,
         "sizes": list(sizes),
         "seeds": list(seeds),
         "panel": panel,
         "extra_panel": extra,
         "n_adapter_pairs": len(texts),
         "n_command_pairs": len(cmd_en),
+        "n_command_pairs_ml": len(cmd_ml),
+        "n_eval": {k: len(v) for k, v in ev_en.items()},
         "massive_meanings": len(massive_groups),
         "provenance": _provenance([anchor, *panel, *extra]),
         "rows": [],
         "skipped": [],
     }
+    extra_on = {(sp, tuple(a)) for sp, a in G["extra_on"]}
 
     def aname(kind, n, h, cmd):
-        return f"{kind}-{min(n, len(texts))}" + (f"-h{h}" if h else "") + ("+cmd" if cmd else "")
+        return (
+            f"{kind}-{min(n, len(texts))}"
+            + (f"-h{h}" if h else "")
+            + {False: "", True: "+cmd", "ml": "+cmdml"}[cmd]
+        )
 
-    def fit(kind, m, idx, h, cmd, seed, Ytr, Ycmd):
+    def fit(kind, m, idx, h, cmd, seed, Ytr, Ycmd, Yml):
         X, Y = X_tr[m][idx], Ytr[idx]
-        if cmd:
+        if cmd == "ml" and m in X_ml:
+            X, Y = np.concatenate([X, X_ml[m]]), np.concatenate([Y, Yml])
+        elif cmd:
             X, Y = np.concatenate([X, X_cmd[m]]), np.concatenate([Y, Ycmd])
         if kind == "mlp":
             return fit_mlp2(m, X, Y, hidden=h, seed=seed)
         return fit_adapter(m, X, Y)
 
-    def evaluate(space_name, D, sp, adapters_spec, ks, models_extra):
+    def evaluate(space_name, D, sp, adapters_spec, ks):
         Yc = sp(corpus)
         Ya = np.concatenate(
             [sp(E[("dev", "en")][cal_ids])] * (len(langs) - 1) + [sp(E["tat_en"][ca])]
@@ -706,10 +877,11 @@ def v3sweep(
         Yb = np.concatenate(
             [sp(E[("dev", lg)][cal_ids]) for lg in langs[1:]] + [sp(E["tat_x"][ca])]
         )
-        Ytest = {lg: sp(E[("test", lg)]) for lg in langs}
+        Ytest = {ev: {lg: sp(v) for lg, v in d.items()} for ev, d in ev_anchor.items()}
         Ytr = sp(X_anchor_tr)
         Ymt = sp(mt["E"]["en"])
         Ycmd = sp(mp["E"]["en"])
+        Yml = sp(X_anchor_ml) if X_anchor_ml is not None else None
         cells = {}
         for k in ks:
             for seed in seeds:
@@ -718,7 +890,7 @@ def v3sweep(
                 cells[(k, seed)] = (
                     C,
                     T,
-                    massive_xling(sp, C, scale, langs, anchor),
+                    massive_xling(sp, C, scale, langs, anchor, split=csplit),
                     assign(Yc, C, T)[0],
                 )
         log(f"space {space_name} D={D}: fitted, k-means done ({time.time() - t_start:.0f}s)")
@@ -730,59 +902,73 @@ def v3sweep(
                 continue
             idx = np.sort(perm[:n])
             ridge_cache: dict = {}
+            with_extra = (space_name, tuple(spec)) in extra_on and D == 256
             for seed in seeds:
                 ad = {}
-                for m in panel + (models_extra if spec == SWEEP_ADAPTERS[0] else []):
+                for m in panel + (extra if with_extra else []):
                     if kind == "ridge":  # deterministic: fit once, reuse for every replicate
                         if m not in ridge_cache:
-                            ridge_cache[m] = fit(kind, m, idx, h, cmd, 0, Ytr, Ycmd)
+                            ridge_cache[m] = fit(kind, m, idx, h, cmd, 0, Ytr, Ycmd, Yml)
                         ad[m] = ridge_cache[m]
                     else:
-                        ad[m] = fit(kind, m, idx, h, cmd, seed, Ytr, Ycmd)
+                        ad[m] = fit(kind, m, idx, h, cmd, seed, Ytr, Ycmd, Yml)
                 for k in ks:
                     C, T, xl, trc = cells[(k, seed)]
-                    Yad = {m: ad[m](X_te[m]) for m in panel}
-                    met = gate_metrics(C, T, Ytest, Yc, corpus_langs, Yad, tr_cells=trc)
-                    v = verdict(met)
-                    en_i = assign(Ytest["en"], C, T)[0]
-                    agree = np.stack([assign(Yad[m], C, T)[0] == en_i for m in panel])
                     mt_i = assign(Ymt, C, T)[0]
                     mt_agree = {
                         m: float((assign(ad[m](X_mt[m]), C, T)[0] == mt_i).mean()) for m in ad
                     }
+                    evs = {}
+                    for ev in G["evals"]:
+                        Yad = {m: ad[m](X_ev[m][ev]) for m in panel}
+                        met = gate_metrics(C, T, Ytest[ev], Yc, corpus_langs, Yad, tr_cells=trc)
+                        v = verdict(met)
+                        en_i = assign(Ytest[ev]["en"], C, T)[0]
+                        agree = np.stack([assign(Yad[m], C, T)[0] == en_i for m in panel])
+                        e = {
+                            "coverage": met["coverage"],
+                            "translation_confident": met["translation_confident"],
+                            "cross_model": met["cross_model"],
+                            "cross_model_ci95": _bootstrap_ci(agree),
+                            "cross_model_per_model": met["cross_model_per_model"],
+                            "collapse_max": met["collapse_max"],
+                            "collapse_worst_lang": met["collapse_worst_lang"],
+                            "verdict": {
+                                k2: {"value": x[0], "pass": bool(x[1])} for k2, x in v.items()
+                            },
+                        }
+                        e["passes"] = sum(x["pass"] for x in e["verdict"].values())
+                        xm_extra = [m for m in ad if m not in panel]
+                        if xm_extra:
+                            per = {
+                                m.split("/")[-1]: round(
+                                    float((assign(ad[m](X_ev[m][ev]), C, T)[0] == en_i).mean()), 4
+                                )
+                                for m in xm_extra
+                            }
+                            e["cross_model_extra"] = round(float(np.mean(list(per.values()))), 4)
+                            e["cross_model_extra_per_model"] = per
+                        evs[ev] = e
                     row = {
                         "space": space_name,
                         "D": D,
                         "adapter": aname(*spec),
+                        "spec": list(spec),
                         "K1": k,
                         "seed": seed,
-                        "coverage": met["coverage"],
-                        "translation_confident": met["translation_confident"],
-                        "cross_model": met["cross_model"],
-                        "cross_model_ci95": _bootstrap_ci(agree),
-                        "cross_model_per_model": met["cross_model_per_model"],
+                        **evs[G["evals"][0]],  # the decisive evaluation set at top level
                         "cross_model_commands": round(
                             float(np.mean([mt_agree[m] for m in panel])), 4
                         ),
-                        "collapse_max": met["collapse_max"],
-                        "collapse_worst_lang": met["collapse_worst_lang"],
                         "massive_same_cell": xl["mean"],
-                        "verdict": {k2: {"value": x[0], "pass": bool(x[1])} for k2, x in v.items()},
                     }
+                    if len(evs) > 1:
+                        row["evals"] = evs
                     xm_extra = [m for m in ad if m not in panel]
                     if xm_extra:
-                        per = {
-                            m.split("/")[-1]: round(
-                                float((assign(ad[m](X_te[m]), C, T)[0] == en_i).mean()), 4
-                            )
-                            for m in xm_extra
-                        }
-                        row["cross_model_extra"] = round(float(np.mean(list(per.values()))), 4)
-                        row["cross_model_extra_per_model"] = per
                         row["cross_model_extra_commands"] = round(
                             float(np.mean([mt_agree[m] for m in xm_extra])), 4
                         )
-                    row["passes"] = sum(x["pass"] for x in row["verdict"].values())
                     res["rows"].append(row)
             log(f"  {space_name} D={D} / {aname(*spec)}: done ({time.time() - t_start:.0f}s)")
             out.write_text(json.dumps(res, indent=1), encoding="utf-8")  # partial results
@@ -800,92 +986,122 @@ def v3sweep(
             res["skipped"].append(space_name)
             continue
         sp = fit_space(corpus, space_groups(space_name), D=256, P=384, reg=0.05)
-        evaluate(
-            space_name, 256, sp, G["adapters"], sizes, extra if space_name == "massive_full" else []
-        )
-    # exploratory widths: primary space + primary adapter, 256 cells only
+        evaluate(space_name, 256, sp, adapters_of(space_name), sizes)
+    # exploratory widths: primary space + primary adapter, first cell count only
     for D in G["dims"]:
         if _deadline_passed():
             res["skipped"].append(f"D{D}")
             continue
         sp = fit_space(corpus, space_groups("massive_full"), D=D, P=max(384, D * 3 // 2), reg=0.05)
-        evaluate("massive_full", D, sp, G["adapters"][:1], tuple(k for k in sizes[:1]), [])
+        evaluate("massive_full", D, sp, adapters_of("massive_full")[:1], sizes[:1])
     summarize_sweep(res)
     res["seconds"] = round(time.time() - t_start)
     out.write_text(json.dumps(res, indent=1), encoding="utf-8")
     return res
 
 
-def summarize_sweep(res: dict) -> None:
-    """Primary verdict (gate test only) and exploratory leads, in place."""
-    seeds = res["seeds"]
-    if res.get("gate_test"):
-        P = res["primary"]
-        prim = [
-            r
-            for r in res["rows"]
-            if r["space"] == P["space"]
-            and r["adapter"] == P["adapter"]
-            and r["K1"] == P["K1"]
-            and r["D"] == P["D"]
-        ]
-        res["primary_rows"] = prim
-        res["primary_gate"] = (
+def _matches(r: dict, P: dict) -> bool:
+    if (r["space"], r["K1"], r["D"]) != (P["space"], P["K1"], P["D"]):
+        return False
+    return r.get("spec") == P["spec"] if "spec" in P else r["adapter"] == P["adapter"]
+
+
+def _gate_status(rows: list[dict], n_seeds: int) -> str:
+    n_pass = sum(r["passes"] == 4 for r in rows)
+    if not rows:
+        return "NOT RUN"
+    if len(rows) == n_seeds and n_pass == n_seeds:
+        return (
             "PASS (confirmed by both replicates)"
-            if len(prim) == len(seeds) and all(r["passes"] == 4 for r in prim)
-            else "PASS on one replicate only (not confirmed)"
-            if any(r["passes"] == 4 for r in prim)
-            else "FAIL"
-            if prim
-            else "NOT RUN"
+            if n_seeds == 2
+            else (f"PASS (confirmed by all {n_seeds} replicates)")
+        )
+    if n_pass:
+        return f"PASS on {n_pass} of {n_seeds} replicates only (not confirmed)"
+    return "FAIL"
+
+
+def summarize_sweep(res: dict) -> None:
+    """Verdict of each pre-registered primary (gate tests only) and exploratory leads, in place."""
+    seeds = res["seeds"]
+    prims = res.get("primaries") or ([res["primary"]] if res.get("primary") else [])
+    if res.get("gate_test") and prims:
+        res["primary_results"] = []
+        for P in prims:
+            rows = [r for r in res["rows"] if _matches(r, P)]
+            res["primary_results"].append(
+                {
+                    "config": P,
+                    "gate": _gate_status(rows, len(seeds)),
+                    "command_claim": bool(rows)
+                    and len(rows) == len(seeds)
+                    and all(r["cross_model_commands"] >= 0.60 for r in rows),
+                    "rows": rows,
+                }
+            )
+        res["primary_rows"] = [r for pr in res["primary_results"] for r in pr["rows"]]
+        res["primary_gate"] = (
+            res["primary_results"][0]["gate"]
+            if len(prims) == 1
+            else "; ".join(f"{pr['config']['name']}: {pr['gate']}" for pr in res["primary_results"])
         )
     else:
         res["primary_rows"], res["primary_gate"] = [], "not a gate test (exploratory grid)"
     combos: dict[tuple, list[int]] = collections.defaultdict(list)
     for r in res["rows"]:
         combos[(r["space"], r["D"], r["adapter"], r["K1"])].append(r["passes"])
-    prim_key = (
-        tuple(res["primary"][x] for x in ("space", "D", "adapter", "K1"))
-        if res.get("primary")
-        else None
-    )
-    res["exploratory_confirmed"] = [  # all four criteria on every replicate; not the primary
+    prim_keys = {(r["space"], r["D"], r["adapter"], r["K1"]) for r in res.get("primary_rows", [])}
+    res["exploratory_confirmed"] = [  # all four criteria on every replicate; not a primary
         {"space": c[0], "D": c[1], "adapter": c[2], "K1": c[3]}
         for c, p in combos.items()
-        if len(p) == len(seeds) and all(x == 4 for x in p) and c != prim_key and c[3] >= 256
+        if len(p) == len(seeds) and all(x == 4 for x in p) and c not in prim_keys and c[3] >= 256
     ]
 
 
 def print_sweep(res: dict) -> None:
     pct = lambda x: f"{100 * x:5.1f}%"
+    second = [e for e in res.get("evals", []) if e != res.get("decisive_eval", "flores")]
     print(
-        f"\nv3 sweep ({res['anchor']}, {res['scale']}, grid {res['grid']}): "
-        f"{len(res['rows'])} gate evaluations, {res.get('seconds', 0) // 60} min"
+        f"\nsweep ({res['anchor']}, {res['scale']}, grid {res['grid']}): "
+        f"{len(res['rows'])} gate evaluations, {res.get('seconds', 0) // 60} min; decisive "
+        f"evaluation: {res.get('decisive_eval', 'flores')}"
     )
     print(
-        "space         D    adapter            K1    rep  coverage translat cross-mdl [95% CI]"
-        "       cmd-xm  collapse MASSIVE  pass"
+        "space         D    adapter               K1    rep  coverage translat cross-mdl [95% CI]"
+        "       cmd-xm  collapse MASSIVE  pass" + "".join(f"  {e}-xm/pass" for e in second)
     )
     for r in res["rows"]:
         star = " <- PRIMARY" if r in res.get("primary_rows", []) else ""
         lo, hi = r["cross_model_ci95"]
+        sec = "".join(
+            f"  {pct(r['evals'][e]['cross_model'])} {r['evals'][e]['passes']}/4"
+            for e in second
+            if "evals" in r
+        )
         print(
-            f"{r['space']:<13} {r['D']:<4} {r['adapter']:<18} {r['K1']:<5} {r['seed']:<4} "
+            f"{r['space']:<13} {r['D']:<4} {r['adapter']:<21} {r['K1']:<5} {r['seed']:<4} "
             f"{pct(r['coverage'])}   {pct(r['translation_confident'])}   "
             f"{pct(r['cross_model'])} [{pct(lo)}-{pct(hi)}]  {pct(r['cross_model_commands'])}  "
-            f"{pct(r['collapse_max'])}  {pct(r['massive_same_cell'])}  {r['passes']}/4{star}"
+            f"{pct(r['collapse_max'])}  {pct(r['massive_same_cell'])}  {r['passes']}/4{sec}{star}"
         )
-    ex = [r for r in res["rows"] if "cross_model_extra" in r]
-    for r in ex:
+    for r in res["rows"]:
+        if "cross_model_extra" in r:
+            print(
+                f"second panel ({r['space']}, {r['adapter']}, K1={r['K1']}, rep {r['seed']}): "
+                f"cross-model {pct(r['cross_model_extra'])} {r['cross_model_extra_per_model']}"
+            )
+    for pr in res.get("primary_results", []):
+        name = pr["config"].get("name", "PRIMARY")
         print(
-            f"second panel ({r['space']}, {r['adapter']}, K1={r['K1']}, rep {r['seed']}): "
-            f"cross-model {pct(r['cross_model_extra'])} {r['cross_model_extra_per_model']}"
+            f"\nPRIMARY {name} ({pr['config']['space']}, {pr['config'].get('adapter') or pr['config']['spec']}, "
+            f"K1={pr['config']['K1']}): {pr['gate']}; short-command claim (>= 60% on every "
+            f"replicate): {'MET' if pr['command_claim'] else 'not met'}"
         )
-    print(f"\nPRIMARY (D-050/D-051): {res['primary_gate']}")
+    print(f"\nPRIMARY ({res.get('design', '')}): {res['primary_gate']}")
     if res.get("exploratory_confirmed"):
         print(
             "exploratory combinations passing all four on every replicate at >= 256 cells "
-            f"(leads for a new pre-registered run, not gate results): {res['exploratory_confirmed']}"
+            f"(leads, not gate results): {res['exploratory_confirmed']}"
         )
     if res.get("skipped"):
         print(f"skipped for time: {res['skipped']}")
@@ -923,9 +1139,9 @@ def main() -> None:
     ap.add_argument("--extra-models", nargs="*", default=None, help="v3sweep second panel")
     ap.add_argument("--scale", default="small")
     ap.add_argument("--anchor", default=ANCHOR)
-    ap.add_argument("--sizes", type=int, nargs="*", default=[32, 64])
+    ap.add_argument("--sizes", type=int, nargs="*", default=None)
     ap.add_argument("--adapter-models", nargs="*", default=None)
-    ap.add_argument("--n-adapter", type=int, default=40000)
+    ap.add_argument("--n-adapter", type=int, default=None)
     ap.add_argument("--out", default=None)
     ap.add_argument("--adapter-kind", choices=["ridge", "mlp"], default="ridge")
     ap.add_argument("--extra-parallel", choices=["massive"], default=None)
@@ -934,6 +1150,9 @@ def main() -> None:
         "--extra-n", type=int, default=None, help="cap on extra parallel meanings (D-043)"
     )
     a = ap.parse_args()
+    if a.cmd in ("v2mini", "sweep", "anchors"):  # pre-run-3 defaults
+        a.sizes = a.sizes or [32, 64]
+        a.n_adapter = a.n_adapter or 40000
     if a.cmd == "sweep":
         res = sweep(a.scale)
         (ROOT / "bench" / "results" / "l1-sweep.json").write_text(
@@ -946,7 +1165,10 @@ def main() -> None:
         )
     elif a.cmd == "v3summary":  # notebook-safe: runs in a fresh process after the editable install
         files = [Path(f) for f in a.files] or sorted(
-            (ROOT / "bench" / "results").glob(f"v3-sweep-{a.scale}-*.json")
+            [
+                *(ROOT / "bench" / "results").glob(f"v3-sweep-{a.scale}-*.json"),
+                *(ROOT / "bench" / "results").glob(f"v4-*-{a.scale}-*.json"),
+            ]
         )
         for f in files:
             res = json.loads(f.read_text(encoding="utf-8"))
@@ -960,7 +1182,7 @@ def main() -> None:
             a.scale,
             anchor=a.anchor,
             adapter_models=a.adapter_models,
-            sizes=tuple(a.sizes),
+            sizes=tuple(a.sizes) if a.sizes else None,
             n_max=a.n_adapter,
             grid=a.grid,
             extra_models=a.extra_models,
